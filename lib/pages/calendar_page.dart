@@ -64,6 +64,18 @@ class _CalendarState extends State<Calendar> {
                 ),
               ),
             ),
+
+            const Padding(
+              padding: EdgeInsets.only(left: 25.0),
+              child: ListTile(
+                leading: Icon(
+                  Icons.access_alarm,
+                ),
+                title: Text(
+                  'Horario',
+                ),
+              ),
+            ),
           ],
         ),
       ),

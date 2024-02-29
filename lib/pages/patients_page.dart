@@ -8,7 +8,7 @@ class Patients extends StatefulWidget {
 }
 
 class _PatientsState extends State<Patients> {
-  List<DataPatients> _patients = [
+  final List<DataPatients> _allPatients = [
     DataPatients(
         id: "1",
         name: "Manuel",
@@ -21,7 +21,18 @@ class _PatientsState extends State<Patients> {
         lastname: "Jarquin",
         phone: "+52 951 983 2881",
         symptoms: "Mucha alergia"),
+    // Add more patients as needed
   ];
+
+  List<DataPatients> _filteredPatients = [];
+
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    _filteredPatients.addAll(_allPatients);
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,11 +46,20 @@ class _PatientsState extends State<Patients> {
               color: Colors.grey[100],
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Buscar Paciente'),
-                Icon(Icons.search),
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: _onSearchTextChanged,
+                    decoration: const InputDecoration(
+                      hintText: 'Buscar Paciente',
+                      border: InputBorder.none,
+                    ),
+                  ),
+                ),
+                const Icon(Icons.search),
               ],
             ),
           ),
@@ -47,17 +67,18 @@ class _PatientsState extends State<Patients> {
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 25),
               child: ListView.builder(
-                itemCount: _patients.length,
+                itemCount: _filteredPatients.length,
                 itemBuilder: (context, index) {
                   return ListTile(
                     onTap: () {
-                      _viewPatient(context, _patients[index]);
+                      _viewPatient(context, _filteredPatients[index]);
                     },
                     title: Text(
-                        "${_patients[index].name} ${_patients[index].lastname}"),
-                    subtitle: Text(_patients[index].phone),
+                        "${_filteredPatients[index].name} ${_filteredPatients[index].lastname}"),
+                    subtitle: Text(_filteredPatients[index].phone),
                     leading: CircleAvatar(
-                      child: Text(_patients[index].name.substring(0, 2)),
+                      child:
+                          Text(_filteredPatients[index].name.substring(0, 2)),
                     ),
                     trailing: const Icon(Icons.arrow_forward_ios),
                   );
@@ -68,6 +89,18 @@ class _PatientsState extends State<Patients> {
         ],
       ),
     );
+  }
+
+  _onSearchTextChanged(String text) {
+    _filteredPatients.clear();
+    if (text.isEmpty) {
+      _filteredPatients.addAll(_allPatients);
+    } else {
+      _filteredPatients.addAll(_allPatients.where((patient) =>
+          patient.name.toLowerCase().contains(text.toLowerCase()) ||
+          patient.lastname.toLowerCase().contains(text.toLowerCase())));
+    }
+    setState(() {});
   }
 
   _viewPatient(context, patient) {
@@ -90,10 +123,11 @@ class DataPatients {
   String phone;
   String symptoms;
 
-  DataPatients(
-      {required this.id,
-      required this.name,
-      required this.lastname,
-      required this.phone,
-      required this.symptoms});
+  DataPatients({
+    required this.id,
+    required this.name,
+    required this.lastname,
+    required this.phone,
+    required this.symptoms,
+  });
 }

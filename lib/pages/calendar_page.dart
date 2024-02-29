@@ -8,7 +8,6 @@ class Calendar extends StatefulWidget {
 }
 
 class _CalendarState extends State<Calendar> {
-  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,6 +27,7 @@ class _CalendarState extends State<Calendar> {
       ),
       drawer: Drawer(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             //logo
             DrawerHeader(
@@ -73,6 +73,18 @@ class _CalendarState extends State<Calendar> {
                 ),
                 title: Text(
                   'Horario',
+                ),
+              ),
+            ),
+            const Spacer(),
+            const Padding(
+              padding: EdgeInsets.only(left: 25.0, bottom: 25),
+              child: ListTile(
+                leading: Icon(
+                  Icons.logout,
+                ),
+                title: Text(
+                  'Cerrar Sesión',
                 ),
               ),
             ),

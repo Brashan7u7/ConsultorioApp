@@ -1,32 +1,57 @@
-import 'package:calendario_manik/pages/add_page.dart';
+import 'package:flutter/material.dart';
 import 'package:calendario_manik/pages/calendar_page.dart';
 import 'package:calendario_manik/pages/patients_page.dart';
-import 'package:flutter/material.dart';
+import 'package:calendario_manik/pages/add_page.dart';
 
 class BottomNavBar extends StatefulWidget {
-  const BottomNavBar({super.key});
+  const BottomNavBar({Key? key}) : super(key: key);
 
   @override
   State<BottomNavBar> createState() => _BottomNavBarState();
 }
 
 class _BottomNavBarState extends State<BottomNavBar> {
-  //esto realiza un seguimiento de la página actual para mostrar
   int _selectedIndex = 0;
-  //este método actualiza el nuevo índice seleccionado
+
   void _navigateBottomBar(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    if (index == 1) {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder: (BuildContext context) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.access_time),
+                title: const Text('Cita Rápida'),
+                onTap: () {
+                  // Acción para Cita Rápida
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.calendar_today),
+                title:  const Text('Cita Programada'),
+                onTap: () {
+                  // Acción para Cita Programada
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      setState(() {
+        _selectedIndex = index;
+      });
+    }
   }
 
-  //paginas que tenemos en nuestra app
   final List _pages = [
-        //pagina agregar
-    const Add(),
-    //pagina calendario
     const Calendar(),
-    //pagina pacientes
+    const Add(),
     const Patients(),
   ];
 
@@ -40,17 +65,14 @@ class _BottomNavBarState extends State<BottomNavBar> {
         onTap: _navigateBottomBar,
         fixedColor: Colors.green,
         items: const [
-                    //ADD
-          BottomNavigationBarItem(
-            icon: Icon(Icons.add_circle_outline),
-            label: 'Añadir',
-          ),
-          //CALENDAR
           BottomNavigationBarItem(
             icon: Icon(Icons.calendar_month),
             label: 'Calendario',
           ),
-          //PATIENTS
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add),
+            label: 'Agendar',
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
             label: 'Pacientes',

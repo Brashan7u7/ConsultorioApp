@@ -1,95 +1,48 @@
 import 'package:flutter/material.dart';
+import 'package:calendario_manik/components/sidebart.dart';
+import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 class Calendar extends StatefulWidget {
-  const Calendar({super.key});
+  const Calendar({Key? key}) : super(key: key);
 
   @override
   State<Calendar> createState() => _CalendarState();
 }
 
 class _CalendarState extends State<Calendar> {
+  final CalendarController _calendarController = CalendarController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         leading: Builder(
           builder: (context) => IconButton(
-              icon: const Padding(
-                padding: EdgeInsets.only(left: 8.0),
-                child: Icon(
-                  Icons.menu,
-                ),
+            icon: const Padding(
+              padding: EdgeInsets.only(left: 8.0),
+              child: Icon(
+                Icons.menu,
               ),
-              onPressed: () {
-                Scaffold.of(context).openDrawer();
-              }),
+            ),
+            onPressed: () {
+              Scaffold.of(context).openDrawer();
+            },
+          ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.calendar_today),
+            onPressed: () {
+              DateTime currenDate = DateTime.now();
+              _calendarController.displayDate = currenDate;
+            },
+          ),
+        ],
       ),
-      drawer: Drawer(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            //logo
-            DrawerHeader(
-              child: Image.asset('lib/images/usuario.png'),
-            ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 25.0),
-              child: Divider(
-                color: Colors.red,
-              ),
-            ),
-
-            //otras paginas
-            const Padding(
-              padding: EdgeInsets.only(left: 25.0),
-              child: ListTile(
-                leading: Icon(
-                  Icons.article,
-                ),
-                title: Text(
-                  'Citas de hoy',
-                ),
-              ),
-            ),
-
-            const Padding(
-              padding: EdgeInsets.only(left: 25.0),
-              child: ListTile(
-                leading: Icon(
-                  Icons.announcement,
-                ),
-                title: Text(
-                  'Pacientes esperando',
-                ),
-              ),
-            ),
-
-            const Padding(
-              padding: EdgeInsets.only(left: 25.0),
-              child: ListTile(
-                leading: Icon(
-                  Icons.access_alarm,
-                ),
-                title: Text(
-                  'Horario',
-                ),
-              ),
-            ),
-            const Spacer(),
-            const Padding(
-              padding: EdgeInsets.only(left: 25.0, bottom: 25),
-              child: ListTile(
-                leading: Icon(
-                  Icons.logout,
-                ),
-                title: Text(
-                  'Cerrar Sesión',
-                ),
-              ),
-            ),
-          ],
-        ),
+      drawer: Sidebar(),
+      body: SfCalendar(
+        controller: _calendarController,
+        view: CalendarView.day,
       ),
     );
   }

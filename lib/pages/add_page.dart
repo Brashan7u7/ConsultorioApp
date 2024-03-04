@@ -6,7 +6,9 @@ class Add extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("add page")),
+      appBar: AppBar(
+        title: Text("add page"),
+      ),
     );
   }
 }

@@ -14,12 +14,20 @@ class _LoginState extends State<Login> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
+      body: SingleChildScrollView(
         padding: EdgeInsets.all(20.0),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              /*Text(
+                'Login',
+                style: TextStyle(
+                    height: 4, fontSize: 50, fontWeight: FontWeight.bold),
+              ),*/
+              Image.asset('lib/images/usuario.png',
+                  width: 200, height: 200, fit: BoxFit.fill),
+              SizedBox(height: 50),
               TextField(
                 decoration: InputDecoration(
                   labelText: 'Email',
@@ -30,7 +38,6 @@ class _LoginState extends State<Login> {
                 onChanged: (value) {},
               ),
               SizedBox(height: 20),
-
               TextField(
                 decoration: InputDecoration(
                   labelText: 'Contraseña',
@@ -38,7 +45,7 @@ class _LoginState extends State<Login> {
                   prefixIcon: Icon(Icons.lock),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscureText ? Icons.visibility : Icons.visibility_off,
+                      _obscureText ? Icons.visibility_off : Icons.visibility,
                     ),
                     onPressed: () {
                       setState(() {
@@ -51,12 +58,10 @@ class _LoginState extends State<Login> {
                 onChanged: (value) {},
               ),
               SizedBox(height: 10),
-
-            
               Container(
                 margin: EdgeInsets.symmetric(vertical: 5),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     Checkbox(
                       value: _recordarContrasena,
@@ -70,28 +75,26 @@ class _LoginState extends State<Login> {
                   ],
                 ),
               ),
-
-              
               Container(
                 margin: EdgeInsets.symmetric(vertical: 5),
                 child: TextButton(
-                  onPressed: () {
-                    
-                  },
+                  onPressed: () {},
                   child: Text('¿Olvidaste tu Contraseña?'),
                 ),
               ),
-
-              SizedBox(height: 30),
-
-            
+              Container(
+                margin: EdgeInsets.symmetric(vertical: 5),
+                child: TextButton(
+                  onPressed: () {},
+                  child: Text('Registrate'),
+                ),
+              ),
+              
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                  padding: EdgeInsets.symmetric(horizontal: 50, vertical: 5),
                 ),
-                onPressed: () {
-                
-                },
+                onPressed: () {},
                 child: Text('INICIAR SESIÓN'),
               ),
             ],

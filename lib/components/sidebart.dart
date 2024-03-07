@@ -10,9 +10,10 @@ class Sidebar extends StatelessWidget {
           // logo
           DrawerHeader(
             child: Image.asset('lib/images/usuario.png'),
+            padding: EdgeInsets.symmetric(horizontal: 80),
           ),
           const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 25.0),
+            padding: EdgeInsets.symmetric(horizontal: 50.0),
             child: Divider(
               color: Colors.red,
             ),
@@ -28,6 +29,7 @@ class Sidebar extends StatelessWidget {
               title: Text(
                 'Citas de hoy',
               ),
+              
             ),
           ),
 

@@ -12,6 +12,7 @@ class BottomNavBar extends StatefulWidget {
 
 class _BottomNavBarState extends State<BottomNavBar> {
   int _selectedIndex = 0;
+  String? selectedCitaType;
 
   void _navigateBottomBar(int index) {
     if (index == 1) {
@@ -26,7 +27,9 @@ class _BottomNavBarState extends State<BottomNavBar> {
                 leading: const Icon(Icons.access_time),
                 title: const Text('Cita Rápida'),
                 onTap: () {
-                  // Acción para Cita Rápida
+                  setState(() {
+                    selectedCitaType = 'Cita Rápida';
+                  });
                   Navigator.pop(context);
                 },
               ),
@@ -34,7 +37,9 @@ class _BottomNavBarState extends State<BottomNavBar> {
                 leading: const Icon(Icons.calendar_today),
                 title:  const Text('Cita Programada'),
                 onTap: () {
-                  // Acción para Cita Programada
+                  setState(() {
+                    selectedCitaType = 'Cita Programada';
+                  });
                   Navigator.pop(context);
                 },
               ),

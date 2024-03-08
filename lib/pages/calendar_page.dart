@@ -33,8 +33,14 @@ class _CalendarState extends State<Calendar> {
           IconButton(
             icon: const Icon(Icons.calendar_today),
             onPressed: () {
-              DateTime currenDate = DateTime.now();
-              _calendarController.displayDate = currenDate;
+              DateTime currentDate = DateTime.now();
+              _calendarController.displayDate = currentDate;
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.calendar_month),
+            onPressed: () {
+              _showMonthlyCalendar(context);
             },
           ),
         ],
@@ -44,6 +50,20 @@ class _CalendarState extends State<Calendar> {
         controller: _calendarController,
         view: CalendarView.day,
       ),
+    );
+  }
+
+  void _showMonthlyCalendar(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext builder) {
+        return Container(
+          height: 400, // Ajusta la altura según tus necesidades
+          child: SfCalendar(
+            view: CalendarView.month,
+          ),
+        );
+      },
     );
   }
 }

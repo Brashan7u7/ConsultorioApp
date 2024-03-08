@@ -25,7 +25,6 @@ class _PatientsState extends State<Patients> {
   ];
 
   List<DataPatients> _filteredPatients = [];
-
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -79,8 +78,25 @@ class _PatientsState extends State<Patients> {
                     leading: CircleAvatar(
                       child:
                           Text(_filteredPatients[index].name.substring(0, 2)),
+                      backgroundColor: Color.fromARGB(255, 102, 188, 105),
                     ),
-                    trailing: const Icon(Icons.arrow_forward_ios),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.arrow_forward_ios),
+                          onPressed: () {
+                            _viewPatient(context, _filteredPatients[index]);
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () {
+                            _deletePatient(_filteredPatients[index]);
+                          },
+                        ),
+                      ],
+                    ),
                   );
                 },
               ),
@@ -88,6 +104,13 @@ class _PatientsState extends State<Patients> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            _addPatient(context);
+          },
+          tooltip: 'Agregar Paciente',
+          child: const Icon(Icons.add),
+          backgroundColor: Color.fromARGB(255, 102, 188, 105)),
     );
   }
 
@@ -110,6 +133,104 @@ class _PatientsState extends State<Patients> {
         return AlertDialog(
           title: Text("Datos de ${patient.name}"),
           content: Text("${patient.id} ${patient.name} ${patient.symptoms}"),
+        );
+      },
+    );
+  }
+
+  _addPatient(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Agregar Nuevo Paciente"),
+          content: _buildAddPatientForm(),
+        );
+      },
+    );
+  }
+
+  Widget _buildAddPatientForm() {
+    TextEditingController nameController = TextEditingController();
+    TextEditingController lastnameController = TextEditingController();
+    TextEditingController phoneController = TextEditingController();
+    TextEditingController symptomsController = TextEditingController();
+
+    return Column(
+      children: [
+        TextField(
+          controller: nameController,
+          decoration: const InputDecoration(labelText: 'Nombre'),
+        ),
+        TextField(
+          controller: lastnameController,
+          decoration: const InputDecoration(labelText: 'Apellido'),
+        ),
+        TextField(
+          controller: phoneController,
+          decoration: const InputDecoration(labelText: 'Teléfono'),
+        ),
+        TextField(
+          controller: symptomsController,
+          decoration: const InputDecoration(labelText: 'Síntomas'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            // Agregar lógica para guardar el nuevo paciente
+            String id = (_allPatients.length + 1).toString();
+            String name = nameController.text;
+            String lastname = lastnameController.text;
+            String phone = phoneController.text;
+            String symptoms = symptomsController.text;
+
+            DataPatients newPatient = DataPatients(
+                id: id,
+                name: name,
+                lastname: lastname,
+                phone: phone,
+                symptoms: symptoms);
+
+            setState(() {
+              _allPatients.add(newPatient);
+              _filteredPatients.add(newPatient);
+            });
+
+            Navigator.pop(context); // Cerrar el cuadro de diálogo
+          },
+          child: const Text('Guardar'),
+        ),
+      ],
+    );
+  }
+
+  _deletePatient(DataPatients patient) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Eliminar Paciente"),
+          content: Text(
+              "¿Estás seguro de que quieres eliminar a ${patient.name} ${patient.lastname}?"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  _allPatients.remove(patient);
+                  _filteredPatients.remove(patient);
+                });
+                Navigator.pop(
+                    context); // Cerrar el cuadro de diálogo de confirmación
+              },
+              child: const Text('Sí'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(
+                    context); // Cerrar el cuadro de diálogo de confirmación
+              },
+              child: const Text('No'),
+            ),
+          ],
         );
       },
     );

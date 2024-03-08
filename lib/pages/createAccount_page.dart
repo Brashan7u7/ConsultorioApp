@@ -1,3 +1,4 @@
+import 'package:calendario_manik/pages/login_page.dart';
 import 'package:flutter/material.dart';
 
 class CreateP extends StatelessWidget {
@@ -12,7 +13,6 @@ class CreateP extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-             
               TextField(
                 decoration: InputDecoration(
                   labelText: 'Nombre',
@@ -90,12 +90,30 @@ class CreateP extends StatelessWidget {
                 onChanged: (value) {},
               ),
               SizedBox(height: 20),
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 5),
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => Login()),
+                    );
+                  },
+                  child: const Text('Volver al Inicio de sesion'),
+                ),
+              ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 50, vertical: 5),
                 ),
-                onPressed: () {},
-                child: Text('Crear cuenta'),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => Login()),
+                  );
+                },
+                child: const Text('Crear cuenta'),
               ),
             ],
           ),

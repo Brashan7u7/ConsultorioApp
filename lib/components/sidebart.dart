@@ -21,20 +21,6 @@ class Sidebar extends StatelessWidget {
             ),
           ),
 
-          // otras páginas
-          const Padding(
-            padding: EdgeInsets.only(left: 25.0),
-            child: ListTile(
-              leading: Icon(
-                Icons.article,
-              ),
-              title: Text(
-                'Citas de hoy',
-              ),
-              
-            ),
-          ),
-
           const Padding(
             padding: EdgeInsets.only(left: 25.0),
             child: ListTile(

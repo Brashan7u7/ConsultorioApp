@@ -32,7 +32,9 @@ dependencies:
     sdk: flutter
   table_calendar: ^3.0.2
   syncfusion_flutter_calendar: ^24.2.8
-
+  dash_chat:
+    git:
+      url: https://github.com/FlutterFlow/flutterflow_dash_chat.git
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.6
@@ -59,6 +61,7 @@ flutter:
 
   assets:
     - lib/images/usuario.png
+    - lib/images/usuario2.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:

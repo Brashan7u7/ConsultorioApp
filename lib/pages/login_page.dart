@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:calendario_manik/pages/createAccount_page.dart';
+import 'package:calendario_manik/components/bottom_nav_bar.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -85,11 +87,13 @@ class _LoginState extends State<Login> {
               Container(
                 margin: EdgeInsets.symmetric(vertical: 5),
                 child: TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => CreateP()));
+                  },
                   child: Text('Registrate'),
                 ),
               ),
-              
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   padding: EdgeInsets.symmetric(horizontal: 50, vertical: 5),

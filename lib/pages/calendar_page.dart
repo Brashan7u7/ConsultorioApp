@@ -58,9 +58,13 @@ class _CalendarState extends State<Calendar> {
       context: context,
       builder: (BuildContext builder) {
         return Container(
-          height: 400, // Ajusta la altura según tus necesidades
+          height: 400,
           child: SfCalendar(
             view: CalendarView.month,
+            headerStyle: CalendarHeaderStyle(
+              textAlign: TextAlign.center
+            ),
+            showNavigationArrow: true,
           ),
         );
       },

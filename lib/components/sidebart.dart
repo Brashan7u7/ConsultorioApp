@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class Sidebar extends StatelessWidget {
+  const Sidebar({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -16,20 +18,6 @@ class Sidebar extends StatelessWidget {
             padding: EdgeInsets.symmetric(horizontal: 50.0),
             child: Divider(
               color: Colors.red,
-            ),
-          ),
-
-          // otras páginas
-          const Padding(
-            padding: EdgeInsets.only(left: 25.0),
-            child: ListTile(
-              leading: Icon(
-                Icons.article,
-              ),
-              title: Text(
-                'Citas de hoy',
-              ),
-              
             ),
           ),
 

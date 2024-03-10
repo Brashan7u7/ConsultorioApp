@@ -1,9 +1,7 @@
-import 'package:calendario_manik/pages/login_page.dart';
 import 'package:flutter/material.dart';
 import 'package:calendario_manik/pages/calendar_page.dart';
 import 'package:calendario_manik/pages/patients_page.dart';
 import 'package:calendario_manik/pages/add_page.dart';
-import 'package:calendario_manik/pages/createAccount_page.dart';
 
 class BottomNavBar extends StatefulWidget {
   const BottomNavBar({Key? key}) : super(key: key);
@@ -28,16 +26,30 @@ class _BottomNavBarState extends State<BottomNavBar> {
                 leading: const Icon(Icons.access_time),
                 title: const Text('Cita Rápida'),
                 onTap: () {
-                  // Acción para Cita Rápida
                   Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Add(
+                        isCitaRapida: true,
+                      ),
+                    ),
+                  );
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.calendar_today),
                 title: const Text('Cita Programada'),
                 onTap: () {
-                  // Acción para Cita Programada
                   Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Add(
+                        isCitaRapida: false,
+                      ),
+                    ),
+                  );
                 },
               ),
             ],
@@ -53,10 +65,8 @@ class _BottomNavBarState extends State<BottomNavBar> {
 
   final List _pages = [
     const Calendar(),
-    const Add(),
+    const Add(isCitaRapida: false),
     const Patients(),
-    const Login(),
-    const CreateP()
   ];
 
   @override
@@ -80,14 +90,6 @@ class _BottomNavBarState extends State<BottomNavBar> {
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
             label: 'Pacientes',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Login',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Crear Cuenta',
           ),
         ],
         unselectedIconTheme: const IconThemeData(color: Colors.grey),

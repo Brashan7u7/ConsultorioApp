@@ -1,3 +1,5 @@
+import 'package:calendario_manik/pages/createAccount_page.dart';
+import 'package:calendario_manik/pages/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:calendario_manik/pages/createAccount_page.dart';
 import 'package:calendario_manik/components/bottom_nav_bar.dart';
@@ -12,26 +14,40 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   bool _obscureText = true;
   bool _recordarContrasena = false;
+  TextEditingController emailController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
+
+  // Datos estáticos para verificar el inicio de sesión
+  final String usuarioCorrecto = 'usuario@example.com';
+  final String contrasenaCorrecta = 'contrasena123';
+
+  void _iniciarSesion() {
+    String email = emailController.text.trim();
+    String password = passwordController.text.trim();
+
+    if (email == usuarioCorrecto && password == contrasenaCorrecta) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => HomePage()),
+      );
+    } else {}
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(20.0),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              /*Text(
-                'Login',
-                style: TextStyle(
-                    height: 4, fontSize: 50, fontWeight: FontWeight.bold),
-              ),*/
               Image.asset('lib/images/usuario.png',
                   width: 200, height: 200, fit: BoxFit.fill),
-              SizedBox(height: 50),
+              const SizedBox(height: 50),
               TextField(
-                decoration: InputDecoration(
+                controller: emailController,
+                decoration: const InputDecoration(
                   labelText: 'Email',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.email),
@@ -39,12 +55,13 @@ class _LoginState extends State<Login> {
                 keyboardType: TextInputType.emailAddress,
                 onChanged: (value) {},
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               TextField(
+                controller: passwordController,
                 decoration: InputDecoration(
                   labelText: 'Contraseña',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.lock),
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.lock),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscureText ? Icons.visibility_off : Icons.visibility,
@@ -59,9 +76,9 @@ class _LoginState extends State<Login> {
                 obscureText: _obscureText,
                 onChanged: (value) {},
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               Container(
-                margin: EdgeInsets.symmetric(vertical: 5),
+                margin: const EdgeInsets.symmetric(vertical: 5),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -73,33 +90,36 @@ class _LoginState extends State<Login> {
                         });
                       },
                     ),
-                    Text('Recordar Contraseña'),
+                    const Text('Recordar Contraseña'),
                   ],
                 ),
               ),
               Container(
-                margin: EdgeInsets.symmetric(vertical: 5),
+                margin: const EdgeInsets.symmetric(vertical: 5),
                 child: TextButton(
                   onPressed: () {},
-                  child: Text('¿Olvidaste tu Contraseña?'),
+                  child: const Text('¿Olvidaste tu Contraseña?'),
                 ),
               ),
               Container(
-                margin: EdgeInsets.symmetric(vertical: 5),
+                margin: const EdgeInsets.symmetric(vertical: 5),
                 child: TextButton(
                   onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => CreateP()));
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => CreateP()),
+                    );
                   },
-                  child: Text('Registrate'),
+                  child: const Text('Registrate'),
                 ),
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(horizontal: 50, vertical: 5),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 50, vertical: 5),
                 ),
-                onPressed: () {},
-                child: Text('INICIAR SESIÓN'),
+                onPressed: _iniciarSesion,
+                child: const Text('Iniciar Sesión'),
               ),
             ],
           ),

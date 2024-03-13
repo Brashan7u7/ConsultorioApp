@@ -12,7 +12,7 @@ class BottomNavBar extends StatefulWidget {
 
 class _BottomNavBarState extends State<BottomNavBar> {
   int _selectedIndex = 0;
-
+  
   void _navigateBottomBar(int index) {
     if (index == 1) {
       showModalBottomSheet(

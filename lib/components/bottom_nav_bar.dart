@@ -12,9 +12,39 @@ class BottomNavBar extends StatefulWidget {
 
 class _BottomNavBarState extends State<BottomNavBar> {
   int _selectedIndex = 0;
+  int state = 0;
+  List<String> _buttonNames = ['Calendario', 'Agendar', 'Pacientes'];
 
   void _navigateBottomBar(int index) {
-    if (index == 1) {
+    if (index == 1 && state == 2) {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder: (BuildContext context) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.person_add),
+                title: const Text('Registrar paciente'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Add(
+                          isCitaRapida: false,
+                          isEvento: false,
+                          isPacient: true),
+                    ),
+                  );
+                },
+              ),
+            ],
+          );
+        },
+      );
+    } else if (index == 1 && state == 1) {
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
@@ -52,6 +82,22 @@ class _BottomNavBarState extends State<BottomNavBar> {
                   );
                 },
               ),
+              ListTile(
+                leading: const Icon(Icons.calendar_month),
+                title: const Text('Evento'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Add(
+                        isCitaRapida: false,
+                        isEvento: true,
+                      ),
+                    ),
+                  );
+                },
+              ),
             ],
           );
         },
@@ -59,6 +105,14 @@ class _BottomNavBarState extends State<BottomNavBar> {
     } else {
       setState(() {
         _selectedIndex = index;
+        // Cambiar el nombre del botón del medio según la selección
+        if (_selectedIndex == 0) {
+          _buttonNames[1] = 'Agendar';
+          state = 1;
+        } else if (_selectedIndex == 2) {
+          _buttonNames[1] = 'Registrar';
+          state = 2;
+        }
       });
     }
   }
@@ -66,28 +120,30 @@ class _BottomNavBarState extends State<BottomNavBar> {
   final List _pages = [
     const Calendar(),
     const Add(isCitaRapida: false),
-    const Patients(),
+    Patients(
+      newPatient: null,
+    ),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("")),
+      appBar: AppBar(title: Text(_buttonNames[_selectedIndex])),
       body: _pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _navigateBottomBar,
         fixedColor: Colors.green,
-        items: const [
-          BottomNavigationBarItem(
+        items: [
+          const BottomNavigationBarItem(
             icon: Icon(Icons.calendar_month),
             label: 'Calendario',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.add),
-            label: 'Agendar',
+            icon: const Icon(Icons.add),
+            label: _buttonNames[1],
           ),
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: Icon(Icons.person),
             label: 'Pacientes',
           ),

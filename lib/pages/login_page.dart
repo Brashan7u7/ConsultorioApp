@@ -18,8 +18,8 @@ class _LoginState extends State<Login> {
   TextEditingController passwordController = TextEditingController();
 
   // Datos estáticos para verificar el inicio de sesión
-  final String usuarioCorrecto = 'usuario@example.com';
-  final String contrasenaCorrecta = 'contrasena123';
+  final String usuarioCorrecto = '1';
+  final String contrasenaCorrecta = '123';
 
   void _iniciarSesion() {
     String email = emailController.text.trim();

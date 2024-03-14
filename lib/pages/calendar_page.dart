@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:calendario_manik/components/sidebart.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
@@ -10,9 +11,8 @@ class Calendar extends StatefulWidget {
 }
 
 class _CalendarState extends State<Calendar> {
-  CalendarController _monthlyCalendarController = CalendarController();
-
   final CalendarController _calendarController = CalendarController();
+  int intervaloHoras = 2; // Intervalo de horas entre cada hora mostrada en el calendario
 
   @override
   Widget build(BuildContext context) {
@@ -51,6 +51,12 @@ class _CalendarState extends State<Calendar> {
       body: SfCalendar(
         controller: _calendarController,
         view: CalendarView.day,
+        timeSlotViewSettings: TimeSlotViewSettings(
+          startHour: 0,
+          endHour: 24,
+          timeIntervalHeight: 120, // Altura de cada intervalo de tiempo en el calendario
+          timeInterval: Duration(hours: intervaloHoras), // Intervalo de tiempo entre cada intervalo en el calendario
+        ),
         onTap: (CalendarTapDetails details) {
           if (details.targetElement == CalendarElement.calendarCell) {
             // Si se toca una celda del calendario, redirige a ese día

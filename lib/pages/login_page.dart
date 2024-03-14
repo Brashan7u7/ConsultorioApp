@@ -19,7 +19,7 @@ class _LoginState extends State<Login> {
 
   // Datos estáticos para verificar el inicio de sesión
   final String usuarioCorrecto = '1';
-  final String contrasenaCorrecta = '123';
+  final String contrasenaCorrecta = '1';
 
   void _iniciarSesion() {
     String email = emailController.text.trim();

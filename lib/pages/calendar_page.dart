@@ -10,6 +10,8 @@ class Calendar extends StatefulWidget {
 }
 
 class _CalendarState extends State<Calendar> {
+  CalendarController _monthlyCalendarController = CalendarController();
+
   final CalendarController _calendarController = CalendarController();
 
   @override
@@ -49,6 +51,13 @@ class _CalendarState extends State<Calendar> {
       body: SfCalendar(
         controller: _calendarController,
         view: CalendarView.day,
+        onTap: (CalendarTapDetails details) {
+          if (details.targetElement == CalendarElement.calendarCell) {
+            // Si se toca una celda del calendario, redirige a ese día
+            DateTime selectedDate = details.date!;
+            _navigateToSelectedDate(selectedDate);
+          }
+        },
       ),
     );
   }
@@ -58,16 +67,33 @@ class _CalendarState extends State<Calendar> {
       context: context,
       builder: (BuildContext builder) {
         return Container(
-          height: 400,
+          height: 500,
           child: SfCalendar(
             view: CalendarView.month,
-            headerStyle: CalendarHeaderStyle(
-              textAlign: TextAlign.center
-            ),
+            headerStyle: CalendarHeaderStyle(textAlign: TextAlign.center),
             showNavigationArrow: true,
+            onTap: (CalendarTapDetails details) {
+              if (details.targetElement == CalendarElement.calendarCell) {
+                // Si se toca una celda del calendario, redirige a ese día
+                DateTime selectedDate = details.date!;
+                _navigateToSelectedDate(selectedDate);
+                Navigator.pop(context);
+              }
+            },
           ),
         );
       },
     );
+  }
+
+  void _navigateToSelectedDate(DateTime selectedDate) {
+    // Actualiza el controlador diario con la fecha seleccionada
+    _calendarController.displayDate = selectedDate;
+
+    // Cambia la vista del calendario a "day"
+    _calendarController.view = CalendarView.day;
+
+    // Agrega aquí la lógica adicional según sea necesario.
+    print('Fecha seleccionada: $selectedDate');
   }
 }

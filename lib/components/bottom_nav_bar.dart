@@ -12,6 +12,7 @@ class BottomNavBar extends StatefulWidget {
 
 class _BottomNavBarState extends State<BottomNavBar> {
   int _selectedIndex = 0;
+
   int state = 0;
   List<String> _buttonNames = ['Calendario', 'Agendar', 'Pacientes'];
 

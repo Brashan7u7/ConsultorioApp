@@ -1,8 +1,6 @@
-  import 'package:calendario_manik/pages/createAccount_page.dart';
+import 'package:calendario_manik/pages/createAccount_page.dart';
 import 'package:calendario_manik/pages/home_page.dart';
 import 'package:flutter/material.dart';
-import 'package:calendario_manik/pages/createAccount_page.dart';
-import 'package:calendario_manik/components/bottom_nav_bar.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);

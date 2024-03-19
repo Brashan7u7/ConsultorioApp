@@ -120,10 +120,8 @@ class _BottomNavBarState extends State<BottomNavBar> {
 
   final List _pages = [
     const Calendar(),
-    const Add(isCitaRapida: false),
-    Patients(
-      newPatient: null,
-    ),
+    Add(isCitaRapida: false),
+    Patients(),
   ];
 
   @override

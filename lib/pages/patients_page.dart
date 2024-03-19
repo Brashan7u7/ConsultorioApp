@@ -10,7 +10,7 @@ class Patients extends StatefulWidget {
 }
 
 class _PatientsState extends State<Patients> {
-  List<DataPatients> _allPatients = [
+  final List<DataPatients> _allPatients = [
     DataPatients(
       id: "1",
       name: "Manuel",
@@ -110,15 +110,16 @@ class _PatientsState extends State<Patients> {
   }
 
   _onSearchTextChanged(String text) {
-    _filteredPatients.clear();
-    if (text.isEmpty) {
-      _filteredPatients.addAll(_allPatients);
-    } else {
-      _filteredPatients.addAll(_allPatients.where((patient) =>
-          patient.name.toLowerCase().contains(text.toLowerCase()) ||
-          patient.lastname.toLowerCase().contains(text.toLowerCase())));
-    }
-    setState(() {});
+    setState(() {
+      _filteredPatients.clear();
+      if (text.isEmpty) {
+        _filteredPatients.addAll(_allPatients);
+      } else {
+        _filteredPatients.addAll(_allPatients.where((patient) =>
+            patient.name.toLowerCase().contains(text.toLowerCase()) ||
+            patient.lastname.toLowerCase().contains(text.toLowerCase())));
+      }
+    });
   }
 
   _viewPatient(context, patient) {

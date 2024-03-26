@@ -113,31 +113,35 @@ class _CreatePState extends State<CreateP> {
 
               // Especialidades
               Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text('Especialidades'),
                   SizedBox(width: 20),
-                  DropdownButton<String>(
-                    value: selectedSpeciality,
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        selectedSpeciality = newValue!;
-                        if (!specialities.contains(newValue)) {
-                          specialities.add(newValue);
-                        }
-                      });
-                    },
-                    items: <String>[
-                      'Especialidad 1',
-                      'Especialidad 2',
-                      'Especialidad 3',
-                      // Agrega más especialidades aquí si es necesario
-                    ].map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
+                  SizedBox(
+                    
+                    height: 40, // Ajusta la altura según sea necesario
+                    child: DropdownButton<String>(
+                      value: selectedSpeciality,
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          selectedSpeciality = newValue!;
+                          if (!specialities.contains(newValue)) {
+                            specialities.add(newValue);
+                          }
+                        });
+                      },
+                      items: <String>[
+                        'Especialidad 1',
+                        'Especialidad 2',
+                        'Especialidad 3',
+                        // Agrega más especialidades aquí si es necesario
+                      ].map<DropdownMenuItem<String>>((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                    ),
                   ),
                 ],
               ),
@@ -234,6 +238,50 @@ class _CreatePState extends State<CreateP> {
                     passwordConfirmation = value;
                   });
                 },
+              ),
+
+              const SizedBox(height: 20),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Fecha de Nacimiento'),
+                  Row(
+                    children: [
+                      // Campo para el día
+                      Expanded(
+                        child: TextField(
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: 'Día',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 10), // Separación entre los TextField
+                      // Campo para el mes
+                      Expanded(
+                        child: TextField(
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: 'Mes',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 10), // Separación entre los TextField
+                      // Campo para el año
+                      Expanded(
+                        child: TextField(
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: 'Año',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
 
               // Acepto términos y condiciones

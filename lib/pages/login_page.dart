@@ -1,5 +1,6 @@
 import 'package:calendario_manik/pages/createAccount_page.dart';
 import 'package:calendario_manik/pages/home_page.dart';
+import 'package:calendario_manik/pages/resetPassword_page.dart';
 import 'package:flutter/material.dart';
 
 class Login extends StatefulWidget {
@@ -95,7 +96,10 @@ class _LoginState extends State<Login> {
               Container(
                 margin: const EdgeInsets.symmetric(vertical: 5),
                 child: TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => ResetP()));
+                  },
                   child: const Text('¿Olvidaste tu Contraseña?'),
                 ),
               ),

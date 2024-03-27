@@ -22,6 +22,46 @@ class _CreatePState extends State<CreateP> {
 
   bool acceptTerms = false;
 
+  void _showErrorDialog(BuildContext context, String errorMessage) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: Text(
+            errorMessage,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  bool _validateFields() {
+    if (professionalID.isEmpty ||
+        phoneNumber.isEmpty ||
+        emailConfirmation.isEmpty ||
+        passwordConfirmation.isEmpty ||
+        selectedGender.isEmpty ||
+        selectedSpeciality == null) {
+      _showErrorDialog(context, 'Por favor, complete todos los campos.');
+      return false;
+    } else if (!acceptTerms) {
+      _showErrorDialog(
+          context, 'Por favor, acepta los términos y condiciones.');
+      return false;
+    }
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -118,7 +158,6 @@ class _CreatePState extends State<CreateP> {
                   Text('Especialidades'),
                   SizedBox(width: 20),
                   SizedBox(
-                    
                     height: 40, // Ajusta la altura según sea necesario
                     child: DropdownButton<String>(
                       value: selectedSpeciality,
@@ -323,10 +362,12 @@ class _CreatePState extends State<CreateP> {
                       const EdgeInsets.symmetric(horizontal: 50, vertical: 5),
                 ),
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => Login()),
-                  );
+                  if (_validateFields()) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => Login()),
+                    );
+                  }
                 },
                 child: const Text('Crear cuenta'),
               ),

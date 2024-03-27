@@ -27,7 +27,6 @@ class ResetP extends StatelessWidget {
                 keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(
                   labelText: 'Correo Electrónico',
-                  border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.email),
                 ),
               ),

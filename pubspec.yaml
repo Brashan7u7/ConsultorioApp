@@ -30,7 +30,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  table_calendar: ^3.0.2
   syncfusion_flutter_calendar: ^24.2.8
   dash_chat:
     git:

@@ -36,7 +36,8 @@ class _BottomNavBarState extends State<BottomNavBar> {
                       builder: (context) => Add(
                           isCitaRapida: false,
                           isEvento: false,
-                          isPacient: true),
+                          isPacient: true,
+                          isCitaPro: false),
                     ),
                   );
                 },
@@ -63,6 +64,9 @@ class _BottomNavBarState extends State<BottomNavBar> {
                     MaterialPageRoute(
                       builder: (context) => Add(
                         isCitaRapida: true,
+                        isEvento: false,
+                        isPacient: false,
+                        isCitaPro: false,
                       ),
                     ),
                   );
@@ -78,6 +82,9 @@ class _BottomNavBarState extends State<BottomNavBar> {
                     MaterialPageRoute(
                       builder: (context) => Add(
                         isCitaRapida: false,
+                        isEvento: false,
+                        isPacient: false,
+                        isCitaPro: true,
                       ),
                     ),
                   );
@@ -94,6 +101,8 @@ class _BottomNavBarState extends State<BottomNavBar> {
                       builder: (context) => Add(
                         isCitaRapida: false,
                         isEvento: true,
+                        isPacient: false,
+                        isCitaPro: false,
                       ),
                     ),
                   );
@@ -120,7 +129,12 @@ class _BottomNavBarState extends State<BottomNavBar> {
 
   final List _pages = [
     const Calendar(),
-    Add(isCitaRapida: false),
+    Add(
+      isCitaRapida: false,
+      isCitaPro: false,
+      isEvento: false,
+      isPacient: false,
+    ),
     Patients(),
   ];
 

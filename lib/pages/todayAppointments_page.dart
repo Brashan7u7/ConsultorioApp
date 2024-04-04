@@ -18,6 +18,7 @@ class _CitasState extends State<Citas> {
   Widget build(BuildContext) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text('Pagina de citas de hoy'),
       ),
       body: Center(

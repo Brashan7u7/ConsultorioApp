@@ -1,8 +1,7 @@
 import 'package:calendario_manik/pages/calendar_page.dart';
 import 'package:flutter/material.dart';
 import 'package:calendario_manik/pages/patients_page.dart';
-import 'package:flutter/widgets.dart';
-import 'package:syncfusion_flutter_calendar/calendar.dart';
+import 'package:syncfusion_flutter_calendar/calendar.dart'; // Import the Add page
 
 class Add extends StatelessWidget {
   final bool isCitaRapida, isEvento, isPacient, isCitaPro;
@@ -159,8 +158,8 @@ class Add extends StatelessWidget {
             ElevatedButton(
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
-                  // Form is valid, process appointment data
-                  saveAppointment(
+                  // Form is valid, process quick appointment data
+                  saveQuickAppointment(
                     context,
                     _nameController.text,
                     _fechaController.text,
@@ -180,13 +179,19 @@ class Add extends StatelessWidget {
   }
 
   // Método para guardar la cita en la página de calendario
-  void saveAppointment(BuildContext context, String name, String fecha,
-      String hora, String duracion, String servicio, String nota) {
-    // Combinar la fecha y la hora en un formato adecuado
-    String dateTimeString =
-        '$fecha $hora:00'; // Añade los segundos al formato HH:MM:SS
+  void saveQuickAppointment(
+    BuildContext context,
+    String name,
+    String fecha,
+    String hora,
+    String duracion,
+    String servicio,
+    String nota,
+  ) {
+    // Combine date and time into a proper format
+    String dateTimeString = '$fecha $hora:00'; // Add seconds to HH:MM:SS format
 
-    // Corregir el formato de la cadena de fecha y hora
+    // Correct the format of the date and time string
     DateTime startTime = DateTime.parse(dateTimeString.replaceAll('T', ' '));
     int duration = int.tryParse(duracion) ?? 0;
     DateTime endTime = startTime.add(Duration(minutes: duration));
@@ -198,11 +203,8 @@ class Add extends StatelessWidget {
       notes: nota,
     );
 
-    // Agregar la cita a la lista de citas en la clase Calendar
-    Calendar.listaCitas.add(newAppointment);
-
-    // Volver a la página anterior
-    Navigator.pop(context);
+    // Return the new appointment to the Calendar page
+    Navigator.pop(context, newAppointment);
   }
 
   Widget _buildCitaProgramadaContent() {

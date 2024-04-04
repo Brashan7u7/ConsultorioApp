@@ -1,9 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:calendario_manik/components/sidebart.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 class Calendar extends StatefulWidget {
-  static List<Appointment> listaCitas = [];
   const Calendar({Key? key}) : super(key: key);
 
   @override
@@ -82,15 +82,17 @@ class _CalendarState extends State<Calendar> {
         controller: _calendarController,
         view: CalendarView.day,
         showNavigationArrow: true,
+        headerStyle: CalendarHeaderStyle(textAlign: TextAlign.center),
+        showDatePickerButton: true,
         timeSlotViewSettings: TimeSlotViewSettings(
-          startHour: 0,
-          endHour: 24,
+          startHour: 0, endHour: 24,
           timeIntervalHeight:
               120, // Altura de cada intervalo de tiempo en el calendario
           timeInterval: Duration(
               hours:
                   intervaloHoras), // Intervalo de tiempo entre cada intervalo en el calendario
         ),
+        dataSource: _getCalendarDataSource(),
         onTap: (CalendarTapDetails details) {
           if (details.targetElement == CalendarElement.calendarCell) {
             // Si se toca una celda del calendario, redirige a ese día
@@ -112,6 +114,9 @@ class _CalendarState extends State<Calendar> {
             view: CalendarView.month,
             headerStyle: CalendarHeaderStyle(textAlign: TextAlign.center),
             showNavigationArrow: true,
+            showDatePickerButton: true,
+            monthViewSettings: MonthViewSettings(showAgenda: true),
+            appointmentTimeTextFormat: 'HH:mm',
             onTap: (CalendarTapDetails details) {
               if (details.targetElement == CalendarElement.calendarCell) {
                 // Si se toca una celda del calendario, redirige a ese día
@@ -133,4 +138,23 @@ class _CalendarState extends State<Calendar> {
     // Cambia la vista del calendario a "day"
     _calendarController.view = CalendarView.day;
   }
+}
+
+class _AppointmentDataSource extends CalendarDataSource {
+  _AppointmentDataSource(List<Appointment> source) {
+    appointments = source;
+  }
+}
+
+_AppointmentDataSource _getCalendarDataSource() {
+  List<Appointment> appointments = <Appointment>[];
+
+  appointments.add(Appointment(
+    startTime: DateTime.now(),
+    endTime: DateTime.now().add(Duration(minutes: 60)),
+    subject: 'Meeting',
+    color: Colors.red,
+  ));
+
+  return _AppointmentDataSource(appointments);
 }

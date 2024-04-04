@@ -1,15 +1,17 @@
+import 'package:calendario_manik/pages/calendar_page.dart';
 import 'package:flutter/material.dart';
 import 'package:calendario_manik/pages/patients_page.dart';
-import 'package:flutter/widgets.dart';
+import 'package:syncfusion_flutter_calendar/calendar.dart'; // Import the Add page
 
 class Add extends StatelessWidget {
-  final bool isCitaRapida, isEvento, isPacient;
+  final bool isCitaRapida, isEvento, isPacient, isCitaPro;
 
   const Add({
     Key? key,
     required this.isCitaRapida,
     this.isEvento = false,
     this.isPacient = false,
+    this.isCitaPro = false,
   }) : super(key: key);
 
   @override
@@ -28,7 +30,9 @@ class Add extends StatelessWidget {
                 ? 'Evento'
                 : isPacient
                     ? "Registrar Paciente"
-                    : "Cita Programada"),
+                    : isCitaPro
+                        ? "Cita Programada"
+                        : ""),
       ),
       body: isCitaRapida
           ? _buildCitaRapidaContent(context)
@@ -42,7 +46,9 @@ class Add extends StatelessWidget {
                       _lastnameController,
                       _phoneController,
                       _symptomsController)
-                  : _buildCitaProgramadaContent(),
+                  : isCitaPro
+                      ? _buildCitaProgramadaContent()
+                      : Calendar(),
     );
   }
 
@@ -152,8 +158,16 @@ class Add extends StatelessWidget {
             ElevatedButton(
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
-                  // Form is valid, process appointment data
-                  // ... Handle appointment creation logic here
+                  // Form is valid, process quick appointment data
+                  saveQuickAppointment(
+                    context,
+                    _nameController.text,
+                    _fechaController.text,
+                    _horaController.text,
+                    _duracionController.text,
+                    _servicioController.text,
+                    _notaController.text,
+                  );
                 }
               },
               child: const Text('Guardar Cita Rápida'),
@@ -162,6 +176,35 @@ class Add extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  // Método para guardar la cita en la página de calendario
+  void saveQuickAppointment(
+    BuildContext context,
+    String name,
+    String fecha,
+    String hora,
+    String duracion,
+    String servicio,
+    String nota,
+  ) {
+    // Combine date and time into a proper format
+    String dateTimeString = '$fecha $hora:00'; // Add seconds to HH:MM:SS format
+
+    // Correct the format of the date and time string
+    DateTime startTime = DateTime.parse(dateTimeString.replaceAll('T', ' '));
+    int duration = int.tryParse(duracion) ?? 0;
+    DateTime endTime = startTime.add(Duration(minutes: duration));
+
+    Appointment newAppointment = Appointment(
+      startTime: startTime,
+      endTime: endTime,
+      subject: name,
+      notes: nota,
+    );
+
+    // Return the new appointment to the Calendar page
+    Navigator.pop(context, newAppointment);
   }
 
   Widget _buildCitaProgramadaContent() {

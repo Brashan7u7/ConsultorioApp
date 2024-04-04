@@ -63,6 +63,7 @@ flutter:
     - lib/images/usuario.png
     - lib/images/usuario2.png
     - lib/images/logo.png
+    - lib/images/disesup.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:

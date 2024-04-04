@@ -1,4 +1,6 @@
+import 'package:calendario_manik/pages/home_page.dart';
 import 'package:calendario_manik/pages/login_page.dart';
+import 'package:calendario_manik/pages/start_page.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -12,7 +14,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Login(),
+      home: StartPage(),
     );
   }
 }

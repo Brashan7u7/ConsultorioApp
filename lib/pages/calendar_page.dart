@@ -42,26 +42,25 @@ class _CalendarState extends State<Calendar> {
           ),
         ),
         title: Row(
-          children: [
-            IconButton(
-              icon: Icon(Icons.arrow_back_ios),
-              onPressed: () {
-                setState(() {
-                  if (currentIndex > 0) currentIndex--;
-                });
-              },
-            ),
-            Text(consultorios[currentIndex]), // Nombre del consultorio actual
-            IconButton(
-              icon: Icon(Icons.arrow_forward_ios),
-              onPressed: () {
-                setState(() {
-                  if (currentIndex < consultorios.length - 1) currentIndex++;
-                });
-              },
-            ),
-          ],
-        ),
+  
+  children: [DropdownButton<String> (
+  value: consultorios[currentIndex],
+  onChanged: (newValue) {
+    setState(() {
+      currentIndex = consultorios.indexOf(newValue ?? consultorios.first);
+
+    });
+  },
+  items: consultorios.map<DropdownMenuItem<String>>((String value) {
+    return DropdownMenuItem<String>(
+      value: value,
+      child: Text(value),
+    );
+  }).toList(),
+)
+],
+),
+
         actions: [
           IconButton(
             icon: const Icon(Icons.calendar_today),

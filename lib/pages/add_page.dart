@@ -310,52 +310,80 @@ class Add extends StatelessWidget {
   }
 
   Widget _buildPacientContent(
-      BuildContext context,
-      TextEditingController idController,
-      TextEditingController nameController,
-      TextEditingController lastnameController,
-      TextEditingController phoneController,
-      TextEditingController symptomsController) {
+    BuildContext context,
+    TextEditingController idController,
+    TextEditingController nameController,
+    TextEditingController lastnameController,
+    TextEditingController phoneController,
+    TextEditingController symptomsController,
+  ) {
     return Padding(
       padding: const EdgeInsets.all(20.0),
-      child: Column(
-        children: [
-          TextField(
-            controller: nameController,
-            decoration: InputDecoration(labelText: 'Nombre'),
-          ),
-          TextField(
-            controller: lastnameController,
-            decoration: InputDecoration(labelText: 'Apellido'),
-          ),
-          TextField(
-            controller: phoneController,
-            decoration: InputDecoration(labelText: 'Teléfono'),
-          ),
-          TextField(
-            controller: symptomsController,
-            decoration: InputDecoration(labelText: 'Síntomas'),
-          ),
-          SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              DataPatients newPatient = DataPatients(
-                id: DateTime.now().millisecondsSinceEpoch.toString(),
-                name: nameController.text,
-                lastname: lastnameController.text,
-                phone: phoneController.text,
-                symptoms: symptomsController.text,
-              );
-
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => Patients(newPatient: newPatient)));
-            },
-            child: Text('Guardar Paciente'),
-          ),
-        ],
+      child: SingleChildScrollView(
+  child: Column(
+    children: [
+      TextField(
+        controller: idController,
+        decoration: InputDecoration(labelText: 'Identificador'),
+        maxLength: 16,
       ),
+      TextField(
+        controller: nameController,
+        decoration: InputDecoration(labelText: 'Nombre'),
+        maxLength: 32,
+      ),
+      TextField(
+        controller: lastnameController,
+        decoration: InputDecoration(labelText: 'Apellido paterno'),
+        maxLength: 64,
+      ),
+      TextField(
+        controller: TextEditingController(), // Campo para Apellido materno
+        decoration: InputDecoration(labelText: 'Apellido materno'),
+        maxLength: 64,
+      ),
+      TextField(
+        controller: TextEditingController(), // Campo para Fecha de nacimiento
+        decoration: InputDecoration(labelText: 'Fecha de nacimiento'),
+        keyboardType: TextInputType.datetime,
+      ),
+      TextField(
+        controller: TextEditingController(), // Campo para Teléfono móvil
+        decoration: InputDecoration(labelText: 'Teléfono móvil'),
+        keyboardType: TextInputType.phone,
+      ),
+      TextField(
+        controller: TextEditingController(), // Campo para Correo electrónico
+        decoration: InputDecoration(labelText: 'Correo electrónico'),
+        keyboardType: TextInputType.emailAddress,
+      ),
+      TextField(
+        controller: TextEditingController(), // Campo para Teléfono fijo
+        decoration: InputDecoration(labelText: 'Teléfono fijo'),
+        keyboardType: TextInputType.phone,
+      ),
+      SizedBox(height: 20),
+      ElevatedButton(
+        onPressed: () {
+          DataPatients newPatient = DataPatients(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            name: nameController.text,
+            lastname: lastnameController.text,
+            phone: phoneController.text,
+            symptoms: symptomsController.text,
+          );
+
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => Patients(newPatient: newPatient)));
+        },
+        child: Text('Guardar Paciente'),
+      ),
+    ],
+  ),
+),
+
     );
   }
 }

@@ -10,7 +10,7 @@ class Patients extends StatefulWidget {
 }
 
 class _PatientsState extends State<Patients> {
-  final List<DataPatients> _allPatients = [
+  List<DataPatients> _allPatients = [
     DataPatients(
         id: "1",
         name: "Manuel",
@@ -102,18 +102,40 @@ class _PatientsState extends State<Patients> {
         phone: "+52 951 444 4444",
         symptoms: "Dolor lumbar")
   ];
-
-  List<DataPatients> _filteredPatients = [];
-  final TextEditingController _searchController = TextEditingController();
+  late ScrollController _scrollController;
+  List<DataPatients> _displayedPatients = [];
 
   @override
   void initState() {
-    _filteredPatients.addAll(_allPatients);
-    if (widget.newPatient != null) {
-      _allPatients.add(widget.newPatient!);
-      _filteredPatients.add(widget.newPatient!);
-    }
     super.initState();
+    _scrollController = ScrollController()..addListener(_scrollListener);
+    _loadInitialPatients();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_scrollListener);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  _scrollListener() {
+    if (_scrollController.position.pixels ==
+        _scrollController.position.maxScrollExtent) {
+      _loadMorePatients();
+    }
+  }
+
+  _loadInitialPatients() {
+    setState(() {
+      _displayedPatients.addAll(_allPatients.take(10));
+    });
+  }
+
+  _loadMorePatients() {
+    setState(() {
+      _displayedPatients.addAll(_allPatients.skip(_displayedPatients.length).take(10));
+    });
   }
 
   @override
@@ -133,8 +155,6 @@ class _PatientsState extends State<Patients> {
               children: [
                 Expanded(
                   child: TextField(
-                    controller: _searchController,
-                    onChanged: _onSearchTextChanged,
                     decoration: const InputDecoration(
                       hintText: 'Buscar Paciente',
                       border: InputBorder.none,
@@ -146,38 +166,16 @@ class _PatientsState extends State<Patients> {
             ),
           ),
           Expanded(
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 25),
-              child: ListView.builder(
-                itemCount: _filteredPatients.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    onTap: () {
-                      _viewPatient(context, _filteredPatients[index]);
-                    },
-                    title: Text(
-                        "${_filteredPatients[index].name} ${_filteredPatients[index].lastname}"),
-                    subtitle: Text(_filteredPatients[index].phone),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.arrow_forward_ios),
-                          onPressed: () {
-                            _viewPatient(context, _filteredPatients[index]);
-                          },
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.delete),
-                          onPressed: () {
-                            _deletePatient(_filteredPatients[index]);
-                          },
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
+            child: ListView.builder(
+              controller: _scrollController,
+              itemCount: _displayedPatients.length + 1,
+              itemBuilder: (context, index) {
+                if (index == _displayedPatients.length) {
+                  return _buildLoadMoreIndicator();
+                } else {
+                  return _buildPatientTile(_displayedPatients[index]);
+                }
+              },
             ),
           ),
         ],
@@ -185,17 +183,37 @@ class _PatientsState extends State<Patients> {
     );
   }
 
-  _onSearchTextChanged(String text) {
-    setState(() {
-      _filteredPatients.clear();
-      if (text.isEmpty) {
-        _filteredPatients.addAll(_allPatients);
-      } else {
-        _filteredPatients.addAll(_allPatients.where((patient) =>
-            patient.name.toLowerCase().contains(text.toLowerCase()) ||
-            patient.lastname.toLowerCase().contains(text.toLowerCase())));
-      }
-    });
+  Widget _buildLoadMoreIndicator() {
+    return Center(
+      child: CircularProgressIndicator(),
+    );
+  }
+
+  Widget _buildPatientTile(DataPatients patient) {
+    return ListTile(
+      onTap: () {
+        _viewPatient(context, patient);
+      },
+      title: Text("${patient.name} ${patient.lastname}"),
+      subtitle: Text(patient.phone),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: Icon(Icons.arrow_forward_ios),
+            onPressed: () {
+              _viewPatient(context, patient);
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.delete),
+            onPressed: () {
+              _deletePatient(patient);
+            },
+          ),
+        ],
+      ),
+    );
   }
 
   _viewPatient(context, patient) {
@@ -223,7 +241,7 @@ class _PatientsState extends State<Patients> {
               onPressed: () {
                 setState(() {
                   _allPatients.remove(patient);
-                  _filteredPatients.remove(patient);
+                  _displayedPatients.remove(patient);
                 });
                 Navigator.pop(context);
               },

@@ -1,5 +1,8 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart'; // Importa el paquete url_launcher
 import 'package:calendario_manik/pages/login_page.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class CreateP extends StatefulWidget {
   const CreateP({Key? key});
@@ -336,12 +339,36 @@ class _CreatePState extends State<CreateP> {
                       });
                     },
                   ),
-                  Text(
-                    'He leído y acepto las condiciones de servicio y aviso de privacidad',
-                    style: TextStyle(fontSize: 9),
+                  RichText(
+                    text: TextSpan(
+                      style: TextStyle(fontSize: 10, color: Colors.black),
+                      children: <TextSpan>[
+                        TextSpan(text: 'He leído y acepto las '),
+                        TextSpan(
+                          text: 'condiciones de servicio',
+                          style: TextStyle(color: Colors.blue),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () {
+                              launchURL(
+                                  "https://app.medicalmanik.com/MedicalManik/condicionesServicio.html");
+                            },
+                        ),
+                        TextSpan(text: ' y '),
+                        TextSpan(
+                          text: 'aviso de privacidad',
+                          style: TextStyle(color: Colors.blue),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () {
+                              launchURL(
+                                  "https://app.medicalmanik.com/MedicalManik/Privacidad.html");
+                            },
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
+
               const SizedBox(height: 20),
 
               // Botones
@@ -380,5 +407,13 @@ class _CreatePState extends State<CreateP> {
         ),
       ),
     );
+  }
+
+  launchURL(String url) async {
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
   }
 }

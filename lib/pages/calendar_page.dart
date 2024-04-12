@@ -45,6 +45,7 @@ class _CalendarState extends State<Calendar> {
                   Icons.menu,
                 ),
               ),
+<<<<<<< HEAD
               onPressed: () {
                 Scaffold.of(context).openDrawer();
               },
@@ -101,6 +102,41 @@ class _CalendarState extends State<Calendar> {
             timeInterval: Duration(
                 hours:
                     intervaloHoras), // Intervalo de tiempo entre cada intervalo en el calendario
+=======
+            ),
+            onPressed: () {
+              Scaffold.of(context).openDrawer();
+            },
+          ),
+        ),
+        title: Row(
+  
+  children: [DropdownButton<String> (
+  value: consultorios[currentIndex],
+  onChanged: (newValue) {
+    setState(() {
+      currentIndex = consultorios.indexOf(newValue ?? consultorios.first);
+
+    });
+  },
+  items: consultorios.map<DropdownMenuItem<String>>((String value) {
+    return DropdownMenuItem<String>(
+      value: value,
+      child: Text(value),
+    );
+  }).toList(),
+)
+],
+),
+
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.calendar_today),
+            onPressed: () {
+              DateTime currentDate = DateTime.now();
+              _calendarController.displayDate = currentDate;
+            },
+>>>>>>> 1162946edaf88d06d5239f22f73923388827d49e
           ),
           dataSource: _getCalendarDataSource(
               widget.name, widget.fecha, widget.hora, widget.duracion),

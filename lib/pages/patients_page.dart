@@ -12,19 +12,95 @@ class Patients extends StatefulWidget {
 class _PatientsState extends State<Patients> {
   final List<DataPatients> _allPatients = [
     DataPatients(
-      id: "1",
-      name: "Manuel",
-      lastname: "Perez",
-      phone: "+52 951 440 6462",
-      symptoms: "Diabetes",
-    ),
+        id: "1",
+        name: "Manuel",
+        lastname: "García",
+        phone: "+52 951 123 4567",
+        symptoms: "Dolor de cabeza"),
     DataPatients(
-      id: "2",
-      name: "Vidal",
-      lastname: "Jarquin",
-      phone: "+52 951 983 2881",
-      symptoms: "Mucha alergia",
-    ),
+        id: "2",
+        name: "Luisa",
+        lastname: "Martínez",
+        phone: "+52 951 987 6543",
+        symptoms: "Fiebre alta"),
+    DataPatients(
+        id: "3",
+        name: "Juan",
+        lastname: "Gómez",
+        phone: "+52 951 555 1234",
+        symptoms: "Dolor de garganta"),
+    DataPatients(
+        id: "4",
+        name: "María",
+        lastname: "López",
+        phone: "+52 951 789 0123",
+        symptoms: "Dolor abdominal"),
+    DataPatients(
+        id: "5",
+        name: "Carlos",
+        lastname: "Hernández",
+        phone: "+52 951 321 9876",
+        symptoms: "Tos persistente"),
+    DataPatients(
+        id: "6",
+        name: "Ana",
+        lastname: "Sánchez",
+        phone: "+52 951 456 7890",
+        symptoms: "Fatiga extrema"),
+    DataPatients(
+        id: "7",
+        name: "Pedro",
+        lastname: "Díaz",
+        phone: "+52 951 888 8888",
+        symptoms: "Congestión nasal"),
+    DataPatients(
+        id: "8",
+        name: "Laura",
+        lastname: "Ramírez",
+        phone: "+52 951 777 7777",
+        symptoms: "Dificultad para respirar"),
+    DataPatients(
+        id: "9",
+        name: "Sofía",
+        lastname: "Gutiérrez",
+        phone: "+52 951 666 6666",
+        symptoms: "Dolor en el pecho"),
+    DataPatients(
+        id: "10",
+        name: "Miguel",
+        lastname: "Pérez",
+        phone: "+52 951 999 9999",
+        symptoms: "Escalofríos"),
+    DataPatients(
+        id: "11",
+        name: "Alejandra",
+        lastname: "Flores",
+        phone: "+52 951 000 0000",
+        symptoms: "Náuseas y vómitos"),
+    DataPatients(
+        id: "12",
+        name: "Fernando",
+        lastname: "Cruz",
+        phone: "+52 951 111 1111",
+        symptoms: "Dolor articular"),
+    DataPatients(
+        id: "13",
+        name: "Paola",
+        lastname: "Torres",
+        phone: "+52 951 222 2222",
+        symptoms: "Malestar general"),
+    DataPatients(
+        id: "14",
+        name: "Eduardo",
+        lastname: "Castillo",
+        phone: "+52 951 333 3333",
+        symptoms: "Urticaria"),
+    DataPatients(
+        id: "15",
+        name: "Gabriela",
+        lastname: "Luna",
+        phone: "+52 951 444 4444",
+        symptoms: "Dolor lumbar")
   ];
 
   List<DataPatients> _filteredPatients = [];

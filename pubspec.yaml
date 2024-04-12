@@ -30,6 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  url_launcher: ^6.0.12
   syncfusion_flutter_calendar: ^24.2.8
   dash_chat:
     git:

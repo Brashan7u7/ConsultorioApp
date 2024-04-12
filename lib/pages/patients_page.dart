@@ -102,20 +102,24 @@ class _PatientsState extends State<Patients> {
         phone: "+52 951 444 4444",
         symptoms: "Dolor lumbar")
   ];
+
   late ScrollController _scrollController;
   List<DataPatients> _displayedPatients = [];
+  TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _scrollController = ScrollController()..addListener(_scrollListener);
     _loadInitialPatients();
+    _searchController.addListener(_onSearchChanged);
   }
 
   @override
   void dispose() {
     _scrollController.removeListener(_scrollListener);
     _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -134,8 +138,27 @@ class _PatientsState extends State<Patients> {
 
   _loadMorePatients() {
     setState(() {
-      _displayedPatients.addAll(_allPatients.skip(_displayedPatients.length).take(10));
+      _displayedPatients.addAll(
+          _allPatients.skip(_displayedPatients.length).take(10));
     });
+  }
+
+  _onSearchChanged() {
+    String searchText = _searchController.text.toLowerCase();
+    if (searchText.length >= 3) {
+      setState(() {
+        _displayedPatients = _allPatients.where((patient) {
+          String fullName =
+              "${patient.name} ${patient.lastname}".toLowerCase();
+          return fullName.contains(searchText);
+        }).toList().take(10).toList();
+      });
+    } else {
+      setState(() {
+        _displayedPatients.clear();
+        _displayedPatients.addAll(_allPatients.take(10));
+      });
+    }
   }
 
   @override
@@ -155,6 +178,7 @@ class _PatientsState extends State<Patients> {
               children: [
                 Expanded(
                   child: TextField(
+                    controller: _searchController,
                     decoration: const InputDecoration(
                       hintText: 'Buscar Paciente',
                       border: InputBorder.none,
@@ -216,7 +240,7 @@ class _PatientsState extends State<Patients> {
     );
   }
 
-  _viewPatient(context, patient) {
+  _viewPatient(context, DataPatients patient) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -275,3 +299,4 @@ class DataPatients {
     required this.symptoms,
   });
 }
+

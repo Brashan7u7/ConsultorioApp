@@ -46,7 +46,8 @@ class _BottomNavBarState extends State<BottomNavBar> {
           );
         },
       );
-    } else if (index == 1 && state == 1) {
+    }
+    if (index == 1 && state == 1) {
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,

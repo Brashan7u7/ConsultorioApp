@@ -4,7 +4,17 @@ import 'package:calendario_manik/components/sidebart.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 class Calendar extends StatefulWidget {
-  const Calendar({Key? key}) : super(key: key);
+  final String? name, fecha, hora, duracion, servicio, nota;
+
+  const Calendar(
+      {Key? key,
+      this.name,
+      this.fecha,
+      this.hora,
+      this.duracion,
+      this.servicio,
+      this.nota})
+      : super(key: key);
 
   @override
   State<Calendar> createState() => _CalendarState();
@@ -26,82 +36,121 @@ class _CalendarState extends State<Calendar> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Padding(
-              padding: EdgeInsets.only(left: 8.0),
-              child: Icon(
-                Icons.menu,
+        appBar: AppBar(
+          leading: Builder(
+            builder: (context) => IconButton(
+              icon: const Padding(
+                padding: EdgeInsets.only(left: 8.0),
+                child: Icon(
+                  Icons.menu,
+                ),
               ),
-            ),
-            onPressed: () {
-              Scaffold.of(context).openDrawer();
-            },
-          ),
-        ),
-        title: Row(
-          children: [
-            IconButton(
-              icon: Icon(Icons.arrow_back_ios),
               onPressed: () {
-                setState(() {
-                  if (currentIndex > 0) currentIndex--;
-                });
+                Scaffold.of(context).openDrawer();
               },
             ),
-            Text(consultorios[currentIndex]), // Nombre del consultorio actual
+          ),
+          title: Row(
+            children: [
+              IconButton(
+                icon: Icon(Icons.arrow_back_ios),
+                onPressed: () {
+                  setState(() {
+                    if (currentIndex > 0) currentIndex--;
+                  });
+                },
+              ),
+              Text(consultorios[currentIndex]), // Nombre del consultorio actual
+              IconButton(
+                icon: Icon(Icons.arrow_forward_ios),
+                onPressed: () {
+                  setState(() {
+                    if (currentIndex < consultorios.length - 1) currentIndex++;
+                  });
+                },
+              ),
+            ],
+          ),
+          actions: [
             IconButton(
-              icon: Icon(Icons.arrow_forward_ios),
+              icon: const Icon(Icons.calendar_today),
               onPressed: () {
-                setState(() {
-                  if (currentIndex < consultorios.length - 1) currentIndex++;
-                });
+                DateTime currentDate = DateTime.now();
+                _calendarController.displayDate = currentDate;
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.calendar_month),
+              onPressed: () {
+                _showMonthlyCalendar(context);
               },
             ),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.calendar_today),
-            onPressed: () {
-              DateTime currentDate = DateTime.now();
-              _calendarController.displayDate = currentDate;
-            },
+        drawer: Sidebar(),
+        body: SfCalendar(
+          controller: _calendarController,
+          view: CalendarView.day,
+          showNavigationArrow: true,
+          headerStyle: CalendarHeaderStyle(textAlign: TextAlign.center),
+          showDatePickerButton: true,
+          timeSlotViewSettings: TimeSlotViewSettings(
+            startHour: 0, endHour: 24,
+            timeIntervalHeight:
+                120, // Altura de cada intervalo de tiempo en el calendario
+            timeInterval: Duration(
+                hours:
+                    intervaloHoras), // Intervalo de tiempo entre cada intervalo en el calendario
           ),
-          IconButton(
-            icon: const Icon(Icons.calendar_month),
-            onPressed: () {
-              _showMonthlyCalendar(context);
-            },
+          dataSource: _getCalendarDataSource(
+              widget.name, widget.fecha, widget.hora, widget.duracion),
+          onTap: (CalendarTapDetails details) {
+            if (details.targetElement == CalendarElement.appointment) {
+              // If an appointment is tapped, show its details
+              Appointment tappedAppointment = details.appointments![0];
+              _showAppointmentDetails(tappedAppointment);
+            } else if (details.targetElement == CalendarElement.calendarCell) {
+              // If an empty cell is tapped, navigate to that day
+              DateTime selectedDate = details.date!;
+              _navigateToSelectedDate(selectedDate);
+            }
+          },
+
+          // If an appointment is tapped, show its details
+        ));
+  }
+
+  void _showAppointmentDetails(Appointment appointment) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(appointment.subject),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                    'Fecha: ${appointment.startTime.day}/${appointment.startTime.month}/${appointment.startTime.year}'),
+                Text(
+                    'Hora inicio: ${appointment.startTime.hour}:${appointment.startTime.minute}'),
+                Text(
+                    'Duración: ${appointment.startTime.difference(appointment.endTime).inMinutes} minutos'),
+                // Add more details as needed
+              ],
+            ),
           ),
-        ],
-      ),
-      drawer: Sidebar(),
-      body: SfCalendar(
-        controller: _calendarController,
-        view: CalendarView.day,
-        showNavigationArrow: true,
-        headerStyle: CalendarHeaderStyle(textAlign: TextAlign.center),
-        showDatePickerButton: true,
-        timeSlotViewSettings: TimeSlotViewSettings(
-          startHour: 0, endHour: 24,
-          timeIntervalHeight:
-              120, // Altura de cada intervalo de tiempo en el calendario
-          timeInterval: Duration(
-              hours:
-                  intervaloHoras), // Intervalo de tiempo entre cada intervalo en el calendario
-        ),
-        dataSource: _getCalendarDataSource(),
-        onTap: (CalendarTapDetails details) {
-          if (details.targetElement == CalendarElement.calendarCell) {
-            // Si se toca una celda del calendario, redirige a ese día
-            DateTime selectedDate = details.date!;
-            _navigateToSelectedDate(selectedDate);
-          }
-        },
-      ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('Cerrar'),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -147,15 +196,34 @@ class _AppointmentDataSource extends CalendarDataSource {
   }
 }
 
-_AppointmentDataSource _getCalendarDataSource() {
+_AppointmentDataSource _getCalendarDataSource(
+    String? name, String? fecha, String? hora, String? duracion) {
   List<Appointment> appointments = <Appointment>[];
 
-  appointments.add(Appointment(
-    startTime: DateTime.now(),
-    endTime: DateTime.now().add(Duration(minutes: 60)),
-    subject: 'Meeting',
-    color: Colors.red,
-  ));
+  if (name != null && fecha != null && hora != null && duracion != null) {
+    // Parse the fecha string into a DateTime object
+    DateTime appointmentDate = DateTime.tryParse(fecha) ?? DateTime.now();
+
+    // Assuming 'hora' represents the start time (modify if needed)
+    DateTime startTime = DateTime(
+      appointmentDate.year,
+      appointmentDate.month,
+      appointmentDate.day,
+      int.parse(hora.split(':')[0]),
+      int.parse(hora.split(':')[1]),
+    );
+
+    // Assuming 'duracion' represents duration in minutes (modify if needed)
+    int durationInMinutes = int.tryParse(duracion) ?? 0;
+    DateTime endTime = startTime.add(Duration(minutes: durationInMinutes));
+
+    appointments.add(Appointment(
+      subject: name, // Use name for the subject
+      startTime: startTime,
+      endTime: endTime,
+      color: Colors.blue, // Set a color for your appointment
+    ));
+  }
 
   return _AppointmentDataSource(appointments);
 }

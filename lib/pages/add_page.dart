@@ -1,7 +1,6 @@
 import 'package:calendario_manik/pages/calendar_page.dart';
 import 'package:flutter/material.dart';
 import 'package:calendario_manik/pages/patients_page.dart';
-import 'package:syncfusion_flutter_calendar/calendar.dart'; // Import the Add page
 
 class Add extends StatelessWidget {
   final bool isCitaRapida, isEvento, isPacient, isCitaPro;
@@ -17,10 +16,11 @@ class Add extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     TextEditingController _idController = TextEditingController();
-    TextEditingController _nameController = TextEditingController();
     TextEditingController _lastnameController = TextEditingController();
     TextEditingController _phoneController = TextEditingController();
     TextEditingController _symptomsController = TextEditingController();
+
+    TextEditingController _nameController = TextEditingController();
 
     return Scaffold(
       appBar: AppBar(
@@ -35,7 +35,9 @@ class Add extends StatelessWidget {
                         : ""),
       ),
       body: isCitaRapida
-          ? _buildCitaRapidaContent(context)
+          ? _buildCitaRapidaContent(
+              context,
+            )
           : isEvento
               ? _buildEventoContent(context)
               : isPacient
@@ -52,14 +54,17 @@ class Add extends StatelessWidget {
     );
   }
 
-  Widget _buildCitaRapidaContent(BuildContext context) {
+  Widget _buildCitaRapidaContent(
+    BuildContext context,
+  ) {
     final _formKey = GlobalKey<FormState>();
-    final _nameController = TextEditingController();
-    final _fechaController = TextEditingController();
-    final _horaController = TextEditingController();
-    final _duracionController = TextEditingController();
-    final _servicioController = TextEditingController();
-    final _notaController = TextEditingController();
+
+    TextEditingController nameController = TextEditingController(text: "");
+    TextEditingController fechaController = TextEditingController(text: "");
+    TextEditingController horaController = TextEditingController(text: "");
+    TextEditingController duracionController = TextEditingController(text: "");
+    TextEditingController servicioController = TextEditingController(text: "");
+    TextEditingController notaController = TextEditingController(text: "");
 
     return Form(
       key: _formKey,
@@ -68,7 +73,7 @@ class Add extends StatelessWidget {
         child: ListView(
           children: [
             TextFormField(
-              controller: _nameController,
+              controller: nameController,
               decoration: const InputDecoration(
                   labelText: 'Escriba el nombre del paciente'),
               validator: (value) {
@@ -82,21 +87,20 @@ class Add extends StatelessWidget {
               children: [
                 Expanded(
                   child: TextFormField(
-                    controller: _fechaController,
-                    readOnly: true, // Prevent user from editing date directly
+                    controller: fechaController,
+                    readOnly: true,
                     decoration: const InputDecoration(labelText: 'Fecha'),
                     onTap: () async {
-                      // Handle date selection using a date picker
                       DateTime? pickedDate = await showDatePicker(
                         context: context,
                         initialDate: DateTime.now(),
-                        firstDate: DateTime.now().subtract(
-                            const Duration(days: 365)), // Allow past year dates
-                        lastDate: DateTime.now().add(const Duration(
-                            days: 365)), // Allow future dates for next year
+                        firstDate:
+                            DateTime.now().subtract(const Duration(days: 365)),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
                       );
                       if (pickedDate != null) {
-                        _fechaController.text = pickedDate.toIso8601String();
+                        fechaController.text =
+                            pickedDate.toIso8601String().split('T')[0];
                       }
                     },
                   ),
@@ -104,7 +108,7 @@ class Add extends StatelessWidget {
                 const SizedBox(width: 10.0),
                 Expanded(
                   child: TextFormField(
-                    controller: _horaController,
+                    controller: horaController,
                     readOnly: true, // Prevent user from editing time directly
                     decoration: const InputDecoration(labelText: 'Hora'),
                     onTap: () async {
@@ -114,7 +118,7 @@ class Add extends StatelessWidget {
                         initialTime: TimeOfDay.now(),
                       );
                       if (pickedTime != null) {
-                        _horaController.text = pickedTime.format(context);
+                        horaController.text = pickedTime.format(context);
                       }
                     },
                   ),
@@ -122,7 +126,7 @@ class Add extends StatelessWidget {
               ],
             ),
             TextFormField(
-              controller: _duracionController,
+              controller: duracionController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(labelText: 'Duración (min)'),
               validator: (value) {
@@ -133,9 +137,9 @@ class Add extends StatelessWidget {
               },
             ),
             DropdownButtonFormField<String>(
-              value: _servicioController.text.isEmpty
+              value: servicioController.text.isEmpty
                   ? null
-                  : _servicioController.text,
+                  : servicioController.text,
               hint: const Text('Servicio de atención'),
               items: <DropdownMenuItem<String>>[
                 DropdownMenuItem<String>(
@@ -148,25 +152,29 @@ class Add extends StatelessWidget {
                 ),
                 // ... Add more service options here
               ],
-              onChanged: (value) => _servicioController.text = value!,
+              onChanged: (value) => servicioController.text = value!,
             ),
             TextFormField(
-              controller: _notaController,
+              controller: notaController,
               decoration: const InputDecoration(labelText: 'Nota para cita'),
               maxLines: 3,
             ),
             ElevatedButton(
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
-                  // Form is valid, process quick appointment data
-                  saveQuickAppointment(
+                  // Navigate to calendar_page and pass the appointment object
+                  Navigator.push(
                     context,
-                    _nameController.text,
-                    _fechaController.text,
-                    _horaController.text,
-                    _duracionController.text,
-                    _servicioController.text,
-                    _notaController.text,
+                    MaterialPageRoute(
+                      builder: (context) => Calendar(
+                        name: nameController.text,
+                        fecha: fechaController.text,
+                        hora: horaController.text,
+                        duracion: duracionController.text,
+                        servicio: servicioController.text,
+                        nota: notaController.text,
+                      ),
+                    ),
                   );
                 }
               },
@@ -179,33 +187,6 @@ class Add extends StatelessWidget {
   }
 
   // Método para guardar la cita en la página de calendario
-  void saveQuickAppointment(
-    BuildContext context,
-    String name,
-    String fecha,
-    String hora,
-    String duracion,
-    String servicio,
-    String nota,
-  ) {
-    // Combine date and time into a proper format
-    String dateTimeString = '$fecha $hora:00'; // Add seconds to HH:MM:SS format
-
-    // Correct the format of the date and time string
-    DateTime startTime = DateTime.parse(dateTimeString.replaceAll('T', ' '));
-    int duration = int.tryParse(duracion) ?? 0;
-    DateTime endTime = startTime.add(Duration(minutes: duration));
-
-    Appointment newAppointment = Appointment(
-      startTime: startTime,
-      endTime: endTime,
-      subject: name,
-      notes: nota,
-    );
-
-    // Return the new appointment to the Calendar page
-    Navigator.pop(context, newAppointment);
-  }
 
   Widget _buildCitaProgramadaContent() {
     return Center(

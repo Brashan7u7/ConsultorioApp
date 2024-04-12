@@ -36,6 +36,7 @@ class _ConsultingState extends State<Consulting> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        
         title: const Text('Mis Consultorios'),
         actions: [
           IconButton(
@@ -148,13 +149,13 @@ class _ConsultingState extends State<Consulting> {
                 Text('Días y horarios de atención'),
                 _buildTimeIntervals(), // Llama al método para generar los intervalos de tiempo
                 if (hasConsultorios) const SizedBox(height: 16.0),
-
-                ElevatedButton(
-                  onPressed: () {
-                    _guardarConsultorio();
-                  },
-                  child: const Text('Guardar'),
-                ),
+                if (hasConsultorios)
+                  ElevatedButton(
+                    onPressed: () {
+                      _guardarConsultorio();
+                    },
+                    child: const Text('Guardar'),
+                  ),
               ],
             ),
           ),
@@ -198,19 +199,11 @@ class _ConsultingState extends State<Consulting> {
                         }
                         return selectedButtonIndex == index
                             ? Colors.green
-                            : Colors.grey.withOpacity(0.6);
-                        ; // Color por defecto
+                            : Colors.grey; // Color por defecto
                       },
                     ),
                   ),
-                  child: Text(
-                    timeInterval,
-                    style: TextStyle(
-                      fontSize: 16.0, // Tamaño de fuente del texto
-                      fontWeight: FontWeight.bold, // Fuente en negrita
-                      color: Colors.white, // Color del texto
-                    ),
-                  ),
+                  child: Text(timeInterval),
                 ),
                 SizedBox(width: 8.0), // Espacio entre los botones
               ],
@@ -240,12 +233,10 @@ class _ConsultingState extends State<Consulting> {
       intervaloAtencion: selectedInterval,
       diaAtencion: selectedDay!,
     );
-    if (consultorios != null) {
-      consultorios.add(nuevoConsultorio);
-      setState(() {
-        hasConsultorios = true;
-      });
-    }
+    consultorios.add(nuevoConsultorio);
+    setState(() {
+      hasConsultorios = true;
+    });
   }
 }
 

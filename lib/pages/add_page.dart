@@ -21,6 +21,11 @@ class Add extends StatelessWidget {
     TextEditingController _lastnameController = TextEditingController();
     TextEditingController _phoneController = TextEditingController();
     TextEditingController _symptomsController = TextEditingController();
+    TextEditingController _maternoController = TextEditingController();
+    TextEditingController _birthDateController = TextEditingController();
+    TextEditingController _mobilePhoneController = TextEditingController();
+    TextEditingController _emailController = TextEditingController();
+    TextEditingController _landlineController = TextEditingController();
 
     return Scaffold(
       appBar: AppBar(
@@ -45,12 +50,19 @@ class Add extends StatelessWidget {
                       _nameController,
                       _lastnameController,
                       _phoneController,
-                      _symptomsController)
+                      _symptomsController,
+                      _maternoController,
+                      _birthDateController,
+                      _mobilePhoneController,
+                      _emailController,
+                      _landlineController
+                      )
                   : isCitaPro
                       ? _buildCitaProgramadaContent()
                       : Calendar(),
     );
   }
+
 
   Widget _buildCitaRapidaContent(BuildContext context) {
     final _formKey = GlobalKey<FormState>();
@@ -316,6 +328,11 @@ class Add extends StatelessWidget {
     TextEditingController lastnameController,
     TextEditingController phoneController,
     TextEditingController symptomsController,
+    TextEditingController maternoController,
+    TextEditingController birthDateController,
+    TextEditingController mobilePhoneController,
+    TextEditingController emailController,
+    TextEditingController landlineController
   ) {
     return Padding(
       padding: const EdgeInsets.all(20.0),
@@ -371,6 +388,11 @@ class Add extends StatelessWidget {
             lastname: lastnameController.text,
             phone: phoneController.text,
             symptoms: symptomsController.text,
+            materno: maternoController.text,
+            birthDate: birthDateController.text,
+            mobilePhone: mobilePhoneController.text,
+            email: emailController.text,
+            landline: landlineController.text
           );
 
           Navigator.push(

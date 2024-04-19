@@ -1,7 +1,8 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:calendario_manik/components/sidebart.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
+import 'package:calendario_manik/pages/add_page.dart';
+import 'package:calendario_manik/pages/patients_page.dart';
+import 'package:calendario_manik/pages/consulting_page.dart';
 
 class Calendar extends StatefulWidget {
   final String? name, fecha, hora, duracion, servicio, nota;
@@ -22,10 +23,9 @@ class Calendar extends StatefulWidget {
 
 class _CalendarState extends State<Calendar> {
   final CalendarController _calendarController = CalendarController();
-  int intervaloHoras =
-      2; // Intervalo de horas entre cada hora mostrada en el calendario
+  int intervaloHoras = 2;
 
-// Lista de consultorios
+  // Lista de consultorios
   List<String> consultorios = [
     'Consultorio 1',
     'Consultorio 2',
@@ -36,99 +36,28 @@ class _CalendarState extends State<Calendar> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          leading: Builder(
-            builder: (context) => IconButton(
-              icon: const Padding(
-                padding: EdgeInsets.only(left: 8.0),
-                child: Icon(
-                  Icons.menu,
-                ),
-              ),
-<<<<<<< HEAD
+      appBar: AppBar(
+        title: Row(
+          children: [
+            IconButton(
+              icon: Icon(Icons.arrow_back_ios),
               onPressed: () {
-                Scaffold.of(context).openDrawer();
+                setState(() {
+                  if (currentIndex > 0) currentIndex--;
+                });
               },
             ),
-          ),
-          title: Row(
-            children: [
-              IconButton(
-                icon: Icon(Icons.arrow_back_ios),
-                onPressed: () {
-                  setState(() {
-                    if (currentIndex > 0) currentIndex--;
-                  });
-                },
-              ),
-              Text(consultorios[currentIndex]), // Nombre del consultorio actual
-              IconButton(
-                icon: Icon(Icons.arrow_forward_ios),
-                onPressed: () {
-                  setState(() {
-                    if (currentIndex < consultorios.length - 1) currentIndex++;
-                  });
-                },
-              ),
-            ],
-          ),
-          actions: [
+            Text(consultorios[currentIndex]), // Nombre del consultorio actual
             IconButton(
-              icon: const Icon(Icons.calendar_today),
+              icon: Icon(Icons.arrow_forward_ios),
               onPressed: () {
-                DateTime currentDate = DateTime.now();
-                _calendarController.displayDate = currentDate;
-              },
-            ),
-            IconButton(
-              icon: const Icon(Icons.calendar_month),
-              onPressed: () {
-                _showMonthlyCalendar(context);
+                setState(() {
+                  if (currentIndex < consultorios.length - 1) currentIndex++;
+                });
               },
             ),
           ],
         ),
-        drawer: Sidebar(),
-        body: SfCalendar(
-          controller: _calendarController,
-          view: CalendarView.day,
-          showNavigationArrow: true,
-          headerStyle: CalendarHeaderStyle(textAlign: TextAlign.center),
-          showDatePickerButton: true,
-          timeSlotViewSettings: TimeSlotViewSettings(
-            startHour: 0, endHour: 24,
-            timeIntervalHeight:
-                120, // Altura de cada intervalo de tiempo en el calendario
-            timeInterval: Duration(
-                hours:
-                    intervaloHoras), // Intervalo de tiempo entre cada intervalo en el calendario
-=======
-            ),
-            onPressed: () {
-              Scaffold.of(context).openDrawer();
-            },
-          ),
-        ),
-        title: Row(
-  
-  children: [DropdownButton<String> (
-  value: consultorios[currentIndex],
-  onChanged: (newValue) {
-    setState(() {
-      currentIndex = consultorios.indexOf(newValue ?? consultorios.first);
-
-    });
-  },
-  items: consultorios.map<DropdownMenuItem<String>>((String value) {
-    return DropdownMenuItem<String>(
-      value: value,
-      child: Text(value),
-    );
-  }).toList(),
-)
-],
-),
-
         actions: [
           IconButton(
             icon: const Icon(Icons.calendar_today),
@@ -136,24 +65,217 @@ class _CalendarState extends State<Calendar> {
               DateTime currentDate = DateTime.now();
               _calendarController.displayDate = currentDate;
             },
->>>>>>> 1162946edaf88d06d5239f22f73923388827d49e
           ),
-          dataSource: _getCalendarDataSource(
-              widget.name, widget.fecha, widget.hora, widget.duracion),
-          onTap: (CalendarTapDetails details) {
-            if (details.targetElement == CalendarElement.appointment) {
-              // If an appointment is tapped, show its details
-              Appointment tappedAppointment = details.appointments![0];
-              _showAppointmentDetails(tappedAppointment);
-            } else if (details.targetElement == CalendarElement.calendarCell) {
-              // If an empty cell is tapped, navigate to that day
-              DateTime selectedDate = details.date!;
-              _navigateToSelectedDate(selectedDate);
-            }
-          },
+          IconButton(
+            icon: const Icon(Icons.calendar_month),
+            onPressed: () {
+              _showMonthlyCalendar(context);
+            },
+          ),
+        ],
+      ),
+      drawer: Drawer(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // logo
+            DrawerHeader(
+              child: Image.asset('lib/images/usuario.png'),
+              padding: EdgeInsets.symmetric(horizontal: 80),
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 50.0),
+              child: Divider(
+                color: Colors.red,
+              ),
+            ),
 
-          // If an appointment is tapped, show its details
-        ));
+            const Padding(
+              padding: EdgeInsets.only(left: 25.0),
+              child: ListTile(
+                leading: Icon(
+                  Icons.announcement,
+                ),
+                title: Text(
+                  'Pacientes esperando',
+                ),
+              ),
+            ),
+
+            // Opción de horario que navega a la página de consultorios
+            ListTile(
+              contentPadding: EdgeInsets.only(left: 25.0),
+              leading: Icon(
+                Icons.access_alarm,
+              ),
+              title: Text(
+                'Consultorios',
+              ),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        Consulting(), // Nueva página de consultorios
+                  ),
+                );
+              },
+            ),
+            const Spacer(),
+            const Padding(
+              padding: EdgeInsets.only(left: 25.0, bottom: 25),
+              child: ListTile(
+                leading: Icon(
+                  Icons.logout,
+                ),
+                title: Text(
+                  'Cerrar Sesión',
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      body: SfCalendar(
+        controller: _calendarController,
+        view: CalendarView.day,
+        showNavigationArrow: true,
+        headerStyle: CalendarHeaderStyle(textAlign: TextAlign.center),
+        showDatePickerButton: true,
+        timeSlotViewSettings: TimeSlotViewSettings(
+          startHour: 0,
+          endHour: 24,
+          timeIntervalHeight: 120,
+          timeInterval: Duration(hours: intervaloHoras),
+        ),
+        dataSource: _getCalendarDataSource(
+            widget.name, widget.fecha, widget.hora, widget.duracion),
+        onTap: (CalendarTapDetails details) {
+          if (details.targetElement == CalendarElement.appointment) {
+            Appointment tappedAppointment = details.appointments![0];
+            _showAppointmentDetails(tappedAppointment);
+          } else if (details.targetElement == CalendarElement.calendarCell) {
+            DateTime selectedDate = details.date!;
+            _navigateToSelectedDate(selectedDate);
+          }
+        },
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: currentIndex,
+        onTap: (index) {
+          setState(() {
+            currentIndex = index;
+          });
+
+          if (index == 1) {
+            _showAgendarModal();
+          } else if (index == 0) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => Calendar(),
+              ),
+            );
+          } else if (index == 2) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => Patients(),
+              ),
+            );
+          }
+        },
+        items: <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Calendario',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add),
+            label: 'Agendar',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Pacientes',
+          ),
+        ],
+        selectedItemColor: Colors.green,
+      ),
+    );
+  }
+
+  void _showAgendarModal() {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
+      ),
+      builder: (BuildContext builder) {
+        return Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
+          ),
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: Icon(Icons.access_time),
+                title: Text('Cita Rápida'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Add(
+                        isCitaRapida: true,
+                        isEvento: false,
+                        isPacient: false,
+                        isCitaPro: false,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.calendar_today),
+                title: Text('Cita Programada'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Add(
+                        isCitaRapida: false,
+                        isEvento: false,
+                        isPacient: false,
+                        isCitaPro: true,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.event),
+                title: Text('Evento'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Add(
+                        isCitaRapida: false,
+                        isEvento: true,
+                        isPacient: false,
+                        isCitaPro: false,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   void _showAppointmentDetails(Appointment appointment) {
@@ -205,7 +327,6 @@ class _CalendarState extends State<Calendar> {
             appointmentTimeTextFormat: 'HH:mm',
             onTap: (CalendarTapDetails details) {
               if (details.targetElement == CalendarElement.calendarCell) {
-                // Si se toca una celda del calendario, redirige a ese día
                 DateTime selectedDate = details.date!;
                 _navigateToSelectedDate(selectedDate);
                 Navigator.pop(context);

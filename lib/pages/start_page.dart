@@ -23,12 +23,10 @@ class StartPage extends StatelessWidget {
                 textAlign: TextAlign.center,
                 text: const TextSpan(children: [
                   TextSpan(
-                      text: '¡Bienvenido a medicalmanik!\n',
+                      text: '¡MedicalManik!\n',
                       style: TextStyle(
                           fontSize: 45.0, fontWeight: FontWeight.w600)),
-                  TextSpan(
-                      text: 'Inicia sesión o registrate para continuar',
-                      style: TextStyle(fontSize: 20)),
+                  TextSpan(text: 'Bienvenido', style: TextStyle(fontSize: 20)),
                 ]),
               )),
             )),

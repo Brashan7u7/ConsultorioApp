@@ -1,9 +1,6 @@
-import 'package:calendario_manik/pages/add_page.dart';
 import 'package:calendario_manik/pages/calendar_page.dart';
-import 'package:calendario_manik/pages/consulting_page.dart';
-import 'package:calendario_manik/pages/createAccount_page.dart';
 import 'package:calendario_manik/pages/home_page.dart';
-import 'package:calendario_manik/pages/patients_page.dart';
+import 'package:calendario_manik/pages/createAccount_page.dart';
 import 'package:calendario_manik/pages/resetPassword_page.dart';
 import 'package:flutter/material.dart';
 
@@ -31,7 +28,7 @@ class _LoginState extends State<Login> {
     if (email == usuarioCorrecto && password == contrasenaCorrecta) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => HomePage()),
+        MaterialPageRoute(builder: (context) => Calendar()),
       );
     } else {}
   }

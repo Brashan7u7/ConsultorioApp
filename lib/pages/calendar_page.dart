@@ -4,18 +4,20 @@ import 'package:calendario_manik/pages/add_page.dart';
 import 'package:calendario_manik/pages/patients_page.dart';
 import 'package:calendario_manik/pages/consulting_page.dart';
 
+import 'package:intl/intl.dart';
+
 class Calendar extends StatefulWidget {
   final String? name, fecha, hora, duracion, servicio, nota;
 
-  const Calendar(
-      {Key? key,
-      this.name,
-      this.fecha,
-      this.hora,
-      this.duracion,
-      this.servicio,
-      this.nota})
-      : super(key: key);
+  const Calendar({
+    Key? key,
+    this.name,
+    this.fecha,
+    this.hora,
+    this.duracion,
+    this.servicio,
+    this.nota,
+  }) : super(key: key);
 
   @override
   State<Calendar> createState() => _CalendarState();
@@ -31,7 +33,11 @@ class _CalendarState extends State<Calendar> {
     'Consultorio 2',
     'Consultorio 3'
   ];
-  int currentIndex = 0; // Índice del consultorio actual
+  int currentIndex = 0;
+  int consulIndex = 0; // Índice del consultorio actual
+
+  DateTime? _lastTap;
+  int _tapInterval = 300;
 
   @override
   Widget build(BuildContext context) {
@@ -39,22 +45,20 @@ class _CalendarState extends State<Calendar> {
       appBar: AppBar(
         title: Row(
           children: [
-            IconButton(
-              icon: Icon(Icons.arrow_back_ios),
-              onPressed: () {
+            DropdownButton<String>(
+              value: consultorios[consulIndex],
+              onChanged: (newValue) {
                 setState(() {
-                  if (currentIndex > 0) currentIndex--;
+                  consulIndex =
+                      consultorios.indexOf(newValue ?? consultorios.first);
                 });
               },
-            ),
-            Text(consultorios[currentIndex]), // Nombre del consultorio actual
-            IconButton(
-              icon: Icon(Icons.arrow_forward_ios),
-              onPressed: () {
-                setState(() {
-                  if (currentIndex < consultorios.length - 1) currentIndex++;
-                });
-              },
+              items: consultorios.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
             ),
           ],
         ),
@@ -78,7 +82,6 @@ class _CalendarState extends State<Calendar> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // logo
             DrawerHeader(
               child: Image.asset('lib/images/usuario.png'),
               padding: EdgeInsets.symmetric(horizontal: 80),
@@ -89,7 +92,6 @@ class _CalendarState extends State<Calendar> {
                 color: Colors.red,
               ),
             ),
-
             const Padding(
               padding: EdgeInsets.only(left: 25.0),
               child: ListTile(
@@ -101,8 +103,6 @@ class _CalendarState extends State<Calendar> {
                 ),
               ),
             ),
-
-            // Opción de horario que navega a la página de consultorios
             ListTile(
               contentPadding: EdgeInsets.only(left: 25.0),
               leading: Icon(
@@ -121,8 +121,8 @@ class _CalendarState extends State<Calendar> {
                 );
               },
             ),
-            const Spacer(),
-            const Padding(
+            Spacer(),
+            Padding(
               padding: EdgeInsets.only(left: 25.0, bottom: 25),
               child: ListTile(
                 leading: Icon(
@@ -141,6 +141,7 @@ class _CalendarState extends State<Calendar> {
         view: CalendarView.day,
         showNavigationArrow: true,
         headerStyle: CalendarHeaderStyle(textAlign: TextAlign.center),
+        headerDateFormat: 'd,MMMM,y',
         showDatePickerButton: true,
         timeSlotViewSettings: TimeSlotViewSettings(
           startHour: 0,
@@ -149,7 +150,11 @@ class _CalendarState extends State<Calendar> {
           timeInterval: Duration(hours: intervaloHoras),
         ),
         dataSource: _getCalendarDataSource(
-            widget.name, widget.fecha, widget.hora, widget.duracion),
+          widget.name,
+          widget.fecha,
+          widget.hora,
+          widget.duracion,
+        ),
         onTap: (CalendarTapDetails details) {
           if (details.targetElement == CalendarElement.appointment) {
             Appointment tappedAppointment = details.appointments![0];
@@ -157,6 +162,16 @@ class _CalendarState extends State<Calendar> {
           } else if (details.targetElement == CalendarElement.calendarCell) {
             DateTime selectedDate = details.date!;
             _navigateToSelectedDate(selectedDate);
+          }
+          if (_lastTap != null &&
+              DateTime.now().difference(_lastTap!) <
+                  Duration(milliseconds: _tapInterval)) {
+            // Si se hace doble clic en una celda del calendario, redirige a la página de "Cita Rápida"
+            _lastTap = null;
+            _navigateToAddPage(context);
+          } else {
+            // Si se hace un solo clic, actualiza el tiempo del último toque
+            _lastTap = DateTime.now();
           }
         },
       ),
@@ -290,11 +305,14 @@ class _CalendarState extends State<Calendar> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                    'Fecha: ${appointment.startTime.day}/${appointment.startTime.month}/${appointment.startTime.year}'),
+                  'Fecha: ${appointment.startTime.day}/${appointment.startTime.month}/${appointment.startTime.year}',
+                ),
                 Text(
-                    'Hora inicio: ${appointment.startTime.hour}:${appointment.startTime.minute}'),
+                  'Hora inicio: ${appointment.startTime.hour}:${appointment.startTime.minute}',
+                ),
                 Text(
-                    'Duración: ${appointment.startTime.difference(appointment.endTime).inMinutes} minutos'),
+                  'Duración: ${appointment.startTime.difference(appointment.endTime).inMinutes} minutos',
+                ),
                 // Add more details as needed
               ],
             ),
@@ -344,6 +362,27 @@ class _CalendarState extends State<Calendar> {
 
     // Cambia la vista del calendario a "day"
     _calendarController.view = CalendarView.day;
+  }
+
+  void _navigateToAddPage(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => Add(
+          isCitaRapida: false,
+          isCitaselect: true,
+          fechaController: TextEditingController(
+            text: _calendarController.selectedDate.toString().split(' ')[0],
+          ),
+          horaController: TextEditingController(
+            text: _calendarController.selectedDate.toString().split(' ')[1],
+          ),
+          isCitaPro: false,
+          isEvento: false,
+          isPacient: false,
+        ),
+      ),
+    );
   }
 }
 

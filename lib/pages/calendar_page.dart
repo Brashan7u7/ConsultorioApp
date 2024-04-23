@@ -76,6 +76,7 @@ class _CalendarState extends State<Calendar> {
         view: CalendarView.day,
         showNavigationArrow: true,
         headerStyle: CalendarHeaderStyle(textAlign: TextAlign.center),
+        
         showDatePickerButton: true,
         timeSlotViewSettings: TimeSlotViewSettings(
           startHour: 0,

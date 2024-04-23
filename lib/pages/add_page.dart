@@ -1,88 +1,308 @@
 import 'package:calendario_manik/pages/calendar_page.dart';
 import 'package:flutter/material.dart';
 import 'package:calendario_manik/pages/patients_page.dart';
-import 'package:syncfusion_flutter_calendar/calendar.dart'; // Import the Add page
+import 'package:intl/intl.dart';
 
 class Add extends StatelessWidget {
   final bool isCitaRapida, isEvento, isPacient, isCitaPro;
+  final bool? isCitaselect;
 
-  const Add({
-    Key? key,
-    required this.isCitaRapida,
-    this.isEvento = false,
-    this.isPacient = false,
-    this.isCitaPro = false,
-  }) : super(key: key);
+  TextEditingController? fechaController, horaController;
+
+  Add(
+      {Key? key,
+      required this.isCitaRapida,
+      this.isEvento = false,
+      this.isPacient = false,
+      this.isCitaPro = false,
+      this.isCitaselect = false,
+      this.fechaController,
+      this.horaController})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    TextEditingController _idController = TextEditingController();
-    TextEditingController _nameController = TextEditingController();
-    TextEditingController _lastnameController = TextEditingController();
-    TextEditingController _phoneController = TextEditingController();
-    TextEditingController _symptomsController = TextEditingController();
-    TextEditingController _maternoController = TextEditingController();
-    TextEditingController _birthDateController = TextEditingController();
-    TextEditingController _mobilePhoneController = TextEditingController();
-    TextEditingController _emailController = TextEditingController();
-    TextEditingController _landlineController = TextEditingController();
-
     return Scaffold(
       appBar: AppBar(
         title: Text(isCitaRapida
             ? "Cita Rápida"
-            : isEvento
-                ? 'Evento'
-                : isPacient
-                    ? "Registrar Paciente"
-                    : isCitaPro
-                        ? "Cita Programada"
-                        : ""),
+            : isCitaselect!
+                ? "Cita Rápida"
+                : isEvento
+                    ? 'Evento'
+                    : isPacient
+                        ? "Registrar Paciente"
+                        : isCitaPro
+                            ? "Cita Programada"
+                            : ""),
       ),
       body: isCitaRapida
-          ? _buildCitaRapidaContent(context)
-          : isEvento
-              ? _buildEventoContent(context)
-              : isPacient
-                  ? _buildPacientContent(
-                      context,
-                      _idController,
-                      _nameController,
-                      _lastnameController,
-                      _phoneController,
-                      _symptomsController,
-                      _maternoController,
-                      _birthDateController,
-                      _mobilePhoneController,
-                      _emailController,
-                      _landlineController
-                      )
-                  : isCitaPro
-                      ? _buildCitaProgramadaContent()
-                      : Calendar(),
+          ? _buildCitaRapidaContent(
+              context,
+            )
+          : (isCitaselect ?? false)
+              ? _buildCitaselectContent(
+                  context, fechaController!, horaController!)
+              : isEvento
+                  ? _buildEventoContent(context)
+                  : isPacient
+                      ? _buildPacientContent(context)
+                      : isCitaPro
+                          ? _buildCitaProgramadaContent(context)
+                          : Calendar(),
     );
   }
 
-
   Widget _buildCitaRapidaContent(BuildContext context) {
     final _formKey = GlobalKey<FormState>();
-    final _nameController = TextEditingController();
-    final _fechaController = TextEditingController();
-    final _horaController = TextEditingController();
-    final _duracionController = TextEditingController();
-    final _servicioController = TextEditingController();
-    final _notaController = TextEditingController();
+
+    TextEditingController nameController = TextEditingController(text: "");
+    TextEditingController fechaController = TextEditingController(
+      text: DateTime.now().toIso8601String().split('T')[0],
+    );
+    TextEditingController horaController = TextEditingController(
+      text: TimeOfDay.now().format(context),
+    );
+    TextEditingController duracionController = TextEditingController(text: "");
+    TextEditingController servicioController = TextEditingController(text: "");
+    TextEditingController notaController = TextEditingController(text: "");
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text(
+            'Cita para hoy (${DateTime.now().toIso8601String().split('T')[0]}) a las ${TimeOfDay.now().format(context)}',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
+        Form(
+          key: _formKey,
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextFormField(
+                  controller: nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Escriba el nombre del paciente',
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'El nombre del paciente es obligatorio';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 10.0),
+                TextFormField(
+                  controller: duracionController,
+                  keyboardType: TextInputType.number,
+                  decoration:
+                      const InputDecoration(labelText: 'Duración (min)'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'La duración es obligatoria';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 10.0),
+                DropdownButtonFormField<String>(
+                  value: servicioController.text.isEmpty
+                      ? null
+                      : servicioController.text,
+                  hint: const Text('Servicio de atención'),
+                  items: <DropdownMenuItem<String>>[
+                    DropdownMenuItem<String>(
+                      value: 'Subsecuente',
+                      child: Text('Subsecuente'),
+                    ),
+                    DropdownMenuItem<String>(
+                      value: 'Videoconsulta',
+                      child: Text('Videoconsulta'),
+                    ),
+                    // ... Add more service options here
+                  ],
+                  onChanged: (value) => servicioController.text = value!,
+                ),
+                SizedBox(height: 10.0),
+                TextFormField(
+                  controller: notaController,
+                  decoration:
+                      const InputDecoration(labelText: 'Nota para cita'),
+                  maxLines: 3,
+                ),
+                SizedBox(height: 20.0),
+                ElevatedButton(
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Calendar(
+                            name: nameController.text,
+                            fecha: fechaController.text,
+                            hora: horaController.text,
+                            duracion: duracionController.text,
+                            servicio: servicioController.text,
+                            nota: notaController.text,
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                  child: const Text('Guardar Cita Rápida'),
+                ),
+              ],
+            ),
+          ),
+        )
+      ],
+    );
+  }
+
+  Widget _buildCitaselectContent(
+      BuildContext context,
+      TextEditingController fechaController,
+      TextEditingController horaController) {
+    final _formKey = GlobalKey<FormState>();
+
+    TextEditingController nameController = TextEditingController(text: "");
+    TextEditingController duracionController = TextEditingController(text: "");
+    TextEditingController servicioController = TextEditingController(text: "");
+    TextEditingController notaController = TextEditingController(text: "");
+
+    String hora24 =
+        horaController.text; // Obtener la hora en formato de 24 horas
+
+// Convertir la hora de 24 horas a un formato de 12 horas
+    DateTime horaDateTime = DateFormat("HH:mm:ss.SSS").parse(hora24);
+    String hora12 = DateFormat("HH:mm").format(horaDateTime);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text(
+            'Cita para hoy (${fechaController.text}) a las ${hora12}',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
+        Form(
+          key: _formKey,
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextFormField(
+                  controller: nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Escriba el nombre del paciente',
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'El nombre del paciente es obligatorio';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 10.0),
+                TextFormField(
+                  controller: duracionController,
+                  keyboardType: TextInputType.number,
+                  decoration:
+                      const InputDecoration(labelText: 'Duración (min)'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'La duración es obligatoria';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 10.0),
+                DropdownButtonFormField<String>(
+                  value: servicioController.text.isEmpty
+                      ? null
+                      : servicioController.text,
+                  hint: const Text('Servicio de atención'),
+                  items: <DropdownMenuItem<String>>[
+                    DropdownMenuItem<String>(
+                      value: 'Subsecuente',
+                      child: Text('Subsecuente'),
+                    ),
+                    DropdownMenuItem<String>(
+                      value: 'Videoconsulta',
+                      child: Text('Videoconsulta'),
+                    ),
+                    // ... Add more service options here
+                  ],
+                  onChanged: (value) => servicioController.text = value!,
+                ),
+                SizedBox(height: 10.0),
+                TextFormField(
+                  controller: notaController,
+                  decoration:
+                      const InputDecoration(labelText: 'Nota para cita'),
+                  maxLines: 3,
+                ),
+                SizedBox(height: 20.0),
+                ElevatedButton(
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Calendar(
+                            name: nameController.text,
+                            fecha: fechaController.text,
+                            hora: horaController.text,
+                            duracion: duracionController.text,
+                            servicio: servicioController.text,
+                            nota: notaController.text,
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                  child: const Text('Guardar Cita Rápida'),
+                ),
+              ],
+            ),
+          ),
+        )
+      ],
+    );
+  }
+
+  // Método para guardar la cita en la página de calendario
+
+  Widget _buildCitaProgramadaContent(BuildContext context) {
+    final _formKey = GlobalKey<FormState>();
+
+    TextEditingController nameController = TextEditingController(text: "");
+    TextEditingController fechaController = TextEditingController(text: "");
+    TextEditingController horaController = TextEditingController(text: "");
+    TextEditingController duracionController = TextEditingController(text: "");
+    TextEditingController servicioController = TextEditingController(text: "");
+    TextEditingController notaController = TextEditingController(text: "");
 
     return Form(
       key: _formKey,
       child: Padding(
         padding: const EdgeInsets.all(20.0),
-        child: ListView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             TextFormField(
-              controller: _nameController,
+              controller: nameController,
               decoration: const InputDecoration(
-                  labelText: 'Escriba el nombre del paciente'),
+                labelText: 'Escriba el nombre del paciente',
+              ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'El nombre del paciente es obligatorio';
@@ -90,34 +310,34 @@ class Add extends StatelessWidget {
                 return null;
               },
             ),
+            SizedBox(height: 10.0),
             Row(
               children: [
                 Expanded(
                   child: TextFormField(
-                    controller: _fechaController,
-                    readOnly: true, // Prevent user from editing date directly
+                    controller: fechaController,
+                    readOnly: true,
                     decoration: const InputDecoration(labelText: 'Fecha'),
                     onTap: () async {
-                      // Handle date selection using a date picker
                       DateTime? pickedDate = await showDatePicker(
                         context: context,
                         initialDate: DateTime.now(),
-                        firstDate: DateTime.now().subtract(
-                            const Duration(days: 365)), // Allow past year dates
-                        lastDate: DateTime.now().add(const Duration(
-                            days: 365)), // Allow future dates for next year
+                        firstDate:
+                            DateTime.now().subtract(const Duration(days: 365)),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
                       );
                       if (pickedDate != null) {
-                        _fechaController.text = pickedDate.toIso8601String();
+                        fechaController.text =
+                            pickedDate.toIso8601String().split('T')[0];
                       }
                     },
                   ),
                 ),
-                const SizedBox(width: 10.0),
+                SizedBox(width: 10.0),
                 Expanded(
                   child: TextFormField(
-                    controller: _horaController,
-                    readOnly: true, // Prevent user from editing time directly
+                    controller: horaController,
+                    readOnly: true,
                     decoration: const InputDecoration(labelText: 'Hora'),
                     onTap: () async {
                       // Handle time selection using a time picker
@@ -126,15 +346,16 @@ class Add extends StatelessWidget {
                         initialTime: TimeOfDay.now(),
                       );
                       if (pickedTime != null) {
-                        _horaController.text = pickedTime.format(context);
+                        horaController.text = pickedTime.format(context);
                       }
                     },
                   ),
                 ),
               ],
             ),
+            SizedBox(height: 10.0),
             TextFormField(
-              controller: _duracionController,
+              controller: duracionController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(labelText: 'Duración (min)'),
               validator: (value) {
@@ -144,10 +365,11 @@ class Add extends StatelessWidget {
                 return null;
               },
             ),
+            SizedBox(height: 10.0),
             DropdownButtonFormField<String>(
-              value: _servicioController.text.isEmpty
+              value: servicioController.text.isEmpty
                   ? null
-                  : _servicioController.text,
+                  : servicioController.text,
               hint: const Text('Servicio de atención'),
               items: <DropdownMenuItem<String>>[
                 DropdownMenuItem<String>(
@@ -160,29 +382,34 @@ class Add extends StatelessWidget {
                 ),
                 // ... Add more service options here
               ],
-              onChanged: (value) => _servicioController.text = value!,
+              onChanged: (value) => servicioController.text = value!,
             ),
+            SizedBox(height: 10.0),
             TextFormField(
-              controller: _notaController,
+              controller: notaController,
               decoration: const InputDecoration(labelText: 'Nota para cita'),
               maxLines: 3,
             ),
+            SizedBox(height: 20.0),
             ElevatedButton(
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
-                  // Form is valid, process quick appointment data
-                  saveQuickAppointment(
+                  Navigator.push(
                     context,
-                    _nameController.text,
-                    _fechaController.text,
-                    _horaController.text,
-                    _duracionController.text,
-                    _servicioController.text,
-                    _notaController.text,
+                    MaterialPageRoute(
+                      builder: (context) => Calendar(
+                        name: nameController.text,
+                        fecha: fechaController.text,
+                        hora: horaController.text,
+                        duracion: duracionController.text,
+                        servicio: servicioController.text,
+                        nota: notaController.text,
+                      ),
+                    ),
                   );
                 }
               },
-              child: const Text('Guardar Cita Rápida'),
+              child: const Text('Guardar Cita Programada'),
             ),
           ],
         ),
@@ -190,71 +417,42 @@ class Add extends StatelessWidget {
     );
   }
 
-  // Método para guardar la cita en la página de calendario
-  void saveQuickAppointment(
-    BuildContext context,
-    String name,
-    String fecha,
-    String hora,
-    String duracion,
-    String servicio,
-    String nota,
-  ) {
-    // Combine date and time into a proper format
-    String dateTimeString = '$fecha $hora:00'; // Add seconds to HH:MM:SS format
-
-    // Correct the format of the date and time string
-    DateTime startTime = DateTime.parse(dateTimeString.replaceAll('T', ' '));
-    int duration = int.tryParse(duracion) ?? 0;
-    DateTime endTime = startTime.add(Duration(minutes: duration));
-
-    Appointment newAppointment = Appointment(
-      startTime: startTime,
-      endTime: endTime,
-      subject: name,
-      notes: nota,
-    );
-
-    // Return the new appointment to the Calendar page
-    Navigator.pop(context, newAppointment);
-  }
-
-  Widget _buildCitaProgramadaContent() {
-    return Center(
-      child: Text("Contenido para Cita Programada"),
-    );
-  }
-
   Widget _buildEventoContent(BuildContext context) {
     final _formKey = GlobalKey<FormState>();
-    final _nombreController = TextEditingController();
-    final _fechaController = TextEditingController();
-    final _horaController = TextEditingController();
-    final _duracionController = TextEditingController();
-    final _notaController = TextEditingController();
+
+    TextEditingController nameController = TextEditingController(text: "");
+    TextEditingController fechaController = TextEditingController(text: "");
+    TextEditingController horaController = TextEditingController(text: "");
+    TextEditingController duracionController = TextEditingController(text: "");
+    TextEditingController servicioController = TextEditingController(text: "");
+    TextEditingController notaController = TextEditingController(text: "");
 
     return Form(
       key: _formKey,
       child: Padding(
         padding: const EdgeInsets.all(20.0),
-        child: ListView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             TextFormField(
-              controller: _nombreController,
-              decoration: const InputDecoration(labelText: 'Nombre del Evento'),
+              controller: nameController,
+              decoration: const InputDecoration(
+                labelText: 'Escriba el nombre del paciente',
+              ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'El nombre del evento es obligatorio';
+                  return 'El nombre del paciente es obligatorio';
                 }
                 return null;
               },
             ),
+            SizedBox(height: 10.0),
             Row(
               children: [
                 Expanded(
                   child: TextFormField(
-                    controller: _fechaController,
-                    readOnly: true, // Prevent user from editing date directly
+                    controller: fechaController,
+                    readOnly: true,
                     decoration: const InputDecoration(labelText: 'Fecha'),
                     onTap: () async {
                       DateTime? pickedDate = await showDatePicker(
@@ -265,32 +463,35 @@ class Add extends StatelessWidget {
                         lastDate: DateTime.now().add(const Duration(days: 365)),
                       );
                       if (pickedDate != null) {
-                        _fechaController.text = pickedDate.toIso8601String();
+                        fechaController.text =
+                            pickedDate.toIso8601String().split('T')[0];
                       }
                     },
                   ),
                 ),
-                const SizedBox(width: 10.0),
+                SizedBox(width: 10.0),
                 Expanded(
                   child: TextFormField(
-                    controller: _horaController,
-                    readOnly: true, // Prevent user from editing time directly
+                    controller: horaController,
+                    readOnly: true,
                     decoration: const InputDecoration(labelText: 'Hora'),
                     onTap: () async {
+                      // Handle time selection using a time picker
                       TimeOfDay? pickedTime = await showTimePicker(
                         context: context,
                         initialTime: TimeOfDay.now(),
                       );
                       if (pickedTime != null) {
-                        _horaController.text = pickedTime.format(context);
+                        horaController.text = pickedTime.format(context);
                       }
                     },
                   ),
                 ),
               ],
             ),
+            SizedBox(height: 10.0),
             TextFormField(
-              controller: _duracionController,
+              controller: duracionController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(labelText: 'Duración (min)'),
               validator: (value) {
@@ -300,17 +501,48 @@ class Add extends StatelessWidget {
                 return null;
               },
             ),
+            SizedBox(height: 10.0),
+            DropdownButtonFormField<String>(
+              value: servicioController.text.isEmpty
+                  ? null
+                  : servicioController.text,
+              hint: const Text('Servicio de atención'),
+              items: <DropdownMenuItem<String>>[
+                DropdownMenuItem<String>(
+                  value: 'Subsecuente',
+                  child: Text('Subsecuente'),
+                ),
+                DropdownMenuItem<String>(
+                  value: 'Videoconsulta',
+                  child: Text('Videoconsulta'),
+                ),
+                // ... Add more service options here
+              ],
+              onChanged: (value) => servicioController.text = value!,
+            ),
+            SizedBox(height: 10.0),
             TextFormField(
-              controller: _notaController,
-              decoration:
-                  const InputDecoration(labelText: 'Nota para el evento'),
+              controller: notaController,
+              decoration: const InputDecoration(labelText: 'Nota para cita'),
               maxLines: 3,
             ),
+            SizedBox(height: 20.0),
             ElevatedButton(
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
-                  // Form is valid, process event data
-                  // ... Handle event creation logic here
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Calendar(
+                        name: nameController.text,
+                        fecha: fechaController.text,
+                        hora: horaController.text,
+                        duracion: duracionController.text,
+                        servicio: servicioController.text,
+                        nota: notaController.text,
+                      ),
+                    ),
+                  );
                 }
               },
               child: const Text('Guardar Evento'),
@@ -321,91 +553,178 @@ class Add extends StatelessWidget {
     );
   }
 
-  Widget _buildPacientContent(
-    BuildContext context,
-    TextEditingController idController,
-    TextEditingController nameController,
-    TextEditingController lastnameController,
-    TextEditingController phoneController,
-    TextEditingController symptomsController,
-    TextEditingController maternoController,
-    TextEditingController birthDateController,
-    TextEditingController mobilePhoneController,
-    TextEditingController emailController,
-    TextEditingController landlineController
-  ) {
-    return Padding(
-      padding: const EdgeInsets.all(20.0),
-      child: SingleChildScrollView(
-  child: Column(
-    children: [
-      TextField(
-        controller: idController,
-        decoration: InputDecoration(labelText: 'Identificador'),
-        maxLength: 16,
-      ),
-      TextField(
-        controller: nameController,
-        decoration: InputDecoration(labelText: 'Nombre'),
-        maxLength: 32,
-      ),
-      TextField(
-        controller: lastnameController,
-        decoration: InputDecoration(labelText: 'Apellido paterno'),
-        maxLength: 64,
-      ),
-      TextField(
-        controller: TextEditingController(), // Campo para Apellido materno
-        decoration: InputDecoration(labelText: 'Apellido materno'),
-        maxLength: 64,
-      ),
-      TextField(
-        controller: TextEditingController(), // Campo para Fecha de nacimiento
-        decoration: InputDecoration(labelText: 'Fecha de nacimiento'),
-        keyboardType: TextInputType.datetime,
-      ),
-      TextField(
-        controller: TextEditingController(), // Campo para Teléfono móvil
-        decoration: InputDecoration(labelText: 'Teléfono móvil'),
-        keyboardType: TextInputType.phone,
-      ),
-      TextField(
-        controller: TextEditingController(), // Campo para Correo electrónico
-        decoration: InputDecoration(labelText: 'Correo electrónico'),
-        keyboardType: TextInputType.emailAddress,
-      ),
-      TextField(
-        controller: TextEditingController(), // Campo para Teléfono fijo
-        decoration: InputDecoration(labelText: 'Teléfono fijo'),
-        keyboardType: TextInputType.phone,
-      ),
-      SizedBox(height: 20),
-      ElevatedButton(
-        onPressed: () {
-          DataPatients newPatient = DataPatients(
-            id: DateTime.now().millisecondsSinceEpoch.toString(),
-            name: nameController.text,
-            lastname: lastnameController.text,
-            phone: phoneController.text,
-            symptoms: symptomsController.text,
-            materno: maternoController.text,
-            birthDate: birthDateController.text,
-            mobilePhone: mobilePhoneController.text,
-            email: emailController.text,
-            landline: landlineController.text
-          );
+  Widget _buildPacientContent(BuildContext context) {
+    final _formKey = GlobalKey<FormState>();
 
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => Patients(newPatient: newPatient)));
-        },
-        child: Text('Guardar Paciente'),
-      ),
-    ],
-  ),
-),
+    TextEditingController nameController = TextEditingController(text: "");
+    TextEditingController lastnameController = TextEditingController(text: "");
+    TextEditingController firstnameController = TextEditingController(text: "");
+    TextEditingController birthdateController = TextEditingController(text: "");
+    TextEditingController sexController = TextEditingController(text: "");
+    TextEditingController genderController = TextEditingController(text: "");
+    TextEditingController mailController = TextEditingController(text: "");
+    TextEditingController phoneController = TextEditingController(text: "");
 
+    return Form(
+      key: _formKey,
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: ListView(
+          children: [
+            TextFormField(
+              controller: nameController,
+              decoration: const InputDecoration(
+                  labelText: 'Escriba el nombre del paciente'),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'El nombre del paciente es obligatorio';
+                }
+                return null;
+              },
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    value:
+                        sexController.text.isEmpty ? null : sexController.text,
+                    hint: const Text('Sexo biologico'),
+                    items: <DropdownMenuItem<String>>[
+                      DropdownMenuItem<String>(
+                        value: 'Hombre',
+                        child: Text('Hombre'),
+                      ),
+                      DropdownMenuItem<String>(
+                        value: 'Mujer',
+                        child: Text('Mujer'),
+                      ),
+                      // ... Add more service options here
+                    ],
+                    onChanged: (value) => sexController.text = value!,
+                  ),
+                ),
+                const SizedBox(width: 10.0),
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    value: genderController.text.isEmpty
+                        ? null
+                        : genderController.text,
+                    hint: const Text('Genero'),
+                    items: <DropdownMenuItem<String>>[
+                      DropdownMenuItem<String>(
+                        value: 'Transgenero',
+                        child: Text('Transgenero'),
+                      ),
+                      DropdownMenuItem<String>(
+                        value: 'Transexual',
+                        child: Text('Transexual'),
+                      ),
+                      DropdownMenuItem<String>(
+                        value: 'Tranvesti',
+                        child: Text('Tranvesti'),
+                      ),
+                      // ... Add more service options here
+                    ],
+                    onChanged: (value) => genderController.text = value!,
+                  ),
+                ),
+              ],
+            ),
+            TextFormField(
+              controller: firstnameController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Primer Apellido'),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'El Primer Apellido es obligatoria';
+                }
+                return null;
+              },
+            ),
+            TextFormField(
+              controller: lastnameController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Segundo Apellido'),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'El Segundo Apellido es obligatoria';
+                }
+                return null;
+              },
+            ),
+            TextFormField(
+              controller: birthdateController,
+              keyboardType: TextInputType.number,
+              decoration:
+                  const InputDecoration(labelText: 'Fecha de Nacimiento'),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'La Fecha de nacimiento es obligatoria';
+                }
+                return null;
+              },
+              onTap: () async {
+                DateTime? pickedDate = await showDatePicker(
+                  context: context,
+                  initialDate: DateTime.now(),
+                  firstDate: DateTime.now().subtract(const Duration(days: 365)),
+                  lastDate: DateTime.now().add(const Duration(days: 365)),
+                );
+                if (pickedDate != null) {
+                  birthdateController.text =
+                      pickedDate.toIso8601String().split('T')[0];
+                }
+              },
+            ),
+            TextFormField(
+              controller: mailController,
+              keyboardType: TextInputType.number,
+              decoration:
+                  const InputDecoration(labelText: 'Correo Electronico'),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'El Correo Electronico es obligatoria';
+                }
+                return null;
+              },
+            ),
+            TextFormField(
+              controller: phoneController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Telefono'),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'El Telefono es obligatorio';
+                }
+                return null;
+              },
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (_formKey.currentState!.validate()) {
+                  // Navigate to calendar_page and pass the appointment object
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Patients(
+                        name: nameController.text,
+                        sexo: sexController.text,
+                        genero: genderController.text,
+                        primerPat: firstnameController.text,
+                        segundPat: lastnameController.text,
+                        fechaNaci: birthdateController.text,
+                        correo: mailController.text,
+                        telefono: phoneController.text,
+                      ),
+                    ),
+                  );
+                }
+              },
+              child: const Text('Guardar Paciente'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

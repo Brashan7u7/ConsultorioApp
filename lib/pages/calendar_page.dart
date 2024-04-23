@@ -1,10 +1,23 @@
-import 'package:calendario_manik/pages/add_page.dart';
 import 'package:flutter/material.dart';
-import 'package:calendario_manik/components/sidebart.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
+import 'package:calendario_manik/pages/add_page.dart';
+import 'package:calendario_manik/pages/patients_page.dart';
+import 'package:calendario_manik/pages/consulting_page.dart';
+
+import 'package:intl/intl.dart';
 
 class Calendar extends StatefulWidget {
-  const Calendar({Key? key}) : super(key: key);
+  final String? name, fecha, hora, duracion, servicio, nota;
+
+  const Calendar({
+    Key? key,
+    this.name,
+    this.fecha,
+    this.hora,
+    this.duracion,
+    this.servicio,
+    this.nota,
+  }) : super(key: key);
 
   @override
   State<Calendar> createState() => _CalendarState();
@@ -12,37 +25,32 @@ class Calendar extends StatefulWidget {
 
 class _CalendarState extends State<Calendar> {
   final CalendarController _calendarController = CalendarController();
-  int intervaloHoras = 2; // Intervalo de horas entre cada hora mostrada en el calendario
+  int intervaloHoras = 2;
 
   // Lista de consultorios
-  List<String> consultorios = ['Consultorio 1', 'Consultorio 2', 'Consultorio 3'];
-  int currentIndex = 0; // Índice del consultorio actual
+  List<String> consultorios = [
+    'Consultorio 1',
+    'Consultorio 2',
+    'Consultorio 3'
+  ];
+  int currentIndex = 0;
+  int consulIndex = 0; // Índice del consultorio actual
 
   DateTime? _lastTap;
-  static const int _tapInterval = 300; // Intervalo de tiempo en milisegundos para considerar un doble clic
+  int _tapInterval = 300;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Padding(
-              padding: EdgeInsets.only(left: 8.0),
-              child: Icon(Icons.menu),
-            ),
-            onPressed: () {
-              Scaffold.of(context).openDrawer();
-            },
-          ),
-        ),
         title: Row(
           children: [
             DropdownButton<String>(
-              value: consultorios[currentIndex],
+              value: consultorios[consulIndex],
               onChanged: (newValue) {
                 setState(() {
-                  currentIndex = consultorios.indexOf(newValue ?? consultorios.first);
+                  consulIndex =
+                      consultorios.indexOf(newValue ?? consultorios.first);
                 });
               },
               items: consultorios.map<DropdownMenuItem<String>>((String value) {
@@ -51,7 +59,7 @@ class _CalendarState extends State<Calendar> {
                   child: Text(value),
                 );
               }).toList(),
-            )
+            ),
           ],
         ),
         actions: [
@@ -70,13 +78,70 @@ class _CalendarState extends State<Calendar> {
           ),
         ],
       ),
-      drawer: Sidebar(),
+      drawer: Drawer(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            DrawerHeader(
+              child: Image.asset('lib/images/usuario.png'),
+              padding: EdgeInsets.symmetric(horizontal: 80),
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 50.0),
+              child: Divider(
+                color: Colors.red,
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.only(left: 25.0),
+              child: ListTile(
+                leading: Icon(
+                  Icons.announcement,
+                ),
+                title: Text(
+                  'Pacientes esperando',
+                ),
+              ),
+            ),
+            ListTile(
+              contentPadding: EdgeInsets.only(left: 25.0),
+              leading: Icon(
+                Icons.access_alarm,
+              ),
+              title: Text(
+                'Consultorios',
+              ),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        Consulting(), // Nueva página de consultorios
+                  ),
+                );
+              },
+            ),
+            Spacer(),
+            Padding(
+              padding: EdgeInsets.only(left: 25.0, bottom: 25),
+              child: ListTile(
+                leading: Icon(
+                  Icons.logout,
+                ),
+                title: Text(
+                  'Cerrar Sesión',
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
       body: SfCalendar(
         controller: _calendarController,
         view: CalendarView.day,
         showNavigationArrow: true,
         headerStyle: CalendarHeaderStyle(textAlign: TextAlign.center),
-        
+        headerDateFormat: 'd,MMMM,y',
         showDatePickerButton: true,
         timeSlotViewSettings: TimeSlotViewSettings(
           startHour: 0,
@@ -84,10 +149,23 @@ class _CalendarState extends State<Calendar> {
           timeIntervalHeight: 120,
           timeInterval: Duration(hours: intervaloHoras),
         ),
-        dataSource: _getCalendarDataSource(),
+        dataSource: _getCalendarDataSource(
+          widget.name,
+          widget.fecha,
+          widget.hora,
+          widget.duracion,
+        ),
         onTap: (CalendarTapDetails details) {
+          if (details.targetElement == CalendarElement.appointment) {
+            Appointment tappedAppointment = details.appointments![0];
+            _showAppointmentDetails(tappedAppointment);
+          } else if (details.targetElement == CalendarElement.calendarCell) {
+            DateTime selectedDate = details.date!;
+            _navigateToSelectedDate(selectedDate);
+          }
           if (_lastTap != null &&
-              DateTime.now().difference(_lastTap!) < Duration(milliseconds: _tapInterval)) {
+              DateTime.now().difference(_lastTap!) <
+                  Duration(milliseconds: _tapInterval)) {
             // Si se hace doble clic en una celda del calendario, redirige a la página de "Cita Rápida"
             _lastTap = null;
             _navigateToAddPage(context);
@@ -97,6 +175,158 @@ class _CalendarState extends State<Calendar> {
           }
         },
       ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: currentIndex,
+        onTap: (index) {
+          setState(() {
+            currentIndex = index;
+          });
+
+          if (index == 1) {
+            _showAgendarModal();
+          } else if (index == 0) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => Calendar(),
+              ),
+            );
+          } else if (index == 2) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => Patients(),
+              ),
+            );
+          }
+        },
+        items: <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Calendario',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add),
+            label: 'Agendar',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Pacientes',
+          ),
+        ],
+        selectedItemColor: Colors.green,
+      ),
+    );
+  }
+
+  void _showAgendarModal() {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
+      ),
+      builder: (BuildContext builder) {
+        return Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
+          ),
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: Icon(Icons.access_time),
+                title: Text('Cita Rápida'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Add(
+                        isCitaRapida: true,
+                        isEvento: false,
+                        isPacient: false,
+                        isCitaPro: false,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.calendar_today),
+                title: Text('Cita Programada'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Add(
+                        isCitaRapida: false,
+                        isEvento: false,
+                        isPacient: false,
+                        isCitaPro: true,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.event),
+                title: Text('Evento'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Add(
+                        isCitaRapida: false,
+                        isEvento: true,
+                        isPacient: false,
+                        isCitaPro: false,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showAppointmentDetails(Appointment appointment) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(appointment.subject),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Fecha: ${appointment.startTime.day}/${appointment.startTime.month}/${appointment.startTime.year}',
+                ),
+                Text(
+                  'Hora inicio: ${appointment.startTime.hour}:${appointment.startTime.minute}',
+                ),
+                Text(
+                  'Duración: ${appointment.startTime.difference(appointment.endTime).inMinutes} minutos',
+                ),
+                // Add more details as needed
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('Cerrar'),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -115,7 +345,6 @@ class _CalendarState extends State<Calendar> {
             appointmentTimeTextFormat: 'HH:mm',
             onTap: (CalendarTapDetails details) {
               if (details.targetElement == CalendarElement.calendarCell) {
-                // Si se toca una celda del calendario, redirige a ese día
                 DateTime selectedDate = details.date!;
                 _navigateToSelectedDate(selectedDate);
                 Navigator.pop(context);
@@ -136,26 +365,24 @@ class _CalendarState extends State<Calendar> {
   }
 
   void _navigateToAddPage(BuildContext context) {
-    // Navega a la página de "Cita Rápida"
     Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => Add(isCitaRapida: true),
-              ),
-            );
-  }
-
-  _AppointmentDataSource _getCalendarDataSource() {
-    List<Appointment> appointments = <Appointment>[];
-
-    appointments.add(Appointment(
-      startTime: DateTime.now(),
-      endTime: DateTime.now().add(Duration(minutes: 60)),
-      subject: 'Meeting',
-      color: Colors.red,
-    ));
-
-    return _AppointmentDataSource(appointments);
+      context,
+      MaterialPageRoute(
+        builder: (context) => Add(
+          isCitaRapida: false,
+          isCitaselect: true,
+          fechaController: TextEditingController(
+            text: _calendarController.selectedDate.toString().split(' ')[0],
+          ),
+          horaController: TextEditingController(
+            text: _calendarController.selectedDate.toString().split(' ')[1],
+          ),
+          isCitaPro: false,
+          isEvento: false,
+          isPacient: false,
+        ),
+      ),
+    );
   }
 }
 
@@ -163,4 +390,36 @@ class _AppointmentDataSource extends CalendarDataSource {
   _AppointmentDataSource(List<Appointment> source) {
     appointments = source;
   }
+}
+
+_AppointmentDataSource _getCalendarDataSource(
+    String? name, String? fecha, String? hora, String? duracion) {
+  List<Appointment> appointments = <Appointment>[];
+
+  if (name != null && fecha != null && hora != null && duracion != null) {
+    // Parse the fecha string into a DateTime object
+    DateTime appointmentDate = DateTime.tryParse(fecha) ?? DateTime.now();
+
+    // Assuming 'hora' represents the start time (modify if needed)
+    DateTime startTime = DateTime(
+      appointmentDate.year,
+      appointmentDate.month,
+      appointmentDate.day,
+      int.parse(hora.split(':')[0]),
+      int.parse(hora.split(':')[1]),
+    );
+
+    // Assuming 'duracion' represents duration in minutes (modify if needed)
+    int durationInMinutes = int.tryParse(duracion) ?? 0;
+    DateTime endTime = startTime.add(Duration(minutes: durationInMinutes));
+
+    appointments.add(Appointment(
+      subject: name, // Use name for the subject
+      startTime: startTime,
+      endTime: endTime,
+      color: Colors.blue, // Set a color for your appointment
+    ));
+  }
+
+  return _AppointmentDataSource(appointments);
 }

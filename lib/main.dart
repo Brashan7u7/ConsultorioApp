@@ -1,5 +1,3 @@
-import 'package:calendario_manik/pages/home_page.dart';
-import 'package:calendario_manik/pages/login_page.dart';
 import 'package:calendario_manik/pages/start_page.dart';
 import 'package:flutter/material.dart';
 

@@ -8,12 +8,15 @@ class Consulting extends StatefulWidget {
 }
 
 class _ConsultingState extends State<Consulting> {
+
+  
   final _formKey = GlobalKey<FormState>();
 
   final _nombreController = TextEditingController();
   final _telefonoController = TextEditingController();
   final _calleController = TextEditingController();
   final _codigoPostalController = TextEditingController();
+  
   int selectedInterval = 60;
   String? selectedDay;
   int? selectedButtonIndex; // Índice del botón seleccionado

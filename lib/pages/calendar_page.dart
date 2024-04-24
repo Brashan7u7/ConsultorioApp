@@ -3,7 +3,6 @@ import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:calendario_manik/pages/add_page.dart';
 import 'package:calendario_manik/pages/patients_page.dart';
 import 'package:calendario_manik/pages/consulting_page.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'package:intl/intl.dart';
 
@@ -137,15 +136,12 @@ class _CalendarState extends State<Calendar> {
           ],
         ),
       ),
-      body: Localizations.override(
-        context: context,
-        locale: const Locale('es', ''),
-        child: SfCalendar(
+      body: SfCalendar(
         controller: _calendarController,
         view: CalendarView.day,
         showNavigationArrow: true,
         headerStyle: CalendarHeaderStyle(textAlign: TextAlign.center),
-        headerDateFormat: 'd MMMM y',
+        headerDateFormat: 'd,MMMM,y',
         showDatePickerButton: true,
         timeSlotViewSettings: TimeSlotViewSettings(
           startHour: 0,
@@ -178,7 +174,6 @@ class _CalendarState extends State<Calendar> {
             _lastTap = DateTime.now();
           }
         },
-      ),
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: currentIndex,

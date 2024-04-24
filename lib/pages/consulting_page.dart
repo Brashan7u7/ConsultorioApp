@@ -19,7 +19,9 @@ class _ConsultingState extends State<Consulting> {
   
   int selectedInterval = 60;
   String? selectedDay;
-  int? selectedButtonIndex; // Índice del botón seleccionado
+  Map<String, List<int>> selectedButtonsByDay =
+      {}; // Mapa para almacenar los botones seleccionados por día
+  Consultorio? selectedConsultorio; // Consultorio seleccionado
 
   List<String> daysOfWeek = [
     'Lunes',
@@ -39,13 +41,16 @@ class _ConsultingState extends State<Consulting> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        
         title: const Text('Mis Consultorios'),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () {
               _limpiarFormulario(); // Limpia el formulario al presionar el botón de agregar
+              setState(() {
+                selectedButtonsByDay
+                    .clear(); // Borra todas las selecciones al presionar "+"
+              });
             },
           ),
         ],
@@ -70,12 +75,16 @@ class _ConsultingState extends State<Consulting> {
                     }).toList(),
                     onChanged: (value) {
                       setState(() {
+                        selectedConsultorio = value;
                         _nombreController.text = value!.nombre;
                         _telefonoController.text = value.telefono;
                         _calleController.text = value.direccion;
                         _codigoPostalController.text = value.codigoPostal;
                         selectedInterval = value.intervaloAtencion;
                         selectedDay = value.diaAtencion;
+                        // Actualiza los botones seleccionados para el día del consultorio seleccionado
+                        selectedButtonsByDay[selectedDay!] =
+                            value.botonesSeleccionados;
                       });
                     },
                   ),
@@ -152,13 +161,12 @@ class _ConsultingState extends State<Consulting> {
                 Text('Días y horarios de atención'),
                 _buildTimeIntervals(), // Llama al método para generar los intervalos de tiempo
                 if (hasConsultorios) const SizedBox(height: 16.0),
-                if (hasConsultorios)
-                  ElevatedButton(
-                    onPressed: () {
-                      _guardarConsultorio();
-                    },
-                    child: const Text('Guardar'),
-                  ),
+                ElevatedButton(
+                  onPressed: () {
+                    _guardarConsultorio();
+                  },
+                  child: const Text('Guardar'),
+                ),
               ],
             ),
           ),
@@ -189,18 +197,25 @@ class _ConsultingState extends State<Consulting> {
                 ElevatedButton(
                   onPressed: () {
                     setState(() {
-                      selectedButtonIndex =
-                          index; // Actualiza el índice del botón seleccionado
+                      if (selectedButtonsByDay.containsKey(selectedDay)) {
+                        if (selectedButtonsByDay[selectedDay]!
+                            .contains(index)) {
+                          selectedButtonsByDay[selectedDay]!.remove(index);
+                        } else {
+                          selectedButtonsByDay[selectedDay]!.add(index);
+                        }
+                      } else {
+                        selectedButtonsByDay[selectedDay!] = [index];
+                      }
                     });
                   },
                   style: ButtonStyle(
                     backgroundColor: MaterialStateProperty.resolveWith<Color?>(
                       (Set<MaterialState> states) {
                         // Cambia el color del botón según el estado
-                        if (states.contains(MaterialState.pressed)) {
-                          return Colors.green; // Color cuando se presiona
-                        }
-                        return selectedButtonIndex == index
+                        return selectedButtonsByDay.containsKey(selectedDay) &&
+                                selectedButtonsByDay[selectedDay]!
+                                    .contains(index)
                             ? Colors.green
                             : Colors.grey; // Color por defecto
                       },
@@ -224,32 +239,66 @@ class _ConsultingState extends State<Consulting> {
     _codigoPostalController.clear();
     selectedInterval = 60;
     selectedDay = null;
-    selectedButtonIndex = null;
+    selectedConsultorio = null;
+    selectedButtonsByDay
+        .clear(); // Borra todos los botones seleccionados por día
   }
 
   void _guardarConsultorio() {
-    final nuevoConsultorio = Consultorio(
-      nombre: _nombreController.text,
-      telefono: _telefonoController.text,
-      direccion: _calleController.text,
-      codigoPostal: _codigoPostalController.text,
-      intervaloAtencion: selectedInterval,
-      diaAtencion: selectedDay!,
-    );
-    consultorios.add(nuevoConsultorio);
-    setState(() {
-      hasConsultorios = true;
-    });
+    if (selectedConsultorio != null) {
+      // Si hay un consultorio seleccionado, se actualiza en lugar de agregar uno nuevo
+      setState(() {
+        selectedConsultorio!.nombre = _nombreController.text;
+        selectedConsultorio!.telefono = _telefonoController.text;
+        selectedConsultorio!.direccion = _calleController.text;
+        selectedConsultorio!.codigoPostal = _codigoPostalController.text;
+        selectedConsultorio!.intervaloAtencion = selectedInterval;
+        selectedConsultorio!.diaAtencion = selectedDay!;
+        selectedConsultorio!.botonesSeleccionados =
+            selectedButtonsByDay[selectedDay!] ?? [];
+      });
+    } else {
+      // Si no hay un consultorio seleccionado, se agrega uno nuevo
+      final nuevoConsultorio = Consultorio(
+        nombre: _nombreController.text,
+        telefono: _telefonoController.text,
+        direccion: _calleController.text,
+        codigoPostal: _codigoPostalController.text,
+        intervaloAtencion: selectedInterval,
+        diaAtencion: selectedDay!,
+        botonesSeleccionados: selectedButtonsByDay[selectedDay!] ?? [],
+      );
+
+      // Verifica si ya existe un consultorio con el mismo nombre
+      bool existeConsultorio = consultorios
+          .any((consultorio) => consultorio.nombre == nuevoConsultorio.nombre);
+
+      if (existeConsultorio) {
+        // Si ya existe un consultorio con el mismo nombre, muestra un mensaje o realiza otra acción
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Ya existe un consultorio con el mismo nombre.'),
+          ),
+        );
+      } else {
+        // Si no existe un consultorio con el mismo nombre, agrega el nuevo consultorio a la lista
+        consultorios.add(nuevoConsultorio);
+        setState(() {
+          hasConsultorios = true;
+        });
+      }
+    }
   }
 }
 
 class Consultorio {
-  final String nombre;
-  final String telefono;
-  final String direccion;
-  final String codigoPostal;
-  final int intervaloAtencion;
-  final String diaAtencion;
+  String nombre;
+  String telefono;
+  String direccion;
+  String codigoPostal;
+  int intervaloAtencion;
+  String diaAtencion;
+  List<int> botonesSeleccionados; // Índices de botones seleccionados
 
   Consultorio({
     required this.nombre,
@@ -258,5 +307,6 @@ class Consultorio {
     required this.codigoPostal,
     required this.intervaloAtencion,
     required this.diaAtencion,
+    required this.botonesSeleccionados,
   });
 }

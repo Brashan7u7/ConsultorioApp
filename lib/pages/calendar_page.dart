@@ -9,8 +9,6 @@ import 'package:intl/intl.dart';
 class Calendar extends StatefulWidget {
   final String? name, fecha, hora, duracion, servicio, nota;
 
- 
-
   const Calendar({
     Key? key,
     this.name,
@@ -43,8 +41,6 @@ class _CalendarState extends State<Calendar> {
 
   @override
   Widget build(BuildContext context) {
-    
-
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -156,12 +152,12 @@ class _CalendarState extends State<Calendar> {
             timeIntervalHeight: 120,
             timeInterval: Duration(hours: intervaloHoras),
           ),
-          dataSource: _getCalendarDataSource(
+          dataSource: MeetingDataSource(_getCalendarDataSource(
             widget.name,
             widget.fecha,
             widget.hora,
             widget.duracion,
-          ),
+          )),
           onTap: (CalendarTapDetails details) {
             if (details.targetElement == CalendarElement.appointment) {
               Appointment tappedAppointment = details.appointments![0];
@@ -224,12 +220,8 @@ class _CalendarState extends State<Calendar> {
         ],
         selectedItemColor: Colors.green,
       ),
-      
     );
-    
   }
-
- 
 
   void _showAgendarModal() {
     showModalBottomSheet(
@@ -323,6 +315,9 @@ class _CalendarState extends State<Calendar> {
                   'Hora inicio: ${appointment.startTime.hour}:${appointment.startTime.minute}',
                 ),
                 Text(
+                  'Hora Fin: ${appointment.endTime.hour}:${appointment.endTime.minute}',
+                ),
+                Text(
                   'Duración: ${appointment.startTime.difference(appointment.endTime).inMinutes} minutos',
                 ),
                 // Add more details as needed
@@ -347,21 +342,30 @@ class _CalendarState extends State<Calendar> {
       context: context,
       builder: (BuildContext builder) {
         return Container(
-          height: 500,
+          height: 700,
           child: SfCalendar(
             view: CalendarView.month,
             headerStyle: CalendarHeaderStyle(textAlign: TextAlign.center),
             showNavigationArrow: true,
             showDatePickerButton: true,
-            monthViewSettings: MonthViewSettings(showAgenda: true),
+            monthViewSettings: MonthViewSettings(
+              showAgenda: true,
+              agendaViewHeight: 70,
+            ),
             appointmentTimeTextFormat: 'HH:mm',
-            onTap: (CalendarTapDetails details) {
-              if (details.targetElement == CalendarElement.calendarCell) {
-                DateTime selectedDate = details.date!;
-                _navigateToSelectedDate(selectedDate);
-                Navigator.pop(context);
-              }
-            },
+            // onTap: (CalendarTapDetails details) {
+            //   if (details.targetElement == CalendarElement.calendarCell) {
+            //     DateTime selectedDate = details.date!;
+            //     _navigateToSelectedDate(selectedDate);
+            //     Navigator.pop(context);
+            //   }
+            // },
+            dataSource: MeetingDataSource(_getCalendarDataSource(
+              widget.name,
+              widget.fecha,
+              widget.hora,
+              widget.duracion,
+            )),
           ),
         );
       },
@@ -398,13 +402,13 @@ class _CalendarState extends State<Calendar> {
   }
 }
 
-class _AppointmentDataSource extends CalendarDataSource {
-  _AppointmentDataSource(List<Appointment> source) {
+class MeetingDataSource extends CalendarDataSource {
+  MeetingDataSource(List<Appointment> source) {
     appointments = source;
   }
 }
 
-_AppointmentDataSource _getCalendarDataSource(
+List<Appointment> _getCalendarDataSource(
     String? name, String? fecha, String? hora, String? duracion) {
   List<Appointment> appointments = <Appointment>[];
 
@@ -426,12 +430,13 @@ _AppointmentDataSource _getCalendarDataSource(
     DateTime endTime = startTime.add(Duration(minutes: durationInMinutes));
 
     appointments.add(Appointment(
-      subject: name, // Use name for the subject
+      subject:
+          '$name \n ${DateFormat.Hm().format(startTime)} - ${DateFormat.Hm().format(endTime)}', // Use name for the subject
       startTime: startTime,
       endTime: endTime,
       color: Colors.blue, // Set a color for your appointment
     ));
   }
 
-  return _AppointmentDataSource(appointments);
+  return appointments;
 }

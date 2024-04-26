@@ -8,15 +8,13 @@ class Consulting extends StatefulWidget {
 }
 
 class _ConsultingState extends State<Consulting> {
-
-  
   final _formKey = GlobalKey<FormState>();
 
   final _nombreController = TextEditingController();
   final _telefonoController = TextEditingController();
   final _calleController = TextEditingController();
   final _codigoPostalController = TextEditingController();
-  
+
   int selectedInterval = 60;
   String? selectedDay;
   Map<String, List<int>> selectedButtonsByDay =
@@ -48,8 +46,7 @@ class _ConsultingState extends State<Consulting> {
             onPressed: () {
               _limpiarFormulario(); // Limpia el formulario al presionar el botón de agregar
               setState(() {
-                selectedButtonsByDay
-                    .clear(); // Borra todas las selecciones al presionar "+"
+                selectedButtonsByDay.clear();
               });
             },
           ),
@@ -82,10 +79,10 @@ class _ConsultingState extends State<Consulting> {
                         _codigoPostalController.text = value.codigoPostal;
                         selectedInterval = value.intervaloAtencion;
                         selectedDay = value.diaAtencion;
-                        // Actualiza los botones seleccionados para el día del consultorio seleccionado
                         selectedButtonsByDay[selectedDay!] =
-                            value.botonesSeleccionados;
+                            value.selectedButtonsByDay[selectedDay!] ?? [];
                       });
+                      print(selectedButtonsByDay);
                     },
                   ),
                 TextFormField(
@@ -158,7 +155,7 @@ class _ConsultingState extends State<Consulting> {
                   },
                 ),
                 const SizedBox(height: 16.0),
-                Text('Días y horarios de atención'),
+                Text('Horarios de atención'),
                 _buildTimeIntervals(), // Llama al método para generar los intervalos de tiempo
                 if (hasConsultorios) const SizedBox(height: 16.0),
                 ElevatedButton(
@@ -240,8 +237,6 @@ class _ConsultingState extends State<Consulting> {
     selectedInterval = 60;
     selectedDay = null;
     selectedConsultorio = null;
-    selectedButtonsByDay
-        .clear(); // Borra todos los botones seleccionados por día
   }
 
   void _guardarConsultorio() {
@@ -254,9 +249,9 @@ class _ConsultingState extends State<Consulting> {
         selectedConsultorio!.codigoPostal = _codigoPostalController.text;
         selectedConsultorio!.intervaloAtencion = selectedInterval;
         selectedConsultorio!.diaAtencion = selectedDay!;
-        selectedConsultorio!.botonesSeleccionados =
-            selectedButtonsByDay[selectedDay!] ?? [];
+        selectedConsultorio!.selectedButtonsByDay = selectedButtonsByDay;
       });
+      //print('mapa editado $selectedButtonsByDay');
     } else {
       // Si no hay un consultorio seleccionado, se agrega uno nuevo
       final nuevoConsultorio = Consultorio(
@@ -266,8 +261,12 @@ class _ConsultingState extends State<Consulting> {
         codigoPostal: _codigoPostalController.text,
         intervaloAtencion: selectedInterval,
         diaAtencion: selectedDay!,
-        botonesSeleccionados: selectedButtonsByDay[selectedDay!] ?? [],
+        selectedButtonsByDay: {
+          selectedDay!: selectedButtonsByDay[selectedDay!] ?? []
+        }, // Asocia el día seleccionado con los botones seleccionados
       );
+
+      //print(selectedButtonsByDay);
 
       // Verifica si ya existe un consultorio con el mismo nombre
       bool existeConsultorio = consultorios
@@ -298,7 +297,8 @@ class Consultorio {
   String codigoPostal;
   int intervaloAtencion;
   String diaAtencion;
-  List<int> botonesSeleccionados; // Índices de botones seleccionados
+  Map<String, List<int>>
+      selectedButtonsByDay; // Mapa para los botones seleccionados por día
 
   Consultorio({
     required this.nombre,
@@ -307,6 +307,6 @@ class Consultorio {
     required this.codigoPostal,
     required this.intervaloAtencion,
     required this.diaAtencion,
-    required this.botonesSeleccionados,
+    required this.selectedButtonsByDay, // Inicializa el mapa al crear el consultorio
   });
 }

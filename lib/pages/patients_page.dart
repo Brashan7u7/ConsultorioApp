@@ -376,8 +376,20 @@ class _PatientsState extends State<Patients> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text("Datos de ${patient.name}"),
-          content: Text(
-              "${patient.id} ${patient.name} ${patient.sexo} ${patient.genero} ${patient.primerPat} ${patient.segundPat} ${patient.fechaNaci} ${patient.correo} ${patient.telefono}"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Nombre: ${patient.name}"),
+              Text("Sexo: ${patient.sexo}"),
+              Text("Género: ${patient.genero}"),
+              Text("Primer apellido: ${patient.primerPat}"),
+              Text("Segundo apellido: ${patient.segundPat}"),
+              Text("Fecha de nacimiento: ${patient.fechaNaci}"),
+              Text("Correo: ${patient.correo}"),
+              Text("Teléfono: ${patient.telefono}"),
+            ],
+          ),
         );
       },
     );

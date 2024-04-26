@@ -64,9 +64,16 @@ class Add extends StatelessWidget {
     TextEditingController horaController = TextEditingController(
       text: TimeOfDay.now().format(context),
     );
-    TextEditingController duracionController = TextEditingController(text: "");
     TextEditingController servicioController = TextEditingController(text: "");
     TextEditingController notaController = TextEditingController(text: "");
+
+    int? selectedDuration;
+
+    final duracionDropdownController = TextEditingController();
+
+    duracionDropdownController.addListener(() {
+      selectedDuration = int.tryParse(duracionDropdownController.text);
+    });
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -98,13 +105,32 @@ class Add extends StatelessWidget {
                   },
                 ),
                 SizedBox(height: 10.0),
-                TextFormField(
-                  controller: duracionController,
-                  keyboardType: TextInputType.number,
-                  decoration:
-                      const InputDecoration(labelText: 'Duración (min)'),
+                DropdownButtonFormField<int>(
+                  value: selectedDuration,
+                  onChanged: (value) {
+                    duracionDropdownController.text = value.toString();
+                  },
+                  items: const [
+                    DropdownMenuItem<int>(
+                      value: 60,
+                      child: Text('60 minutos'),
+                    ),
+                    DropdownMenuItem<int>(
+                      value: 30,
+                      child: Text('30 minutos'),
+                    ),
+                    DropdownMenuItem<int>(
+                      value: 20,
+                      child: Text('20 minutos'),
+                    ),
+                    DropdownMenuItem<int>(
+                      value: 15,
+                      child: Text('15 minutos'),
+                    ),
+                  ],
+                  decoration: InputDecoration(labelText: 'Duración (min)'),
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
+                    if (value == null) {
                       return 'La duración es obligatoria';
                     }
                     return null;
@@ -147,7 +173,7 @@ class Add extends StatelessWidget {
                             name: nameController.text,
                             fecha: fechaController.text,
                             hora: horaController.text,
-                            duracion: duracionController.text,
+                            duracion: duracionDropdownController.text,
                             servicio: servicioController.text,
                             nota: notaController.text,
                           ),
@@ -173,7 +199,6 @@ class Add extends StatelessWidget {
     final _formKey = GlobalKey<FormState>();
 
     TextEditingController nameController = TextEditingController(text: "");
-    TextEditingController duracionController = TextEditingController(text: "");
     TextEditingController servicioController = TextEditingController(text: "");
     TextEditingController notaController = TextEditingController(text: "");
 
@@ -183,6 +208,14 @@ class Add extends StatelessWidget {
 // Convertir la hora de 24 horas a un formato de 12 horas
     DateTime horaDateTime = DateFormat("HH:mm:ss.SSS").parse(hora24);
     String hora12 = DateFormat("HH:mm").format(horaDateTime);
+
+    int? selectedDuration;
+
+    final duracionDropdownController = TextEditingController();
+
+    duracionDropdownController.addListener(() {
+      selectedDuration = int.tryParse(duracionDropdownController.text);
+    });
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -214,13 +247,32 @@ class Add extends StatelessWidget {
                   },
                 ),
                 SizedBox(height: 10.0),
-                TextFormField(
-                  controller: duracionController,
-                  keyboardType: TextInputType.number,
-                  decoration:
-                      const InputDecoration(labelText: 'Duración (min)'),
+                DropdownButtonFormField<int>(
+                  value: selectedDuration,
+                  onChanged: (value) {
+                    duracionDropdownController.text = value.toString();
+                  },
+                  items: const [
+                    DropdownMenuItem<int>(
+                      value: 60,
+                      child: Text('60 minutos'),
+                    ),
+                    DropdownMenuItem<int>(
+                      value: 30,
+                      child: Text('30 minutos'),
+                    ),
+                    DropdownMenuItem<int>(
+                      value: 20,
+                      child: Text('20 minutos'),
+                    ),
+                    DropdownMenuItem<int>(
+                      value: 15,
+                      child: Text('15 minutos'),
+                    ),
+                  ],
+                  decoration: InputDecoration(labelText: 'Duración (min)'),
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
+                    if (value == null) {
                       return 'La duración es obligatoria';
                     }
                     return null;
@@ -263,7 +315,7 @@ class Add extends StatelessWidget {
                             name: nameController.text,
                             fecha: fechaController.text,
                             hora: horaController.text,
-                            duracion: duracionController.text,
+                            duracion: duracionDropdownController.text,
                             servicio: servicioController.text,
                             nota: notaController.text,
                           ),
@@ -716,6 +768,28 @@ class Add extends StatelessWidget {
                 return null;
               },
             ),
+            TextFormField(
+              controller: firstnameController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Primer Apellido'),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'El Primer Apellido es obligatoria';
+                }
+                return null;
+              },
+            ),
+            TextFormField(
+              controller: lastnameController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Segundo Apellido'),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'El Segundo Apellido es obligatoria';
+                }
+                return null;
+              },
+            ),
             Row(
               children: [
                 Expanded(
@@ -763,28 +837,6 @@ class Add extends StatelessWidget {
                   ),
                 ),
               ],
-            ),
-            TextFormField(
-              controller: firstnameController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Primer Apellido'),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'El Primer Apellido es obligatoria';
-                }
-                return null;
-              },
-            ),
-            TextFormField(
-              controller: lastnameController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Segundo Apellido'),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'El Segundo Apellido es obligatoria';
-                }
-                return null;
-              },
             ),
             TextFormField(
               controller: birthdateController,

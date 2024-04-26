@@ -9,6 +9,8 @@ import 'package:intl/intl.dart';
 class Calendar extends StatefulWidget {
   final String? name, fecha, hora, duracion, servicio, nota;
 
+ 
+
   const Calendar({
     Key? key,
     this.name,
@@ -41,6 +43,8 @@ class _CalendarState extends State<Calendar> {
 
   @override
   Widget build(BuildContext context) {
+    
+
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -136,49 +140,49 @@ class _CalendarState extends State<Calendar> {
           ],
         ),
       ),
-     body: Localizations.override(
+      body: Localizations.override(
         context: context,
         locale: const Locale('es', ''),
         child: SfCalendar(
-        controller: _calendarController,
-        view: CalendarView.day,
-        showNavigationArrow: true,
-        headerStyle: CalendarHeaderStyle(textAlign: TextAlign.center),
-        headerDateFormat: 'd MMMM y',
-        showDatePickerButton: true,
-        timeSlotViewSettings: TimeSlotViewSettings(
-          startHour: 0,
-          endHour: 24,
-          timeIntervalHeight: 120,
-          timeInterval: Duration(hours: intervaloHoras),
+          controller: _calendarController,
+          view: CalendarView.day,
+          showNavigationArrow: true,
+          headerStyle: CalendarHeaderStyle(textAlign: TextAlign.center),
+          headerDateFormat: 'd MMMM y',
+          showDatePickerButton: true,
+          timeSlotViewSettings: TimeSlotViewSettings(
+            startHour: 0,
+            endHour: 24,
+            timeIntervalHeight: 120,
+            timeInterval: Duration(hours: intervaloHoras),
+          ),
+          dataSource: _getCalendarDataSource(
+            widget.name,
+            widget.fecha,
+            widget.hora,
+            widget.duracion,
+          ),
+          onTap: (CalendarTapDetails details) {
+            if (details.targetElement == CalendarElement.appointment) {
+              Appointment tappedAppointment = details.appointments![0];
+              _showAppointmentDetails(tappedAppointment);
+            } else if (details.targetElement == CalendarElement.calendarCell) {
+              DateTime selectedDate = details.date!;
+              _navigateToSelectedDate(selectedDate);
+            }
+            if (_lastTap != null &&
+                DateTime.now().difference(_lastTap!) <
+                    Duration(milliseconds: _tapInterval)) {
+              // Si se hace doble clic en una celda del calendario, redirige a la página de "Cita Rápida"
+              _lastTap = null;
+              _navigateToAddPage(context);
+            } else {
+              // Si se hace un solo clic, actualiza el tiempo del último toque
+              _lastTap = DateTime.now();
+            }
+          },
         ),
-        dataSource: _getCalendarDataSource(
-          widget.name,
-          widget.fecha,
-          widget.hora,
-          widget.duracion,
-        ),
-        onTap: (CalendarTapDetails details) {
-          if (details.targetElement == CalendarElement.appointment) {
-            Appointment tappedAppointment = details.appointments![0];
-            _showAppointmentDetails(tappedAppointment);
-          } else if (details.targetElement == CalendarElement.calendarCell) {
-            DateTime selectedDate = details.date!;
-            _navigateToSelectedDate(selectedDate);
-          }
-          if (_lastTap != null &&
-              DateTime.now().difference(_lastTap!) <
-                  Duration(milliseconds: _tapInterval)) {
-            // Si se hace doble clic en una celda del calendario, redirige a la página de "Cita Rápida"
-            _lastTap = null;
-            _navigateToAddPage(context);
-          } else {
-            // Si se hace un solo clic, actualiza el tiempo del último toque
-            _lastTap = DateTime.now();
-          }
-        },
       ),
-     ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: currentIndex,
         onTap: (index) {
@@ -220,8 +224,12 @@ class _CalendarState extends State<Calendar> {
         ],
         selectedItemColor: Colors.green,
       ),
+      
     );
+    
   }
+
+ 
 
   void _showAgendarModal() {
     showModalBottomSheet(

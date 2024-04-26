@@ -67,6 +67,7 @@ class _CreatePState extends State<CreateP> {
 
   @override
   Widget build(BuildContext context) {
+    String selectedTimeZone = 'America/Mexico_City';
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: true,
@@ -103,8 +104,13 @@ class _CreatePState extends State<CreateP> {
                         selectedTimeZone = value!;
                       });
                     },
-                    items: <String>['UTC', 'GMT', 'EST', 'CST', 'PST']
-                        .map<DropdownMenuItem<String>>((String value) {
+                    items: [
+                      'America/Mexico_City',
+                      'America/Cancun',
+                      'America/Chihuahua',
+                      'America/Hermosillo',
+                      'America/Tijuana'
+                    ].map<DropdownMenuItem<String>>((String value) {
                       return DropdownMenuItem<String>(
                         value: value,
                         child: Text(value),

@@ -53,6 +53,7 @@ class Add extends StatelessWidget {
     );
   }
 
+//Cita rapida cuando se selecciona en el menu
   Widget _buildCitaRapidaContent(BuildContext context) {
     final _formKey = GlobalKey<FormState>();
 
@@ -164,6 +165,7 @@ class Add extends StatelessWidget {
     );
   }
 
+//Genera cita Rapida cuando se selecciona
   Widget _buildCitaselectContent(
       BuildContext context,
       TextEditingController fechaController,
@@ -279,17 +281,90 @@ class Add extends StatelessWidget {
     );
   }
 
-  // Método para guardar la cita en la página de calendario
-
+//Genera cita programada
   Widget _buildCitaProgramadaContent(BuildContext context) {
     final _formKey = GlobalKey<FormState>();
-
-    TextEditingController nameController = TextEditingController(text: "");
+    String? _selectedOption;
+    DateTime _selectedDateTime = DateTime.now();
     TextEditingController fechaController = TextEditingController(text: "");
     TextEditingController horaController = TextEditingController(text: "");
+
+    void _showCalendarDialog(BuildContext context) async {
+      DateTime? pickedDate = await showDatePicker(
+        context: context,
+        initialDate: _selectedDateTime,
+        firstDate: DateTime.now().subtract(const Duration(days: 365)),
+        lastDate: DateTime.now().add(const Duration(days: 365)),
+      );
+
+      if (pickedDate != null) {
+        _selectedDateTime = pickedDate;
+        fechaController.text = pickedDate.toIso8601String().split('T')[0];
+        horaController.text = _selectedDateTime.toIso8601String().split('T')[1];
+      }
+    }
+
+    void _showSchedulingOptions(BuildContext context) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Seleccione una opción'),
+            content: SizedBox(
+              height: 120,
+              child: Column(
+                children: [
+                  ListTile(
+                    title: const Text('Siguiente hora disponible'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _selectedOption = 'Opción 1';
+                      _selectedDateTime =
+                          _getNearestAppointmentTime(_selectedDateTime);
+                      fechaController.text =
+                          _selectedDateTime.toIso8601String().split('T')[0];
+                      horaController.text =
+                          _selectedDateTime.toIso8601String().split('T')[1];
+                    },
+                  ),
+                  ListTile(
+                    title: const Text('Seleccionar recomendación de fecha'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _selectedOption = 'Opción 2';
+                    },
+                  ),
+                  // ... Add more scheduling options here
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    }
+
+    TextEditingController nameController = TextEditingController(text: "");
     TextEditingController duracionController = TextEditingController(text: "");
     TextEditingController servicioController = TextEditingController(text: "");
     TextEditingController notaController = TextEditingController(text: "");
+
+    // Initialize appointmentTime to the selected date and time
+    DateTime appointmentTime = DateTime.now();
+
+    // Set the initial appointmentTime to the selected date and time
+    fechaController.addListener(() {
+      if (fechaController.text.isNotEmpty && horaController.text.isNotEmpty) {
+        appointmentTime =
+            DateTime.parse('${fechaController.text} ${horaController.text}');
+      }
+    });
+
+    horaController.addListener(() {
+      if (fechaController.text.isNotEmpty && horaController.text.isNotEmpty) {
+        appointmentTime =
+            DateTime.parse('${fechaController.text} ${horaController.text}');
+      }
+    });
 
     return Form(
       key: _formKey,
@@ -327,8 +402,11 @@ class Add extends StatelessWidget {
                         lastDate: DateTime.now().add(const Duration(days: 365)),
                       );
                       if (pickedDate != null) {
-                        fechaController.text =
-                            pickedDate.toIso8601String().split('T')[0];
+                        String hour =
+                            pickedDate.hour.toString().padLeft(2, '0');
+                        String minute =
+                            pickedDate.minute.toString().padLeft(2, '0');
+                        horaController.text = '$hour:$minute';
                       }
                     },
                   ),
@@ -354,6 +432,10 @@ class Add extends StatelessWidget {
               ],
             ),
             SizedBox(height: 10.0),
+            Text(
+              'Próxima cita disponible: ${DateFormat.jm().format(_getNearestAppointmentTime(appointmentTime))}',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
             TextFormField(
               controller: duracionController,
               keyboardType: TextInputType.number,
@@ -365,13 +447,13 @@ class Add extends StatelessWidget {
                 return null;
               },
             ),
-            SizedBox(height: 10.0),
+            const SizedBox(height: 10.0),
             DropdownButtonFormField<String>(
               value: servicioController.text.isEmpty
                   ? null
                   : servicioController.text,
               hint: const Text('Servicio de atención'),
-              items: <DropdownMenuItem<String>>[
+              items: const <DropdownMenuItem<String>>[
                 DropdownMenuItem<String>(
                   value: 'Subsecuente',
                   child: Text('Subsecuente'),
@@ -384,11 +466,41 @@ class Add extends StatelessWidget {
               ],
               onChanged: (value) => servicioController.text = value!,
             ),
-            SizedBox(height: 10.0),
+            const SizedBox(height: 10.0),
             TextFormField(
               controller: notaController,
               decoration: const InputDecoration(labelText: 'Nota para cita'),
               maxLines: 3,
+            ),
+            SizedBox(height: 20.0),
+            DropdownButtonFormField<String>(
+              value: servicioController.text.isEmpty
+                  ? null
+                  : servicioController.text,
+              hint: const Text('Recomendación de la proxima cita'),
+              items: const <DropdownMenuItem<String>>[
+                DropdownMenuItem<String>(
+                  value: 'Opción 1',
+                  child: Text('Siguiente hora disponible'),
+                ),
+                DropdownMenuItem<String>(
+                  value: 'Opción 2',
+                  child: Text('Seleccionar fecha'),
+                ),
+              ],
+              onChanged: (value) {
+                servicioController.text = value!;
+                if (value == 'Opción 2') {
+                  _showCalendarDialog(context);
+                } else if (value == ' Opción 1') {
+                  _selectedDateTime =
+                      _getNearestAppointmentTime(_selectedDateTime);
+                  fechaController.text =
+                      _selectedDateTime.toIso8601String().split('T')[0];
+                  horaController.text =
+                      _selectedDateTime.toIso8601String().split('T')[1];
+                }
+              },
             ),
             SizedBox(height: 20.0),
             ElevatedButton(
@@ -417,6 +529,27 @@ class Add extends StatelessWidget {
     );
   }
 
+//Calcula el proximo horario disponible
+  DateTime _getNearestAppointmentTime(DateTime time) {
+    // Set the initial nearestAppointmentTime to the given time
+    DateTime nearestAppointmentTime = time;
+
+    // Find the nearest available appointment time
+    for (int i = 1; i < 10; i++) {
+      DateTime appointmentTime = time.add(Duration(minutes: i * 30));
+
+      // Check if the appointment time is available
+      // You can replace this with your own availability check logic
+      if (appointmentTime.hour < 18 && appointmentTime.hour > 8) {
+        nearestAppointmentTime = appointmentTime;
+        break;
+      }
+    }
+
+    return nearestAppointmentTime;
+  }
+
+//Generación del evento
   Widget _buildEventoContent(BuildContext context) {
     final _formKey = GlobalKey<FormState>();
 
@@ -553,6 +686,7 @@ class Add extends StatelessWidget {
     );
   }
 
+//Registrar Paciente
   Widget _buildPacientContent(BuildContext context) {
     final _formKey = GlobalKey<FormState>();
 

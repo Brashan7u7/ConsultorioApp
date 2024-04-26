@@ -487,6 +487,14 @@ class Add extends StatelessWidget {
                   value: 'Opción 2',
                   child: Text('Seleccionar fecha'),
                 ),
+                DropdownMenuItem<String>(
+                  value: 'Opción 3',
+                  child: Text('Seleccionar fecha y hora'),
+                ),
+                DropdownMenuItem<String>(
+                  value: 'Opción 4',
+                  child: Text('Seleccionar hora disponible'),
+                ),
               ],
               onChanged: (value) {
                 servicioController.text = value!;

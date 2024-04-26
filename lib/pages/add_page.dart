@@ -341,6 +341,57 @@ class Add extends StatelessWidget {
     TextEditingController fechaController = TextEditingController(text: "");
     TextEditingController horaController = TextEditingController(text: "");
 
+    void _showTimePicker(BuildContext context) async {
+      TimeOfDay? pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.now(),
+      );
+
+      if (pickedTime != null) {
+        _selectedDateTime = DateTime(
+          _selectedDateTime.year,
+          _selectedDateTime.month,
+          _selectedDateTime.day,
+          pickedTime.hour,
+          pickedTime.minute,
+        );
+        fechaController.text =
+            _selectedDateTime.toIso8601String().split('T')[0];
+        horaController.text = _selectedDateTime.toIso8601String().split('T')[1];
+      }
+    }
+
+    void _showDateAndTimeDialog(BuildContext context) async {
+      DateTime? pickedDateTime = await showDatePicker(
+        context: context,
+        initialDate: _selectedDateTime,
+        firstDate: DateTime.now().subtract(const Duration(days: 365)),
+        lastDate: DateTime.now().add(const Duration(days: 365)),
+      );
+
+      if (pickedDateTime != null) {
+        _selectedDateTime = pickedDateTime;
+        TimeOfDay? pickedTime = await showTimePicker(
+          context: context,
+          initialTime: TimeOfDay.fromDateTime(_selectedDateTime),
+        );
+
+        if (pickedTime != null) {
+          _selectedDateTime = DateTime(
+            _selectedDateTime.year,
+            _selectedDateTime.month,
+            _selectedDateTime.day,
+            pickedTime.hour,
+            pickedTime.minute,
+          );
+          fechaController.text =
+              _selectedDateTime.toIso8601String().split('T')[0];
+          horaController.text =
+              _selectedDateTime.toIso8601String().split('T')[1];
+        }
+      }
+    }
+
     void _showCalendarDialog(BuildContext context) async {
       DateTime? pickedDate = await showDatePicker(
         context: context,
@@ -552,13 +603,17 @@ class Add extends StatelessWidget {
                 servicioController.text = value!;
                 if (value == 'Opción 2') {
                   _showCalendarDialog(context);
-                } else if (value == ' Opción 1') {
+                } else if (value == 'Opción 1') {
                   _selectedDateTime =
                       _getNearestAppointmentTime(_selectedDateTime);
                   fechaController.text =
                       _selectedDateTime.toIso8601String().split('T')[0];
                   horaController.text =
                       _selectedDateTime.toIso8601String().split('T')[1];
+                } else if (value == 'Opción 4') {
+                  _showTimePicker(context);
+                } else if (value == 'Opción 3') {
+                  _showDateAndTimeDialog(context);
                 }
               },
             ),

@@ -1,3 +1,5 @@
+import 'package:calendario_manik/database/database.dart';
+import 'package:calendario_manik/pages/calendar_page.dart';
 import 'package:flutter/material.dart';
 
 class Consulting extends StatefulWidget {
@@ -39,7 +41,17 @@ class _ConsultingState extends State<Consulting> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text('Mis Consultorios'),
+        leading: IconButton(
+          icon: Icon(Icons.close), // Icono de X
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => Calendar()),
+            );
+          },
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -76,13 +88,12 @@ class _ConsultingState extends State<Consulting> {
                         _nombreController.text = value!.nombre;
                         _telefonoController.text = value.telefono;
                         _calleController.text = value.direccion;
-                        _codigoPostalController.text = value.codigoPostal;
-                        selectedInterval = value.intervaloAtencion;
-                        selectedDay = value.diaAtencion;
-                        selectedButtonsByDay[selectedDay!] =
-                            value.selectedButtonsByDay[selectedDay!] ?? [];
+                        // _codigoPostalController.text = value.codigoPostal;
+                        // selectedInterval = value.intervaloAtencion;
+                        // selectedDay = value.diaAtencion;
+                        // selectedButtonsByDay[selectedDay!] =
+                        //     value.selectedButtonsByDay[selectedDay!] ?? [];
                       });
-                      print(selectedButtonsByDay);
                     },
                   ),
                 TextFormField(
@@ -246,10 +257,10 @@ class _ConsultingState extends State<Consulting> {
         selectedConsultorio!.nombre = _nombreController.text;
         selectedConsultorio!.telefono = _telefonoController.text;
         selectedConsultorio!.direccion = _calleController.text;
-        selectedConsultorio!.codigoPostal = _codigoPostalController.text;
-        selectedConsultorio!.intervaloAtencion = selectedInterval;
-        selectedConsultorio!.diaAtencion = selectedDay!;
-        selectedConsultorio!.selectedButtonsByDay = selectedButtonsByDay;
+        // selectedConsultorio!.codigoPostal = _codigoPostalController.text;
+        // selectedConsultorio!.intervaloAtencion = selectedInterval;
+        // selectedConsultorio!.diaAtencion = selectedDay!;
+        // selectedConsultorio!.selectedButtonsByDay = selectedButtonsByDay;
       });
       //print('mapa editado $selectedButtonsByDay');
     } else {
@@ -258,12 +269,12 @@ class _ConsultingState extends State<Consulting> {
         nombre: _nombreController.text,
         telefono: _telefonoController.text,
         direccion: _calleController.text,
-        codigoPostal: _codigoPostalController.text,
-        intervaloAtencion: selectedInterval,
-        diaAtencion: selectedDay!,
-        selectedButtonsByDay: {
-          selectedDay!: selectedButtonsByDay[selectedDay!] ?? []
-        }, // Asocia el día seleccionado con los botones seleccionados
+        // codigoPostal: _codigoPostalController.text,
+        // intervaloAtencion: selectedInterval,
+        // diaAtencion: selectedDay!,
+        // selectedButtonsByDay: {
+        //   selectedDay!: selectedButtonsByDay[selectedDay!] ?? []
+        // }, // Asocia el día seleccionado con los botones seleccionados
       );
 
       //print(selectedButtonsByDay);
@@ -281,7 +292,7 @@ class _ConsultingState extends State<Consulting> {
         );
       } else {
         // Si no existe un consultorio con el mismo nombre, agrega el nuevo consultorio a la lista
-        consultorios.add(nuevoConsultorio);
+        DatabaseManager.insertConsultorio(nuevoConsultorio);
         setState(() {
           hasConsultorios = true;
         });
@@ -294,19 +305,19 @@ class Consultorio {
   String nombre;
   String telefono;
   String direccion;
-  String codigoPostal;
-  int intervaloAtencion;
-  String diaAtencion;
-  Map<String, List<int>>
-      selectedButtonsByDay; // Mapa para los botones seleccionados por día
+  // String codigoPostal;
+  // int intervaloAtencion;
+  // String diaAtencion;
+  // Map<String, List<int>>
+  //     selectedButtonsByDay; // Mapa para los botones seleccionados por día
 
   Consultorio({
     required this.nombre,
     required this.telefono,
     required this.direccion,
-    required this.codigoPostal,
-    required this.intervaloAtencion,
-    required this.diaAtencion,
-    required this.selectedButtonsByDay, // Inicializa el mapa al crear el consultorio
+    // required this.codigoPostal,
+    // required this.intervaloAtencion,
+    // required this.diaAtencion,
+    // required this.selectedButtonsByDay, // Inicializa el mapa al crear el consultorio
   });
 }

@@ -5,6 +5,7 @@ import 'package:calendario_manik/pages/patients_page.dart';
 import 'package:calendario_manik/pages/consulting_page.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart';
+import 'package:calendario_manik/database/database.dart';
 
 class Calendar extends StatefulWidget {
   final String? name, fecha, hora, duracion, servicio, nota;
@@ -24,15 +25,25 @@ class Calendar extends StatefulWidget {
 }
 
 class _CalendarState extends State<Calendar> {
+  @override
+  void initState() {
+    super.initState();
+    _loadConsultorios(); // Carga los consultorios al inicializar el widget
+  }
+
   final CalendarController _calendarController = CalendarController();
   int intervaloHoras = 2;
 
   // Lista de consultorios
-  List<String> consultorios = [
-    'Consultorio 1',
-    'Consultorio 2',
-    'Consultorio 3'
-  ];
+  List<String> consultorios = [];
+
+  void _loadConsultorios() async {
+    List<String> consultoriosList = await DatabaseManager.getConsultorios();
+    setState(() {
+      consultorios = consultoriosList;
+    });
+  }
+
   int currentIndex = 0;
   int consulIndex = 0; // Índice del consultorio actual
 
@@ -46,12 +57,16 @@ class _CalendarState extends State<Calendar> {
         title: Row(
           children: [
             DropdownButton<String>(
-              value: consultorios[consulIndex],
+              value:
+                  consultorios.isNotEmpty && consulIndex < consultorios.length
+                      ? consultorios[consulIndex]
+                      : null,
               onChanged: (newValue) {
                 setState(() {
                   consulIndex =
                       consultorios.indexOf(newValue ?? consultorios.first);
                 });
+                _loadConsultorios();
               },
               items: consultorios.map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(

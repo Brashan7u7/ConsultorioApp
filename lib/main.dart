@@ -1,7 +1,9 @@
 import 'package:calendario_manik/pages/start_page.dart';
 import 'package:flutter/material.dart';
+import 'package:calendario_manik/database/database.dart';
 
-void main() {
+void main() async {
+  await DatabaseManager.connectAndExecuteQuery();
   runApp(const MyApp());
 }
 

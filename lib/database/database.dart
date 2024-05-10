@@ -1,3 +1,4 @@
+import 'package:calendario_manik/pages/add_page.dart';
 import 'package:calendario_manik/pages/consulting_page.dart';
 import 'package:postgres/postgres.dart';
 
@@ -8,7 +9,11 @@ class DatabaseManager {
         host: 'localhost',
         database: 'medicalmanik',
         username: 'postgres',
+<<<<<<< HEAD
         password: 'DJE20ben',
+=======
+        password: '123',
+>>>>>>> refs/remotes/origin/main
       ),
       settings: ConnectionSettings(sslMode: SslMode.disable),
     );
@@ -169,24 +174,24 @@ class DatabaseManager {
             row[1]?.toString().split(',').map(int.parse).toList() ?? [];
         List<int> martesHorarios =
             row[2]?.toString().split(',').map(int.parse).toList() ?? [];
-        List<int> miercolesHorarios =
-            row[3]?.toString().split(',').map(int.parse).toList() ?? [];
-        List<int> juevesHorarios =
-            row[4]?.toString().split(',').map(int.parse).toList() ?? [];
-        List<int> viernesHorarios =
-            row[5]?.toString().split(',').map(int.parse).toList() ?? [];
-        List<int> sabadoHorarios =
-            row[6]?.toString().split(',').map(int.parse).toList() ?? [];
-        List<int> domingoHorarios =
-            row[7]?.toString().split(',').map(int.parse).toList() ?? [];
+        // List<int> miercolesHorarios =
+        //     row[3]?.toString().split(',').map(int.parse).toList() ?? [];
+        // List<int> juevesHorarios =
+        //     row[4]?.toString().split(',').map(int.parse).toList() ?? [];
+        // List<int> viernesHorarios =
+        //     row[5]?.toString().split(',').map(int.parse).toList() ?? [];
+        // List<int> sabadoHorarios =
+        //     row[6]?.toString().split(',').map(int.parse).toList() ?? [];
+        // List<int> domingoHorarios =
+        //     row[7]?.toString().split(',').map(int.parse).toList() ?? [];
         // Actualiza el mapa de horarios
         horarios['Lunes'] = lunesHorarios;
         horarios['Martes'] = martesHorarios;
-        horarios['Miércoles'] = miercolesHorarios;
-        horarios['Jueves'] = juevesHorarios;
-        horarios['Viernes'] = viernesHorarios;
-        horarios['Sábado'] = sabadoHorarios;
-        horarios['Domingo'] = domingoHorarios;
+        // horarios['Miércoles'] = miercolesHorarios;
+        // horarios['Jueves'] = juevesHorarios;
+        // horarios['Viernes'] = viernesHorarios;
+        // horarios['Sábado'] = sabadoHorarios;
+        // horarios['Domingo'] = domingoHorarios;
         // Actualiza los demás días de la semana
         print(horarios);
       }
@@ -197,5 +202,98 @@ class DatabaseManager {
     }
 
     return horarios;
+  }
+
+  static Future<void> updateHorarioConsultorio(
+    int consultorioId,
+    List<int> lunesHorarios,
+    List<int> martesHorarios,
+    List<int> miercolesHorarios,
+    List<int> juevesHorarios,
+    List<int> viernesHorarios,
+    List<int> sabadoHorarios,
+    List<int> domingoHorarios,
+  ) async {
+    try {
+      final conn = await _connect();
+
+      await conn.execute(
+        Sql.named(
+            "UPDATE horario_consultorio SET lunes = @lunes, martes = @martes, miercoles = @miercoles, jueves = @jueves, viernes = @viernes, sabado = @sabado, domingo = @domingo WHERE id = @id"),
+        parameters: {
+          "id": consultorioId,
+          "lunes": lunesHorarios.join(
+              ','), // Convierte la lista de horarios en un string separado por comas
+          "martes": martesHorarios.join(','),
+          "miercoles": miercolesHorarios.join(','),
+          "jueves": juevesHorarios.join(','),
+          "viernes": viernesHorarios.join(','),
+          "sabado": sabadoHorarios.join(','),
+          "domingo": domingoHorarios.join(','),
+        },
+      );
+
+      await conn.close();
+    } catch (e) {
+      print('Error al actualizar el consultorio: $e');
+    }
+  }
+
+  static Future<void> insertEvento(Evento evento) async {
+    try {
+      final conn = await _connect();
+
+      final result = await conn.execute("SELECT MAX(id) FROM evento");
+      int lastId = (result.first.first as int?) ?? 0;
+
+      int newId = lastId + 1;
+
+      // Calcular la fecha de inicio y fin basándose en la duración
+      DateTime startDate = DateTime.parse(evento.fecha + " " + evento.hora);
+      int duration = int.parse(evento.duracion);
+      DateTime endDate = startDate.add(Duration(minutes: duration));
+
+      await conn.execute(
+        Sql.named(
+            "INSERT INTO evento(id, token, nombre, descripcion, fecha_inicio, fecha_fin, usuario_id, calendario_id) VALUES (@id, @token, @nombre,@descripcion, @fecha_inicio, @fecha_fin, @usuario_id, @calendario_id)"),
+        parameters: {
+          "id": newId,
+          "token": 1,
+          "nombre": evento.nombre,
+          "descripcion": evento.nota,
+          "fecha_inicio": startDate.toIso8601String(),
+          "fecha_fin": endDate.toIso8601String(),
+          "usuario_id": 1,
+          "calendario_id": 1,
+        },
+      );
+
+      await conn.close();
+    } catch (e) {
+      print('Error al insertar el evento: $e');
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> getEventosData() async {
+    List<Map<String, dynamic>> eventos = [];
+    try {
+      final conn = await _connect();
+
+      final result = await conn.execute("SELECT * FROM evento");
+      for (final row in result) {
+        eventos.add({
+          'id': row[0],
+          'nombre': row[2],
+          'fecha_inicio': row[4],
+          'fecha_fin': row[5],
+        });
+      }
+
+      print(eventos);
+      await conn.close();
+    } catch (e) {
+      print('Error: $e');
+    }
+    return eventos;
   }
 }

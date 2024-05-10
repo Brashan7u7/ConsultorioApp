@@ -2,7 +2,11 @@ import 'package:calendario_manik/pages/calendar_page.dart';
 import 'package:flutter/material.dart';
 import 'package:calendario_manik/pages/patients_page.dart';
 import 'package:intl/intl.dart';
+<<<<<<< HEAD
 import 'package:flutter_time_picker_spinner/flutter_time_picker_spinner.dart';
+=======
+import 'package:calendario_manik/database/database.dart';
+>>>>>>> refs/remotes/origin/main
 
 class Add extends StatelessWidget {
   final bool isCitaInmediata, isEvento, isPacient, isCitaPro;
@@ -137,13 +141,13 @@ class Add extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (context) => Calendar(
-                            name: nameController.text,
-                            fecha: fechaController.text,
-                            hora: horaController.text,
-                            duracion: duracionDropdownController.text,
-                            servicio: servicioController.text,
-                            nota: notaController.text,
-                          ),
+                              // name: nameController.text,
+                              // fecha: fechaController.text,
+                              // hora: horaController.text,
+                              // duracion: duracionDropdownController.text,
+                              // servicio: servicioController.text,
+                              // nota: notaController.text,
+                              ),
                         ),
                       );
                     }
@@ -220,13 +224,13 @@ class Add extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (context) => Calendar(
-                            name: nameController.text,
-                            fecha: fechaController.text,
-                            hora: horaController.text,
-                            duracion: duracionDropdownController.text,
-                            servicio: servicioController.text,
-                            nota: notaController.text,
-                          ),
+                              // name: nameController.text,
+                              // fecha: fechaController.text,
+                              // hora: horaController.text,
+                              // duracion: duracionDropdownController.text,
+                              // servicio: servicioController.text,
+                              // nota: notaController.text,
+                              ),
                         ),
                       );
                     }
@@ -435,11 +439,7 @@ class Add extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (context) => Calendar(
-                          name: nameController.text,
-                          fecha: fechaController.text,
-                          hora: horaController.text,
-                          duracion: duracionController.text,
-                          nota: notaController.text,
+                         
                         ),
                       ),
                     );
@@ -570,19 +570,26 @@ class Add extends StatelessWidget {
             ElevatedButton(
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => Calendar(
-                        name: nameController.text,
-                        fecha: fechaController.text,
-                        hora: horaController.text,
-                        duracion: duracionController.text,
-                        servicio: servicioController.text,
-                        nota: notaController.text,
-                      ),
-                    ),
+                  Evento evento = Evento(
+                    nombre: nameController.text,
+                    fecha: fechaController.text,
+                    hora: horaController.text,
+                    duracion: duracionController.text,
+                    servicio: servicioController.text,
+                    nota: notaController.text,
                   );
+
+                  DatabaseManager.insertEvento(evento).then((_) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Calendar(),
+                      ),
+                    );
+                  }).catchError((error) {
+                    // Manejar el error, como mostrar un mensaje al usuario
+                    print('Error al guardar el evento: $error');
+                  });
                 }
               },
               child: const Text('Guardar Evento'),
@@ -768,4 +775,22 @@ class Add extends StatelessWidget {
       ),
     );
   }
+}
+
+class Evento {
+  final String nombre;
+  final String fecha;
+  final String hora;
+  final String duracion;
+  final String servicio;
+  final String nota;
+
+  Evento({
+    required this.nombre,
+    required this.fecha,
+    required this.hora,
+    required this.duracion,
+    required this.servicio,
+    required this.nota,
+  });
 }

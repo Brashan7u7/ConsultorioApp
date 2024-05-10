@@ -38,7 +38,11 @@ class _CalendarState extends State<Calendar> {
   List<String> consultorios = [];
 
   void _loadConsultorios() async {
-    List<String> consultoriosList = await DatabaseManager.getConsultorios();
+    List<Map<String, dynamic>> consultoriosData =
+        await DatabaseManager.getConsultoriosData();
+    List<String> consultoriosList = consultoriosData
+        .map((consultorio) => consultorio['nombre'] as String)
+        .toList();
     setState(() {
       consultorios = consultoriosList;
     });

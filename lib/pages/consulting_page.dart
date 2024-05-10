@@ -38,6 +38,49 @@ class _ConsultingState extends State<Consulting> {
   List<Consultorio> consultorios = []; // Lista de consultorios
 
   @override
+  void initState() {
+    super.initState();
+    _loadConsultorios();
+    _loadHorariosConsultorios();
+    for (String day in daysOfWeek) {
+      selectedButtonsByDay[day] = [];
+    }
+  }
+
+  Future<void> _loadConsultorios() async {
+    List<Consultorio> consultoriosList = [];
+    List<Map<String, dynamic>> consultoriosData =
+        await DatabaseManager.getConsultoriosData();
+    consultoriosList = consultoriosData
+        .map((data) => Consultorio(
+              id: data['id'],
+              nombre: data['nombre'].toString(),
+              telefono: data['telefono'].toString(),
+              direccion: data['direccion'].toString(),
+              codigoPostal: int.parse(data['colonia_id'].toString()),
+              intervaloAtencion: int.parse(data['intervalo'].toString()),
+            ))
+        .toList();
+    setState(() {
+      hasConsultorios = consultoriosList.isNotEmpty;
+      consultorios = consultoriosList;
+    });
+  }
+
+  Future<void> _loadHorariosConsultorios() async {
+    if (selectedConsultorio != null && selectedConsultorio!.id != null) {
+      Map<String, List<int>> horarios =
+          await DatabaseManager.getHorarioConsultorio(selectedConsultorio!.id!);
+      setState(() {
+        // selectedButtonsByDay = horarios; // Esto debería ser eliminado
+        for (String day in horarios.keys) {
+          selectedButtonsByDay[day] = horarios[day] ?? [];
+        }
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -82,18 +125,34 @@ class _ConsultingState extends State<Consulting> {
                         child: Text(consultorio.nombre),
                       );
                     }).toList(),
-                    onChanged: (value) {
+                    onChanged: (value) async {
                       setState(() {
                         selectedConsultorio = value;
-                        _nombreController.text = value!.nombre;
-                        _telefonoController.text = value.telefono;
-                        _calleController.text = value.direccion;
-                        // _codigoPostalController.text = value.codigoPostal;
-                        // selectedInterval = value.intervaloAtencion;
+                        if (selectedConsultorio != null) {
+                          _nombreController.text = selectedConsultorio!.nombre;
+                          _telefonoController.text =
+                              selectedConsultorio!.telefono;
+                          _calleController.text =
+                              selectedConsultorio!.direccion;
+                          _codigoPostalController.text =
+                              selectedConsultorio!.codigoPostal.toString();
+                          selectedInterval =
+                              selectedConsultorio!.intervaloAtencion;
+                        }
+
                         // selectedDay = value.diaAtencion;
                         // selectedButtonsByDay[selectedDay!] =
                         //     value.selectedButtonsByDay[selectedDay!] ?? [];
                       });
+
+                      if (selectedConsultorio != null) {
+                        Map<String, List<int>> horarios =
+                            await DatabaseManager.getHorarioConsultorio(
+                                selectedConsultorio!.id!);
+                        setState(() {
+                          selectedButtonsByDay = horarios;
+                        });
+                      }
                     },
                   ),
                 TextFormField(
@@ -116,33 +175,34 @@ class _ConsultingState extends State<Consulting> {
                 ),
                 TextFormField(
                   controller: _codigoPostalController,
+                  keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
                     labelText: 'Código Postal',
                   ),
                 ),
-                DropdownButtonFormField<int>(
+                DropdownButtonFormField<String>(
                   items: const [
-                    DropdownMenuItem<int>(
-                      value: 60,
+                    DropdownMenuItem<String>(
+                      value: '60',
                       child: Text('60 minutos'),
                     ),
-                    DropdownMenuItem<int>(
-                      value: 30,
+                    DropdownMenuItem<String>(
+                      value: '30',
                       child: Text('30 minutos'),
                     ),
-                    DropdownMenuItem<int>(
-                      value: 20,
+                    DropdownMenuItem<String>(
+                      value: '20',
                       child: Text('20 minutos'),
                     ),
-                    DropdownMenuItem<int>(
-                      value: 15,
+                    DropdownMenuItem<String>(
+                      value: '15',
                       child: Text('15 minutos'),
                     ),
                   ],
-                  value: selectedInterval,
+                  value: selectedInterval.toString(),
                   onChanged: (value) {
                     setState(() {
-                      selectedInterval = value!;
+                      selectedInterval = int.parse(value!);
                     });
                   },
                   decoration: const InputDecoration(
@@ -198,7 +258,8 @@ class _ConsultingState extends State<Consulting> {
                 '${(startMinute ~/ 60).toString().padLeft(2, '0')}:${(startMinute % 60).toString().padLeft(2, '0')}';
             String endTime =
                 '${(endMinute ~/ 60).toString().padLeft(2, '0')}:${(endMinute % 60).toString().padLeft(2, '0')}';
-            String timeInterval = '$startTime - $endTime';
+            String timeInterval = '$startTime-$endTime';
+
             return Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -250,28 +311,63 @@ class _ConsultingState extends State<Consulting> {
     selectedConsultorio = null;
   }
 
-  void _guardarConsultorio() {
+  void _guardarConsultorio() async {
     if (selectedConsultorio != null) {
       // Si hay un consultorio seleccionado, se actualiza en lugar de agregar uno nuevo
+
       setState(() {
         selectedConsultorio!.nombre = _nombreController.text;
         selectedConsultorio!.telefono = _telefonoController.text;
         selectedConsultorio!.direccion = _calleController.text;
-        // selectedConsultorio!.codigoPostal = _codigoPostalController.text;
-        // selectedConsultorio!.intervaloAtencion = selectedInterval;
-        // selectedConsultorio!.diaAtencion = selectedDay!;
-        // selectedConsultorio!.selectedButtonsByDay = selectedButtonsByDay;
+        selectedConsultorio!.codigoPostal =
+            int.tryParse(_codigoPostalController.text) ?? 0;
+        selectedConsultorio!.intervaloAtencion = selectedInterval;
+
+        DatabaseManager.updateConsultorio(selectedConsultorio!);
+
+        Map<String, List<int>> horariosSeleccionados = {};
+        for (String day in daysOfWeek) {
+          if (selectedButtonsByDay.containsKey(day)) {
+            horariosSeleccionados[day] = selectedButtonsByDay[day]!;
+          }
+        }
+
+        // Map<String, String> horariosSeleccionados = {};
+        // if (selectedDay != null &&
+        //     selectedButtonsByDay.containsKey(selectedDay)) {
+        //   List<int> buttonsPressed = selectedButtonsByDay[selectedDay]!;
+        //   String horariosStr = buttonsPressed.map((index) {
+        //     int startMinute = index * selectedInterval;
+        //     int endMinute = (index + 1) * selectedInterval - 1;
+        //     String startTime =
+        //         '${(startMinute ~/ 60).toString().padLeft(2, '0')}:${(startMinute % 60).toString().padLeft(2, '0')}';
+        //     String endTime =
+        //         '${(endMinute ~/ 60).toString().padLeft(2, '0')}:${(endMinute % 60).toString().padLeft(2, '0')}';
+        //     return '$startTime-$endTime';
+        //   }).join(',');
+        //   horariosSeleccionados[selectedDay!] = horariosStr;
+        // }
+
+        DatabaseManager.insertHorarioConsultorio(
+          selectedConsultorio!.id!,
+          horariosSeleccionados['Lunes'] ?? [],
+          horariosSeleccionados['Martes'] ?? [],
+          horariosSeleccionados['Miércoles'] ?? [],
+          horariosSeleccionados['Jueves'] ?? [],
+          horariosSeleccionados['Viernes'] ?? [],
+          horariosSeleccionados['Sábado'] ?? [],
+          horariosSeleccionados['Domingo'] ?? [],
+        );
       });
-      //print('mapa editado $selectedButtonsByDay');
     } else {
       // Si no hay un consultorio seleccionado, se agrega uno nuevo
       final nuevoConsultorio = Consultorio(
         nombre: _nombreController.text,
         telefono: _telefonoController.text,
         direccion: _calleController.text,
-        // codigoPostal: _codigoPostalController.text,
-        // intervaloAtencion: selectedInterval,
-        // diaAtencion: selectedDay!,
+        codigoPostal: int.tryParse(_codigoPostalController.text) ?? 0,
+        intervaloAtencion: selectedInterval,
+        //diaAtencion: selectedDay!,
         // selectedButtonsByDay: {
         //   selectedDay!: selectedButtonsByDay[selectedDay!] ?? []
         // }, // Asocia el día seleccionado con los botones seleccionados
@@ -302,22 +398,19 @@ class _ConsultingState extends State<Consulting> {
 }
 
 class Consultorio {
+  int? id;
   String nombre;
   String telefono;
   String direccion;
-  // String codigoPostal;
-  // int intervaloAtencion;
-  // String diaAtencion;
-  // Map<String, List<int>>
-  //     selectedButtonsByDay; // Mapa para los botones seleccionados por día
+  int codigoPostal;
+  int intervaloAtencion;
 
   Consultorio({
+    this.id,
     required this.nombre,
     required this.telefono,
     required this.direccion,
-    // required this.codigoPostal,
-    // required this.intervaloAtencion,
-    // required this.diaAtencion,
-    // required this.selectedButtonsByDay, // Inicializa el mapa al crear el consultorio
+    required this.codigoPostal,
+    required this.intervaloAtencion,
   });
 }

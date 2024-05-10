@@ -25,21 +25,66 @@ class DatabaseManager {
     }
   }
 
-  static Future<List<String>> getConsultorios() async {
-    List<String> consultorios = [];
+  static Future<List<Map<String, dynamic>>> getConsultoriosData() async {
+    List<Map<String, dynamic>> consultoriosData = [];
     try {
       final conn = await _connect();
 
-      final result = await conn.execute("SELECT nombre FROM consultorio");
+      final result = await conn.execute("SELECT * FROM consultorio");
       for (var row in result) {
-        consultorios.add(row[0].toString());
+        consultoriosData.add({
+          'id': row[0],
+          'nombre': row[1],
+          'direccion': row[2],
+          'colonia_id': row[3],
+          'telefono': row[5],
+          'intervalo': row[8],
+        });
       }
 
       await conn.close();
     } catch (e) {
       print('Error: $e');
     }
-    return consultorios;
+    return consultoriosData;
+  }
+
+  static Future<void> updateConsultorio(Consultorio consultorio) async {
+    try {
+      final conn = await _connect();
+
+      await conn.execute(
+        Sql.named(
+            "UPDATE consultorio SET nombre = @nombre, direccion = @direccion, colonia_id = @colonia_id, telefono = @telefono, intervalo = @intervalo  WHERE id = @id"),
+        parameters: {
+          "id": consultorio.id,
+          "nombre": consultorio.nombre,
+          "direccion": consultorio.direccion,
+          "colonia_id": consultorio.codigoPostal,
+          "telefono": consultorio.telefono,
+          "intervalo": consultorio.intervaloAtencion,
+        },
+      );
+
+      await conn.close();
+    } catch (e) {
+      print('Error al actualizar el consultorio: $e');
+    }
+  }
+
+  static Future<void> deleteConsultorio(int id) async {
+    try {
+      final conn = await _connect();
+
+      await conn.execute(
+        Sql.named("DELETE FROM consultorio WHERE id = @id"),
+        parameters: {"id": id},
+      );
+
+      await conn.close();
+    } catch (e) {
+      print('Error al eliminar el consultorio: $e');
+    }
   }
 
   static Future<void> insertConsultorio(Consultorio consultorio) async {
@@ -53,12 +98,14 @@ class DatabaseManager {
 
       await conn.execute(
         Sql.named(
-            "INSERT INTO consultorio(id, nombre, telefono, direccion) VALUES (@id, @nombre, @telefono, @direccion)"),
+            "INSERT INTO consultorio(id, nombre, direccion, colonia_id, telefono, intervalo) VALUES (@id, @nombre, @direccion, @colonia_id, @telefono, @intervalo)"),
         parameters: {
           "id": newId,
           "nombre": consultorio.nombre,
+          "direccion": consultorio.direccion,
+          "colonia_id": consultorio.codigoPostal,
           "telefono": consultorio.telefono,
-          "direccion": consultorio.direccion
+          "intervalo": consultorio.intervaloAtencion,
         },
       );
 
@@ -66,5 +113,89 @@ class DatabaseManager {
     } catch (e) {
       print('Error al insertar el consultorio: $e');
     }
+  }
+
+  static Future<void> insertHorarioConsultorio(
+    int consultorioId,
+    List<int> lunes,
+    List<int> martes,
+    List<int> miercoles,
+    List<int> jueves,
+    List<int> viernes,
+    List<int> sabado,
+    List<int> domingo,
+  ) async {
+    try {
+      final conn = await _connect();
+
+      await conn.execute(
+        Sql.named(
+            "INSERT INTO horario_consultorio(id, lunes, martes, miercoles, jueves, viernes, sabado, domingo) VALUES (@id,  @lunes, @martes, @miercoles, @jueves, @viernes, @sabado, @domingo)"),
+        parameters: {
+          "id": consultorioId,
+          "lunes": lunes.join(
+              ','), // Convertir la lista de enteros en una cadena de texto separada por comas
+          "martes": martes.join(','),
+          "miercoles": miercoles.join(','),
+          "jueves": jueves.join(','),
+          "viernes": viernes.join(','),
+          "sabado": sabado.join(','),
+          "domingo": domingo.join(','),
+        },
+      );
+
+      await conn.close();
+    } catch (e) {
+      print('Error al insertar los horarios: $e');
+    }
+  }
+
+  static Future<Map<String, List<int>>> getHorarioConsultorio(
+      int consultorioId) async {
+    Map<String, List<int>> horarios = {};
+
+    try {
+      final conn = await _connect();
+
+      final result = await conn.execute(
+        Sql.named("SELECT * FROM horario_consultorio WHERE id = @id"),
+        parameters: {"id": consultorioId},
+      );
+
+      for (var row in result) {
+        // Procesar los horarios recuperados y actualizar el mapa
+        // Acceder directamente a las columnas por su nombre
+        List<int> lunesHorarios =
+            row[1]?.toString().split(',').map(int.parse).toList() ?? [];
+        List<int> martesHorarios =
+            row[2]?.toString().split(',').map(int.parse).toList() ?? [];
+        List<int> miercolesHorarios =
+            row[3]?.toString().split(',').map(int.parse).toList() ?? [];
+        List<int> juevesHorarios =
+            row[4]?.toString().split(',').map(int.parse).toList() ?? [];
+        List<int> viernesHorarios =
+            row[5]?.toString().split(',').map(int.parse).toList() ?? [];
+        List<int> sabadoHorarios =
+            row[6]?.toString().split(',').map(int.parse).toList() ?? [];
+        List<int> domingoHorarios =
+            row[7]?.toString().split(',').map(int.parse).toList() ?? [];
+        // Actualiza el mapa de horarios
+        horarios['Lunes'] = lunesHorarios;
+        horarios['Martes'] = martesHorarios;
+        horarios['Miércoles'] = miercolesHorarios;
+        horarios['Jueves'] = juevesHorarios;
+        horarios['Viernes'] = viernesHorarios;
+        horarios['Sábado'] = sabadoHorarios;
+        horarios['Domingo'] = domingoHorarios;
+        // Actualiza los demás días de la semana
+        print(horarios);
+      }
+
+      await conn.close();
+    } catch (e) {
+      print('Error al convertir horarios del lunes: $e');
+    }
+
+    return horarios;
   }
 }

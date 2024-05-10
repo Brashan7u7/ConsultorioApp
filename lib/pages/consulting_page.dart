@@ -220,7 +220,7 @@ class _ConsultingState extends State<Consulting> {
                   style: ButtonStyle(
                     backgroundColor: MaterialStateProperty.resolveWith<Color?>(
                       (Set<MaterialState> states) {
-                        // Cambia el color del botón según el estado
+                        
                         return selectedButtonsByDay.containsKey(selectedDay) &&
                                 selectedButtonsByDay[selectedDay]!
                                     .contains(index)

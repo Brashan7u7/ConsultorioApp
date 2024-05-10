@@ -7,7 +7,7 @@ class DatabaseManager {
       Endpoint(
         host: 'localhost',
         database: 'medicalmanik',
-        username: 'administrador',
+        username: 'postgres',
         password: 'DJE20ben',
       ),
       settings: ConnectionSettings(sslMode: SslMode.disable),

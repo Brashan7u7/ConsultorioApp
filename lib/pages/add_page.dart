@@ -2,16 +2,17 @@ import 'package:calendario_manik/pages/calendar_page.dart';
 import 'package:flutter/material.dart';
 import 'package:calendario_manik/pages/patients_page.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_time_picker_spinner/flutter_time_picker_spinner.dart';
 
 class Add extends StatelessWidget {
-  final bool isCitaRapida, isEvento, isPacient, isCitaPro;
+  final bool isCitaInmediata, isEvento, isPacient, isCitaPro;
   final bool? isCitaselect;
 
   TextEditingController? fechaController, horaController;
 
   Add(
       {Key? key,
-      required this.isCitaRapida,
+      required this.isCitaInmediata,
       this.isEvento = false,
       this.isPacient = false,
       this.isCitaPro = false,
@@ -24,10 +25,10 @@ class Add extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(isCitaRapida
-            ? "Cita Rápida"
+        title: Text(isCitaInmediata
+            ? "Cita Inmediata"
             : isCitaselect!
-                ? "Cita Rápida"
+                ? "Cita Programada"
                 : isEvento
                     ? 'Evento'
                     : isPacient
@@ -36,7 +37,7 @@ class Add extends StatelessWidget {
                             ? "Cita Programada"
                             : ""),
       ),
-      body: isCitaRapida
+      body: isCitaInmediata
           ? _buildCitaRapidaContent(
               context,
             )
@@ -74,17 +75,24 @@ class Add extends StatelessWidget {
     duracionDropdownController.addListener(() {
       selectedDuration = int.tryParse(duracionDropdownController.text);
     });
+    void _openAddPatientPage() {
+      Navigator.pop(context); // Cierra la ventana actual
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => Add(
+            isCitaInmediata: false,
+            isEvento: false,
+            isPacient: true,
+            isCitaPro: false,
+          ),
+        ),
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Text(
-            'Cita para hoy (${DateTime.now().toIso8601String().split('T')[0]}) a las ${TimeOfDay.now().format(context)}',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-        ),
         Form(
           key: _formKey,
           child: Padding(
@@ -92,70 +100,29 @@ class Add extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                TextFormField(
-                  controller: nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Escriba el nombre del paciente',
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'El nombre del paciente es obligatorio';
-                    }
-                    return null;
-                  },
-                ),
-                SizedBox(height: 10.0),
-                DropdownButtonFormField<int>(
-                  value: selectedDuration,
-                  onChanged: (value) {
-                    duracionDropdownController.text = value.toString();
-                  },
-                  items: const [
-                    DropdownMenuItem<int>(
-                      value: 60,
-                      child: Text('60 minutos'),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Escriba el nombre del paciente',
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'El nombre del paciente es obligatorio';
+                          }
+                          return null;
+                        },
+                      ),
                     ),
-                    DropdownMenuItem<int>(
-                      value: 30,
-                      child: Text('30 minutos'),
-                    ),
-                    DropdownMenuItem<int>(
-                      value: 20,
-                      child: Text('20 minutos'),
-                    ),
-                    DropdownMenuItem<int>(
-                      value: 15,
-                      child: Text('15 minutos'),
+                    IconButton(
+                      icon: const Icon(Icons.add),
+                      onPressed: _openAddPatientPage,
+                      tooltip: 'Agregar paciente',
                     ),
                   ],
-                  decoration: InputDecoration(labelText: 'Duración (min)'),
-                  validator: (value) {
-                    if (value == null) {
-                      return 'La duración es obligatoria';
-                    }
-                    return null;
-                  },
                 ),
-                SizedBox(height: 10.0),
-                DropdownButtonFormField<String>(
-                  value: servicioController.text.isEmpty
-                      ? null
-                      : servicioController.text,
-                  hint: const Text('Servicio de atención'),
-                  items: <DropdownMenuItem<String>>[
-                    DropdownMenuItem<String>(
-                      value: 'Subsecuente',
-                      child: Text('Subsecuente'),
-                    ),
-                    DropdownMenuItem<String>(
-                      value: 'Videoconsulta',
-                      child: Text('Videoconsulta'),
-                    ),
-                    // ... Add more service options here
-                  ],
-                  onChanged: (value) => servicioController.text = value!,
-                ),
-                SizedBox(height: 10.0),
                 TextFormField(
                   controller: notaController,
                   decoration:
@@ -181,7 +148,7 @@ class Add extends StatelessWidget {
                       );
                     }
                   },
-                  child: const Text('Guardar Cita Rápida'),
+                  child: const Text('Guardar Cita Inmediata'),
                 ),
               ],
             ),
@@ -220,13 +187,6 @@ class Add extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Text(
-            'Cita para hoy (${fechaController.text}) a las ${hora12}',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-        ),
         Form(
           key: _formKey,
           child: Padding(
@@ -246,58 +206,6 @@ class Add extends StatelessWidget {
                     return null;
                   },
                 ),
-                SizedBox(height: 10.0),
-                DropdownButtonFormField<int>(
-                  value: selectedDuration,
-                  onChanged: (value) {
-                    duracionDropdownController.text = value.toString();
-                  },
-                  items: const [
-                    DropdownMenuItem<int>(
-                      value: 60,
-                      child: Text('60 minutos'),
-                    ),
-                    DropdownMenuItem<int>(
-                      value: 30,
-                      child: Text('30 minutos'),
-                    ),
-                    DropdownMenuItem<int>(
-                      value: 20,
-                      child: Text('20 minutos'),
-                    ),
-                    DropdownMenuItem<int>(
-                      value: 15,
-                      child: Text('15 minutos'),
-                    ),
-                  ],
-                  decoration: InputDecoration(labelText: 'Duración (min)'),
-                  validator: (value) {
-                    if (value == null) {
-                      return 'La duración es obligatoria';
-                    }
-                    return null;
-                  },
-                ),
-                SizedBox(height: 10.0),
-                DropdownButtonFormField<String>(
-                  value: servicioController.text.isEmpty
-                      ? null
-                      : servicioController.text,
-                  hint: const Text('Servicio de atención'),
-                  items: <DropdownMenuItem<String>>[
-                    DropdownMenuItem<String>(
-                      value: 'Subsecuente',
-                      child: Text('Subsecuente'),
-                    ),
-                    DropdownMenuItem<String>(
-                      value: 'Videoconsulta',
-                      child: Text('Videoconsulta'),
-                    ),
-                    // ... Add more service options here
-                  ],
-                  onChanged: (value) => servicioController.text = value!,
-                ),
-                SizedBox(height: 10.0),
                 TextFormField(
                   controller: notaController,
                   decoration:
@@ -323,7 +231,7 @@ class Add extends StatelessWidget {
                       );
                     }
                   },
-                  child: const Text('Guardar Cita Rápida'),
+                  child: const Text('Guardar Cita Programada'),
                 ),
               ],
             ),
@@ -341,115 +249,24 @@ class Add extends StatelessWidget {
     TextEditingController fechaController = TextEditingController(text: "");
     TextEditingController horaController = TextEditingController(text: "");
 
-    void _showTimePicker(BuildContext context) async {
-      TimeOfDay? pickedTime = await showTimePicker(
-        context: context,
-        initialTime: TimeOfDay.now(),
-      );
-
-      if (pickedTime != null) {
-        _selectedDateTime = DateTime(
-          _selectedDateTime.year,
-          _selectedDateTime.month,
-          _selectedDateTime.day,
-          pickedTime.hour,
-          pickedTime.minute,
-        );
-        fechaController.text =
-            _selectedDateTime.toIso8601String().split('T')[0];
-        horaController.text = _selectedDateTime.toIso8601String().split('T')[1];
-      }
-    }
-
-    void _showDateAndTimeDialog(BuildContext context) async {
-      DateTime? pickedDateTime = await showDatePicker(
-        context: context,
-        initialDate: _selectedDateTime,
-        firstDate: DateTime.now().subtract(const Duration(days: 365)),
-        lastDate: DateTime.now().add(const Duration(days: 365)),
-      );
-
-      if (pickedDateTime != null) {
-        _selectedDateTime = pickedDateTime;
-        TimeOfDay? pickedTime = await showTimePicker(
-          context: context,
-          initialTime: TimeOfDay.fromDateTime(_selectedDateTime),
-        );
-
-        if (pickedTime != null) {
-          _selectedDateTime = DateTime(
-            _selectedDateTime.year,
-            _selectedDateTime.month,
-            _selectedDateTime.day,
-            pickedTime.hour,
-            pickedTime.minute,
-          );
-          fechaController.text =
-              _selectedDateTime.toIso8601String().split('T')[0];
-          horaController.text =
-              _selectedDateTime.toIso8601String().split('T')[1];
-        }
-      }
-    }
-
-    void _showCalendarDialog(BuildContext context) async {
-      DateTime? pickedDate = await showDatePicker(
-        context: context,
-        initialDate: _selectedDateTime,
-        firstDate: DateTime.now().subtract(const Duration(days: 365)),
-        lastDate: DateTime.now().add(const Duration(days: 365)),
-      );
-
-      if (pickedDate != null) {
-        _selectedDateTime = pickedDate;
-        fechaController.text = pickedDate.toIso8601String().split('T')[0];
-        horaController.text = _selectedDateTime.toIso8601String().split('T')[1];
-      }
-    }
-
-    void _showSchedulingOptions(BuildContext context) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Seleccione una opción'),
-            content: SizedBox(
-              height: 120,
-              child: Column(
-                children: [
-                  ListTile(
-                    title: const Text('Siguiente hora disponible'),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _selectedOption = 'Opción 1';
-                      _selectedDateTime =
-                          _getNearestAppointmentTime(_selectedDateTime);
-                      fechaController.text =
-                          _selectedDateTime.toIso8601String().split('T')[0];
-                      horaController.text =
-                          _selectedDateTime.toIso8601String().split('T')[1];
-                    },
-                  ),
-                  ListTile(
-                    title: const Text('Seleccionar recomendación de fecha'),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _selectedOption = 'Opción 2';
-                    },
-                  ),
-                  // ... Add more scheduling options here
-                ],
-              ),
-            ),
-          );
-        },
-      );
-    }
-
     TextEditingController nameController = TextEditingController(text: "");
     TextEditingController duracionController = TextEditingController(text: "");
     TextEditingController servicioController = TextEditingController(text: "");
     TextEditingController notaController = TextEditingController(text: "");
+    void _openAddPatientPage() {
+      Navigator.pop(context); // Cierra la ventana actual
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => Add(
+            isCitaInmediata: false,
+            isEvento: false,
+            isPacient: true,
+            isCitaPro: false,
+          ),
+        ),
+      );
+    }
 
     // Initialize appointmentTime to the selected date and time
     DateTime appointmentTime = DateTime.now();
@@ -469,200 +286,175 @@ class Add extends StatelessWidget {
       }
     });
 
-    return Form(
-      key: _formKey,
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextFormField(
-              controller: nameController,
-              decoration: const InputDecoration(
-                labelText: 'Escriba el nombre del paciente',
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'El nombre del paciente es obligatorio';
-                }
-                return null;
-              },
-            ),
-            SizedBox(height: 10.0),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: fechaController,
-                    readOnly: true,
-                    decoration: const InputDecoration(labelText: 'Fecha'),
-                    onTap: () async {
-                      DateTime? pickedDate = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate:
-                            DateTime.now().subtract(const Duration(days: 365)),
-                        lastDate: DateTime.now().add(const Duration(days: 365)),
-                      );
-                      if (pickedDate != null) {
-                        String hour =
-                            pickedDate.hour.toString().padLeft(2, '0');
-                        String minute =
-                            pickedDate.minute.toString().padLeft(2, '0');
-                        horaController.text = '$hour:$minute';
-                      }
-                    },
-                  ),
-                ),
-                SizedBox(width: 10.0),
-                Expanded(
-                  child: TextFormField(
-                    controller: horaController,
-                    readOnly: true,
-                    decoration: const InputDecoration(labelText: 'Hora'),
-                    onTap: () async {
-                      // Handle time selection using a time picker
-                      TimeOfDay? pickedTime = await showTimePicker(
-                        context: context,
-                        initialTime: TimeOfDay.now(),
-                      );
-                      if (pickedTime != null) {
-                        horaController.text = pickedTime.format(context);
-                      }
-                    },
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 10.0),
-            Text(
-              'Próxima cita disponible: ${DateFormat.jm().format(_getNearestAppointmentTime(appointmentTime))}',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            TextFormField(
-              controller: duracionController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Duración (min)'),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'La duración es obligatoria';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 10.0),
-            DropdownButtonFormField<String>(
-              value: servicioController.text.isEmpty
-                  ? null
-                  : servicioController.text,
-              hint: const Text('Servicio de atención'),
-              items: const <DropdownMenuItem<String>>[
-                DropdownMenuItem<String>(
-                  value: 'Subsecuente',
-                  child: Text('Subsecuente'),
-                ),
-                DropdownMenuItem<String>(
-                  value: 'Videoconsulta',
-                  child: Text('Videoconsulta'),
-                ),
-                // ... Add more service options here
-              ],
-              onChanged: (value) => servicioController.text = value!,
-            ),
-            const SizedBox(height: 10.0),
-            TextFormField(
-              controller: notaController,
-              decoration: const InputDecoration(labelText: 'Nota para cita'),
-              maxLines: 3,
-            ),
-            SizedBox(height: 20.0),
-            DropdownButtonFormField<String>(
-              value: servicioController.text.isEmpty
-                  ? null
-                  : servicioController.text,
-              hint: const Text('Recomendación de la proxima cita'),
-              items: const <DropdownMenuItem<String>>[
-                DropdownMenuItem<String>(
-                  value: 'Opción 1',
-                  child: Text('Siguiente hora disponible'),
-                ),
-                DropdownMenuItem<String>(
-                  value: 'Opción 2',
-                  child: Text('Seleccionar fecha'),
-                ),
-                DropdownMenuItem<String>(
-                  value: 'Opción 3',
-                  child: Text('Seleccionar fecha y hora'),
-                ),
-                DropdownMenuItem<String>(
-                  value: 'Opción 4',
-                  child: Text('Seleccionar hora disponible'),
-                ),
-              ],
-              onChanged: (value) {
-                servicioController.text = value!;
-                if (value == 'Opción 2') {
-                  _showCalendarDialog(context);
-                } else if (value == 'Opción 1') {
-                  _selectedDateTime =
-                      _getNearestAppointmentTime(_selectedDateTime);
-                  fechaController.text =
-                      _selectedDateTime.toIso8601String().split('T')[0];
-                  horaController.text =
-                      _selectedDateTime.toIso8601String().split('T')[1];
-                } else if (value == 'Opción 4') {
-                  _showTimePicker(context);
-                } else if (value == 'Opción 3') {
-                  _showDateAndTimeDialog(context);
-                }
-              },
-            ),
-            SizedBox(height: 20.0),
-            ElevatedButton(
-              onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => Calendar(
-                        name: nameController.text,
-                        fecha: fechaController.text,
-                        hora: horaController.text,
-                        duracion: duracionController.text,
-                        servicio: servicioController.text,
-                        nota: notaController.text,
+    Future<void> _selectTime(BuildContext context) async {
+      final TimeOfDay? newTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay(hour: 7, minute: 15),
+        initialEntryMode: TimePickerEntryMode.input,
+      );
+    }
+
+    Future<void> _selectDay(BuildContext context) async {
+      final DateTime firstDate = DateTime.now();
+      final DateTime lastDate = DateTime(DateTime.now().year + 1);
+
+      final DateTime? picked = await showDatePicker(
+        context: context,
+        initialDate: DateTime.now(),
+        firstDate: firstDate,
+        lastDate: lastDate,
+        initialDatePickerMode:
+            DatePickerMode.day, // Establecer el modo de selección diaria
+      );
+    }
+
+    return SingleChildScrollView(
+      child: Form(
+        key: _formKey,
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: nameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Escriba el nombre del paciente',
                       ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'El nombre del paciente es obligatorio';
+                        }
+                        return null;
+                      },
                     ),
-                  );
-                }
-              },
-              child: const Text('Guardar Cita Programada'),
-            ),
-          ],
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.add),
+                    onPressed: _openAddPatientPage,
+                    tooltip: 'Agregar paciente',
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10.0),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: fechaController,
+                      readOnly: true,
+                      decoration: const InputDecoration(labelText: 'Fecha'),
+                      onTap: () async {
+                        DateTime? pickedDate = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime.now()
+                              .subtract(const Duration(days: 365)),
+                          lastDate:
+                              DateTime.now().add(const Duration(days: 365)),
+                        );
+                        if (pickedDate != null) {
+                          String hour =
+                              pickedDate.hour.toString().padLeft(2, '0');
+                          String minute =
+                              pickedDate.minute.toString().padLeft(2, '0');
+                          horaController.text = '$hour:$minute';
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 10.0),
+                  Expanded(
+                    child: TextFormField(
+                      controller: horaController,
+                      readOnly: true,
+                      decoration: const InputDecoration(labelText: 'Hora'),
+                      onTap: () async {
+                        TimeOfDay? pickedTime = await showTimePicker(
+                          context: context,
+                          initialTime: TimeOfDay.now(),
+                        );
+                        if (pickedTime != null) {
+                          horaController.text = pickedTime.format(context);
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10.0),
+              TextFormField(
+                controller: duracionController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Duración (min)'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'La duración es obligatoria';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: notaController,
+                decoration: const InputDecoration(labelText: 'Nota para cita'),
+                maxLines: 3,
+              ),
+              const SizedBox(height: 20.0),
+              DropdownButtonFormField<String>(
+                value: servicioController.text.isEmpty
+                    ? null
+                    : servicioController.text,
+                hint: const Text('Recomendación de la proxima cita'),
+                items: const <DropdownMenuItem<String>>[
+                  DropdownMenuItem<String>(
+                    value: 'Opción 1',
+                    child: Text('Siguiente hora más cercana'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: 'Opción 2',
+                    child: Text('Siguiente día del mes más cercano'),
+                  ),
+                ],
+                onChanged: (value) {
+                  servicioController.text = value!;
+                  if (value == 'Opción 1') {
+                    _selectTime(context);
+                  } else if (value == 'Opción 2') {
+                    _selectDay(context);
+                  }
+                },
+              ),
+              const SizedBox(height: 20.0),
+              ElevatedButton(
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Calendar(
+                          name: nameController.text,
+                          fecha: fechaController.text,
+                          hora: horaController.text,
+                          duracion: duracionController.text,
+                          nota: notaController.text,
+                        ),
+                      ),
+                    );
+                  }
+                },
+                child: const Text('Guardar Cita Programada'),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
 //Calcula el proximo horario disponible
-  DateTime _getNearestAppointmentTime(DateTime time) {
-    // Set the initial nearestAppointmentTime to the given time
-    DateTime nearestAppointmentTime = time;
-
-    // Find the nearest available appointment time
-    for (int i = 1; i < 10; i++) {
-      DateTime appointmentTime = time.add(Duration(minutes: i * 30));
-
-      // Check if the appointment time is available
-      // You can replace this with your own availability check logic
-      if (appointmentTime.hour < 18 && appointmentTime.hour > 8) {
-        nearestAppointmentTime = appointmentTime;
-        break;
-      }
-    }
-
-    return nearestAppointmentTime;
-  }
 
 //Generación del evento
   Widget _buildEventoContent(BuildContext context) {

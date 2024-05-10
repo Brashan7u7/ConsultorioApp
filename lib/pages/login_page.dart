@@ -45,7 +45,7 @@ class _LoginState extends State<Login> {
               Container(
                 decoration: BoxDecoration(
                   color: Color.fromARGB(
-                      119, 255, 255, 255), // Color de fondo del contenedor
+                      128, 0, 0, 0), // Color de fondo del contenedor
                   borderRadius: BorderRadius.circular(20), // Bordes redondeados
                 ),
                 padding: const EdgeInsets.all(20),
@@ -65,12 +65,12 @@ class _LoginState extends State<Login> {
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.email),
                         labelStyle: TextStyle(
-                          color: Colors.black,
+                          color: Color.fromARGB(255, 255, 255, 255),
                         ),
                       ),
                       keyboardType: TextInputType.emailAddress,
                       style: TextStyle(
-                        color: Colors.black,
+                        color: const Color.fromARGB(255, 255, 255, 255),
                       ), // Letras negras
                       onChanged: (value) {},
                     ),
@@ -80,7 +80,7 @@ class _LoginState extends State<Login> {
                       decoration: InputDecoration(
                         labelText: 'Contraseña',
                         labelStyle: TextStyle(
-                          color: Colors.black,
+                          color: const Color.fromARGB(255, 255, 255, 255),
                         ),
                         border: const OutlineInputBorder(),
                         prefixIcon: const Icon(Icons.lock),
@@ -89,7 +89,8 @@ class _LoginState extends State<Login> {
                             _obscureText
                                 ? Icons.visibility_off
                                 : Icons.visibility,
-                            color: Colors.black, // Icono negro
+                            color: const Color.fromARGB(
+                                255, 255, 255, 255), // Icono negro
                           ),
                           onPressed: () {
                             setState(() {
@@ -100,7 +101,7 @@ class _LoginState extends State<Login> {
                       ),
                       obscureText: _obscureText,
                       style: TextStyle(
-                        color: Colors.black,
+                        color: const Color.fromARGB(255, 255, 255, 255),
                       ), // Letras negras
                       onChanged: (value) {},
                     ),
@@ -108,7 +109,7 @@ class _LoginState extends State<Login> {
                     Container(
                       margin: const EdgeInsets.symmetric(vertical: 5),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           Checkbox(
                             value: _recordarContrasena,
@@ -117,11 +118,13 @@ class _LoginState extends State<Login> {
                                 _recordarContrasena = value!;
                               });
                             },
-                            checkColor: Colors.black, // Color del check negro
+                            checkColor: const Color.fromARGB(
+                                255, 255, 255, 255), // Color del check negro
                           ),
                           Text(
                             'Recordar Contraseña',
-                            style: TextStyle(color: Colors.black),
+                            style: TextStyle(
+                                color: Color.fromRGBO(255, 255, 255, 1)),
                           ),
                         ],
                       ),
@@ -137,7 +140,8 @@ class _LoginState extends State<Login> {
                         },
                         child: const Text(
                           '¿Olvidaste tu Contraseña?',
-                          style: TextStyle(color: Colors.black),
+                          style: TextStyle(
+                              color: Color.fromARGB(255, 255, 255, 255)),
                         ),
                       ),
                     ),
@@ -153,7 +157,7 @@ class _LoginState extends State<Login> {
                         child: const Text(
                           'Regístrate',
                           style: TextStyle(
-                            color: Colors.black,
+                            color: Color.fromARGB(255, 255, 255, 255),
                           ),
                         ),
                       ),
@@ -162,11 +166,12 @@ class _LoginState extends State<Login> {
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 50, vertical: 5),
-                        backgroundColor: (Color.fromARGB(182, 0, 0, 0)),
+                        backgroundColor: (Color.fromARGB(255, 230, 38, 38)),
                       ),
                       onPressed: _iniciarSesion,
                       child: const Text('Iniciar Sesión',
-                          style: TextStyle(color: Color.fromARGB(255, 255, 255, 255))),
+                          style: TextStyle(
+                              color: Color.fromARGB(255, 255, 255, 255))),
                     ),
                   ],
                 ),

@@ -341,7 +341,7 @@ class _PatientsState extends State<Patients> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => Add(
-                        isCitaRapida: false,
+                        isCitaInmediata: false,
                         isEvento: false,
                         isPacient: true,
                         isCitaPro: false,

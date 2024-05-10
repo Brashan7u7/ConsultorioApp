@@ -26,7 +26,7 @@ class StartPage extends StatelessWidget {
                   TextSpan(
                       text: '¡MedicalManik!\n',
                       style: TextStyle(
-                          fontSize: 40.0, fontWeight: FontWeight.w600)),
+                          fontSize: 40.0, fontWeight: FontWeight.w800)),
                   TextSpan(text: 'Bienvenido', style: TextStyle(fontSize: 20)),
                 ]),
               )),

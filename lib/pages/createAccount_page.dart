@@ -73,7 +73,7 @@ class _CreatePState extends State<CreateP> {
         automaticallyImplyLeading: true,
       ),
       body: Padding(
-        padding: EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(20.0),
         child: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -94,7 +94,7 @@ class _CreatePState extends State<CreateP> {
                             8.0), // Ajusta el espacio entre el texto y el dropdown si es necesario
                     child: Text('Zona horaria'),
                   ),
-                  SizedBox(
+                 const  SizedBox(
                     width: 20,
                   ),
                   DropdownButton<String>(
@@ -124,7 +124,7 @@ class _CreatePState extends State<CreateP> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Género'),
+                 const Text('Género'),
                   Row(
                     children: [
                       Radio(
@@ -156,7 +156,7 @@ class _CreatePState extends State<CreateP> {
                           });
                         },
                       ),
-                      Text('Intersexual'),
+                      const Text('Intersexual'),
                     ],
                   ),
                 ],

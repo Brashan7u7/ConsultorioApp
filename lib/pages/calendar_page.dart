@@ -8,16 +8,8 @@ import 'package:intl/intl.dart';
 import 'package:calendario_manik/database/database.dart';
 
 class Calendar extends StatefulWidget {
-  final String? name, fecha, hora, duracion, servicio, nota;
-
   const Calendar({
     Key? key,
-    this.name,
-    this.fecha,
-    this.hora,
-    this.duracion,
-    this.servicio,
-    this.nota,
   }) : super(key: key);
 
   @override
@@ -29,10 +21,13 @@ class _CalendarState extends State<Calendar> {
   void initState() {
     super.initState();
     _loadConsultorios(); // Carga los consultorios al inicializar el widget
+    _loadEventos();
   }
 
   final CalendarController _calendarController = CalendarController();
-  int intervaloHoras = 2;
+  final MeetingDataSource _calendarDataSource = MeetingDataSource([]);
+
+  int intervaloHoras = 1;
 
   // Lista de consultorios
   List<String> consultorios = [];
@@ -45,6 +40,16 @@ class _CalendarState extends State<Calendar> {
         .toList();
     setState(() {
       consultorios = consultoriosList;
+    });
+  }
+
+  void _loadEventos() async {
+    List<Map<String, dynamic>> eventosData =
+        await DatabaseManager.getEventosData();
+    List<Appointment> eventosAppointments = _getCalendarDataSource(eventosData);
+    setState(() {
+      // Actualiza la lista de citas en el dataSource directamente
+      _calendarDataSource.appointments = eventosAppointments;
     });
   }
 
@@ -171,12 +176,7 @@ class _CalendarState extends State<Calendar> {
             timeIntervalHeight: 120,
             timeInterval: Duration(hours: intervaloHoras),
           ),
-          dataSource: MeetingDataSource(_getCalendarDataSource(
-            widget.name,
-            widget.fecha,
-            widget.hora,
-            widget.duracion,
-          )),
+          dataSource: _calendarDataSource,
           onTap: (CalendarTapDetails details) {
             if (details.targetElement == CalendarElement.appointment) {
               Appointment tappedAppointment = details.appointments![0];
@@ -379,12 +379,7 @@ class _CalendarState extends State<Calendar> {
             //     Navigator.pop(context);
             //   }
             // },
-            dataSource: MeetingDataSource(_getCalendarDataSource(
-              widget.name,
-              widget.fecha,
-              widget.hora,
-              widget.duracion,
-            )),
+            dataSource: _calendarDataSource,
           ),
         );
       },
@@ -428,32 +423,25 @@ class MeetingDataSource extends CalendarDataSource {
 }
 
 List<Appointment> _getCalendarDataSource(
-    String? name, String? fecha, String? hora, String? duracion) {
-  List<Appointment> appointments = <Appointment>[];
+    List<Map<String, dynamic>> eventosData) {
+  List<Appointment> appointments = [];
 
-  if (name != null && fecha != null && hora != null && duracion != null) {
-    // Parse the fecha string into a DateTime object
-    DateTime appointmentDate = DateTime.tryParse(fecha) ?? DateTime.now();
+  for (final evento in eventosData) {
+    DateTime boorstartTime = evento['fecha_inicio'].toUtc();
+    String formattedDateStart =
+        DateFormat('yyyy-MM-dd kk:mm').format(boorstartTime);
+    DateTime startTime = DateTime.parse(formattedDateStart);
 
-    // Assuming 'hora' represents the start time (modify if needed)
-    DateTime startTime = DateTime(
-      appointmentDate.year,
-      appointmentDate.month,
-      appointmentDate.day,
-      int.parse(hora.split(':')[0]),
-      int.parse(hora.split(':')[1]),
-    );
-
-    // Assuming 'duracion' represents duration in minutes (modify if needed)
-    int durationInMinutes = int.tryParse(duracion) ?? 0;
-    DateTime endTime = startTime.add(Duration(minutes: durationInMinutes));
+    DateTime boorendTime = evento['fecha_fin'].toUtc();
+    String formattedDateEnd =
+        DateFormat('yyyy-MM-dd kk:mm').format(boorendTime);
+    DateTime endTime = DateTime.parse(formattedDateEnd);
 
     appointments.add(Appointment(
-      subject:
-          '$name \n ${DateFormat.Hm().format(startTime)} - ${DateFormat.Hm().format(endTime)}', // Use name for the subject
+      subject: evento['nombre'].toString(),
       startTime: startTime,
       endTime: endTime,
-      color: Colors.blue, // Set a color for your appointment
+      color: Colors.blue,
     ));
   }
 

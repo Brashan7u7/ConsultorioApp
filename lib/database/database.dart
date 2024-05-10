@@ -1,3 +1,4 @@
+import 'package:calendario_manik/pages/add_page.dart';
 import 'package:calendario_manik/pages/consulting_page.dart';
 import 'package:postgres/postgres.dart';
 
@@ -7,8 +8,8 @@ class DatabaseManager {
       Endpoint(
         host: 'localhost',
         database: 'medicalmanik',
-        username: 'administrador',
-        password: 'DJE20ben',
+        username: 'postgres',
+        password: '123',
       ),
       settings: ConnectionSettings(sslMode: SslMode.disable),
     );
@@ -232,5 +233,63 @@ class DatabaseManager {
     } catch (e) {
       print('Error al actualizar el consultorio: $e');
     }
+  }
+
+  static Future<void> insertEvento(Evento evento) async {
+    try {
+      final conn = await _connect();
+
+      final result = await conn.execute("SELECT MAX(id) FROM evento");
+      int lastId = (result.first.first as int?) ?? 0;
+
+      int newId = lastId + 1;
+
+      // Calcular la fecha de inicio y fin basándose en la duración
+      DateTime startDate = DateTime.parse(evento.fecha + " " + evento.hora);
+      int duration = int.parse(evento.duracion);
+      DateTime endDate = startDate.add(Duration(minutes: duration));
+
+      await conn.execute(
+        Sql.named(
+            "INSERT INTO evento(id, token, nombre, descripcion, fecha_inicio, fecha_fin, usuario_id, calendario_id) VALUES (@id, @token, @nombre,@descripcion, @fecha_inicio, @fecha_fin, @usuario_id, @calendario_id)"),
+        parameters: {
+          "id": newId,
+          "token": 1,
+          "nombre": evento.nombre,
+          "descripcion": evento.nota,
+          "fecha_inicio": startDate.toIso8601String(),
+          "fecha_fin": endDate.toIso8601String(),
+          "usuario_id": 1,
+          "calendario_id": 1,
+        },
+      );
+
+      await conn.close();
+    } catch (e) {
+      print('Error al insertar el evento: $e');
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> getEventosData() async {
+    List<Map<String, dynamic>> eventos = [];
+    try {
+      final conn = await _connect();
+
+      final result = await conn.execute("SELECT * FROM evento");
+      for (final row in result) {
+        eventos.add({
+          'id': row[0],
+          'nombre': row[2],
+          'fecha_inicio': row[4],
+          'fecha_fin': row[5],
+        });
+      }
+
+      print(eventos);
+      await conn.close();
+    } catch (e) {
+      print('Error: $e');
+    }
+    return eventos;
   }
 }

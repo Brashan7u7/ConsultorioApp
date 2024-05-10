@@ -169,24 +169,24 @@ class DatabaseManager {
             row[1]?.toString().split(',').map(int.parse).toList() ?? [];
         List<int> martesHorarios =
             row[2]?.toString().split(',').map(int.parse).toList() ?? [];
-        List<int> miercolesHorarios =
-            row[3]?.toString().split(',').map(int.parse).toList() ?? [];
-        List<int> juevesHorarios =
-            row[4]?.toString().split(',').map(int.parse).toList() ?? [];
-        List<int> viernesHorarios =
-            row[5]?.toString().split(',').map(int.parse).toList() ?? [];
-        List<int> sabadoHorarios =
-            row[6]?.toString().split(',').map(int.parse).toList() ?? [];
-        List<int> domingoHorarios =
-            row[7]?.toString().split(',').map(int.parse).toList() ?? [];
+        // List<int> miercolesHorarios =
+        //     row[3]?.toString().split(',').map(int.parse).toList() ?? [];
+        // List<int> juevesHorarios =
+        //     row[4]?.toString().split(',').map(int.parse).toList() ?? [];
+        // List<int> viernesHorarios =
+        //     row[5]?.toString().split(',').map(int.parse).toList() ?? [];
+        // List<int> sabadoHorarios =
+        //     row[6]?.toString().split(',').map(int.parse).toList() ?? [];
+        // List<int> domingoHorarios =
+        //     row[7]?.toString().split(',').map(int.parse).toList() ?? [];
         // Actualiza el mapa de horarios
         horarios['Lunes'] = lunesHorarios;
         horarios['Martes'] = martesHorarios;
-        horarios['Miércoles'] = miercolesHorarios;
-        horarios['Jueves'] = juevesHorarios;
-        horarios['Viernes'] = viernesHorarios;
-        horarios['Sábado'] = sabadoHorarios;
-        horarios['Domingo'] = domingoHorarios;
+        // horarios['Miércoles'] = miercolesHorarios;
+        // horarios['Jueves'] = juevesHorarios;
+        // horarios['Viernes'] = viernesHorarios;
+        // horarios['Sábado'] = sabadoHorarios;
+        // horarios['Domingo'] = domingoHorarios;
         // Actualiza los demás días de la semana
         print(horarios);
       }
@@ -197,5 +197,40 @@ class DatabaseManager {
     }
 
     return horarios;
+  }
+
+  static Future<void> updateHorarioConsultorio(
+    int consultorioId,
+    List<int> lunesHorarios,
+    List<int> martesHorarios,
+    List<int> miercolesHorarios,
+    List<int> juevesHorarios,
+    List<int> viernesHorarios,
+    List<int> sabadoHorarios,
+    List<int> domingoHorarios,
+  ) async {
+    try {
+      final conn = await _connect();
+
+      await conn.execute(
+        Sql.named(
+            "UPDATE horario_consultorio SET lunes = @lunes, martes = @martes, miercoles = @miercoles, jueves = @jueves, viernes = @viernes, sabado = @sabado, domingo = @domingo WHERE id = @id"),
+        parameters: {
+          "id": consultorioId,
+          "lunes": lunesHorarios.join(
+              ','), // Convierte la lista de horarios en un string separado por comas
+          "martes": martesHorarios.join(','),
+          "miercoles": miercolesHorarios.join(','),
+          "jueves": juevesHorarios.join(','),
+          "viernes": viernesHorarios.join(','),
+          "sabado": sabadoHorarios.join(','),
+          "domingo": domingoHorarios.join(','),
+        },
+      );
+
+      await conn.close();
+    } catch (e) {
+      print('Error al actualizar el consultorio: $e');
+    }
   }
 }

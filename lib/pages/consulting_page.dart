@@ -348,7 +348,7 @@ class _ConsultingState extends State<Consulting> {
         //   horariosSeleccionados[selectedDay!] = horariosStr;
         // }
 
-        DatabaseManager.insertHorarioConsultorio(
+        DatabaseManager.updateHorarioConsultorio(
           selectedConsultorio!.id!,
           horariosSeleccionados['Lunes'] ?? [],
           horariosSeleccionados['Martes'] ?? [],
@@ -373,7 +373,12 @@ class _ConsultingState extends State<Consulting> {
         // }, // Asocia el día seleccionado con los botones seleccionados
       );
 
-      //print(selectedButtonsByDay);
+      Map<String, List<int>> horariosSeleccionados = {};
+      for (String day in daysOfWeek) {
+        if (selectedButtonsByDay.containsKey(day)) {
+          horariosSeleccionados[day] = selectedButtonsByDay[day]!;
+        }
+      }
 
       // Verifica si ya existe un consultorio con el mismo nombre
       bool existeConsultorio = consultorios
@@ -392,6 +397,17 @@ class _ConsultingState extends State<Consulting> {
         setState(() {
           hasConsultorios = true;
         });
+
+        DatabaseManager.insertHorarioConsultorio(
+          selectedConsultorio!.id!,
+          horariosSeleccionados['Lunes'] ?? [],
+          horariosSeleccionados['Martes'] ?? [],
+          horariosSeleccionados['Miércoles'] ?? [],
+          horariosSeleccionados['Jueves'] ?? [],
+          horariosSeleccionados['Viernes'] ?? [],
+          horariosSeleccionados['Sábado'] ?? [],
+          horariosSeleccionados['Domingo'] ?? [],
+        );
       }
     }
   }

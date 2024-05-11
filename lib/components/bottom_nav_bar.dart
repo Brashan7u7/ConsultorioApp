@@ -34,7 +34,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => Add(
-                          isCitaRapida: false,
+                          isCitaInmediata: false,
                           isEvento: false,
                           isPacient: true,
                           isCitaPro: false),
@@ -64,7 +64,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => Add(
-                        isCitaRapida: true,
+                        isCitaInmediata: true,
                         isEvento: false,
                         isPacient: false,
                         isCitaPro: false,
@@ -82,7 +82,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => Add(
-                        isCitaRapida: false,
+                        isCitaInmediata: false,
                         isEvento: false,
                         isPacient: false,
                         isCitaPro: true,
@@ -100,7 +100,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => Add(
-                        isCitaRapida: false,
+                        isCitaInmediata: false,
                         isEvento: true,
                         isPacient: false,
                         isCitaPro: false,
@@ -131,7 +131,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
   final List _pages = [
     const Calendar(),
     Add(
-      isCitaRapida: false,
+      isCitaInmediata: false,
       isCitaPro: false,
       isEvento: false,
       isPacient: false,

@@ -257,14 +257,14 @@ class _CalendarState extends State<Calendar> {
             children: [
               ListTile(
                 leading: Icon(Icons.access_time),
-                title: Text('Cita Rápida'),
+                title: Text('Cita Inmediata'),
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => Add(
-                        isCitaRapida: true,
+                        isCitaInmediata: true,
                         isEvento: false,
                         isPacient: false,
                         isCitaPro: false,
@@ -282,7 +282,7 @@ class _CalendarState extends State<Calendar> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => Add(
-                        isCitaRapida: false,
+                        isCitaInmediata: false,
                         isEvento: false,
                         isPacient: false,
                         isCitaPro: true,
@@ -300,7 +300,7 @@ class _CalendarState extends State<Calendar> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => Add(
-                        isCitaRapida: false,
+                        isCitaInmediata: false,
                         isEvento: true,
                         isPacient: false,
                         isCitaPro: false,
@@ -399,7 +399,7 @@ class _CalendarState extends State<Calendar> {
       context,
       MaterialPageRoute(
         builder: (context) => Add(
-          isCitaRapida: false,
+          isCitaInmediata: false,
           isCitaselect: true,
           fechaController: TextEditingController(
             text: _calendarController.selectedDate.toString().split(' ')[0],

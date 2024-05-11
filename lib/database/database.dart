@@ -9,7 +9,11 @@ class DatabaseManager {
         host: 'localhost',
         database: 'medicalmanik',
         username: 'postgres',
+<<<<<<< HEAD
+        password: 'DJE20ben',
+=======
         password: '123',
+>>>>>>> refs/remotes/origin/main
       ),
       settings: ConnectionSettings(sslMode: SslMode.disable),
     );

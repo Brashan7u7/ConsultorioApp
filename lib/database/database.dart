@@ -88,7 +88,7 @@ class DatabaseManager {
     }
   }
 
-  static Future<void> insertConsultorio(Consultorio consultorio) async {
+  static Future<int> insertConsultorio(Consultorio consultorio) async {
     try {
       final conn = await _connect();
 
@@ -111,8 +111,11 @@ class DatabaseManager {
       );
 
       await conn.close();
+
+      return newId;
     } catch (e) {
       print('Error al insertar el consultorio: $e');
+      return -1;
     }
   }
 
@@ -134,8 +137,7 @@ class DatabaseManager {
             "INSERT INTO horario_consultorio(id, lunes, martes, miercoles, jueves, viernes, sabado, domingo) VALUES (@id,  @lunes, @martes, @miercoles, @jueves, @viernes, @sabado, @domingo)"),
         parameters: {
           "id": consultorioId,
-          "lunes": lunes.join(
-              ','), // Convertir la lista de enteros en una cadena de texto separada por comas
+          "lunes": lunes.join(','),
           "martes": martes.join(','),
           "miercoles": miercoles.join(','),
           "jueves": jueves.join(','),
@@ -189,7 +191,6 @@ class DatabaseManager {
         // horarios['Sábado'] = sabadoHorarios;
         // horarios['Domingo'] = domingoHorarios;
         // Actualiza los demás días de la semana
-        print(horarios);
       }
 
       await conn.close();
@@ -284,8 +285,6 @@ class DatabaseManager {
           'fecha_fin': row[5],
         });
       }
-
-      print(eventos);
       await conn.close();
     } catch (e) {
       print('Error: $e');

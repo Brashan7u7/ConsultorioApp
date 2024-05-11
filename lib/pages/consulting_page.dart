@@ -281,7 +281,6 @@ class _ConsultingState extends State<Consulting> {
                   style: ButtonStyle(
                     backgroundColor: MaterialStateProperty.resolveWith<Color?>(
                       (Set<MaterialState> states) {
-                        
                         return selectedButtonsByDay.containsKey(selectedDay) &&
                                 selectedButtonsByDay[selectedDay]!
                                     .contains(index)
@@ -393,13 +392,14 @@ class _ConsultingState extends State<Consulting> {
         );
       } else {
         // Si no existe un consultorio con el mismo nombre, agrega el nuevo consultorio a la lista
-        DatabaseManager.insertConsultorio(nuevoConsultorio);
+        int consultorioId =
+            await DatabaseManager.insertConsultorio(nuevoConsultorio);
         setState(() {
           hasConsultorios = true;
         });
 
         DatabaseManager.insertHorarioConsultorio(
-          selectedConsultorio!.id!,
+          consultorioId,
           horariosSeleccionados['Lunes'] ?? [],
           horariosSeleccionados['Martes'] ?? [],
           horariosSeleccionados['Miércoles'] ?? [],

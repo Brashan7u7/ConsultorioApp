@@ -165,7 +165,7 @@ class _CalendarState extends State<Calendar> {
         locale: const Locale('es', ''),
         child: SfCalendar(
           controller: _calendarController,
-          view: CalendarView.day,
+          view: CalendarView.month,
           showNavigationArrow: true,
           headerStyle: CalendarHeaderStyle(textAlign: TextAlign.center),
           headerDateFormat: 'd MMMM y',
@@ -368,17 +368,17 @@ class _CalendarState extends State<Calendar> {
             showNavigationArrow: true,
             showDatePickerButton: true,
             monthViewSettings: MonthViewSettings(
-              showAgenda: true,
+              showAgenda: false,
               agendaViewHeight: 70,
             ),
             appointmentTimeTextFormat: 'HH:mm',
-            // onTap: (CalendarTapDetails details) {
-            //   if (details.targetElement == CalendarElement.calendarCell) {
-            //     DateTime selectedDate = details.date!;
-            //     _navigateToSelectedDate(selectedDate);
-            //     Navigator.pop(context);
-            //   }
-            // },
+            onTap: (CalendarTapDetails details) {
+              if (details.targetElement == CalendarElement.calendarCell) {
+                DateTime selectedDate = details.date!;
+                _navigateToSelectedDate(selectedDate);
+                Navigator.pop(context);
+              }
+            },
             dataSource: _calendarDataSource,
           ),
         );

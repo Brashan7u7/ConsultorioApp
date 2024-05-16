@@ -8,9 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:calendario_manik/database/database.dart';
 
 class Calendar extends StatefulWidget {
-  const Calendar({
-    Key? key,
-  }) : super(key: key);
+  const Calendar({Key? key}) : super(key: key);
 
   @override
   State<Calendar> createState() => _CalendarState();
@@ -20,12 +18,14 @@ class _CalendarState extends State<Calendar> {
   @override
   void initState() {
     super.initState();
-    _loadConsultorios(); // Carga los consultorios al inicializar el widget
+    _loadConsultorios();
     _loadEventos();
   }
 
   final CalendarController _calendarController = CalendarController();
-  final MeetingDataSource _calendarDataSource = MeetingDataSource([]);
+  List<Appointment> _calendarDataSource = [];
+
+  bool consultoriosCargados = false;
 
   int intervaloHoras = 1;
 
@@ -40,7 +40,10 @@ class _CalendarState extends State<Calendar> {
         .toList();
     setState(() {
       consultorios = consultoriosList;
+      consultoriosCargados = true;
     });
+
+    print(consultorios);
   }
 
   void _loadEventos() async {
@@ -49,7 +52,7 @@ class _CalendarState extends State<Calendar> {
     List<Appointment> eventosAppointments = _getCalendarDataSource(eventosData);
     setState(() {
       // Actualiza la lista de citas en el dataSource directamente
-      _calendarDataSource.appointments = eventosAppointments;
+      _calendarDataSource = eventosAppointments;
     });
   }
 
@@ -165,7 +168,7 @@ class _CalendarState extends State<Calendar> {
         locale: const Locale('es', ''),
         child: SfCalendar(
           controller: _calendarController,
-          view: CalendarView.month,
+          view: CalendarView.day,
           showNavigationArrow: true,
           headerStyle: CalendarHeaderStyle(textAlign: TextAlign.center),
           headerDateFormat: 'd MMMM y',
@@ -176,7 +179,7 @@ class _CalendarState extends State<Calendar> {
             timeIntervalHeight: 120,
             timeInterval: Duration(hours: intervaloHoras),
           ),
-          dataSource: _calendarDataSource,
+          dataSource: MeetingDataSource(_calendarDataSource),
           onTap: (CalendarTapDetails details) {
             if (details.targetElement == CalendarElement.appointment) {
               Appointment tappedAppointment = details.appointments![0];
@@ -367,10 +370,6 @@ class _CalendarState extends State<Calendar> {
             headerStyle: CalendarHeaderStyle(textAlign: TextAlign.center),
             showNavigationArrow: true,
             showDatePickerButton: true,
-            monthViewSettings: MonthViewSettings(
-              showAgenda: false,
-              agendaViewHeight: 70,
-            ),
             appointmentTimeTextFormat: 'HH:mm',
             onTap: (CalendarTapDetails details) {
               if (details.targetElement == CalendarElement.calendarCell) {
@@ -379,7 +378,7 @@ class _CalendarState extends State<Calendar> {
                 Navigator.pop(context);
               }
             },
-            dataSource: _calendarDataSource,
+            dataSource: MeetingDataSource(_calendarDataSource),
           ),
         );
       },
@@ -427,18 +426,18 @@ List<Appointment> _getCalendarDataSource(
   List<Appointment> appointments = [];
 
   for (final evento in eventosData) {
-    DateTime boorstartTime = evento['fecha_inicio'].toUtc();
-    String formattedDateStart =
-        DateFormat('yyyy-MM-dd kk:mm').format(boorstartTime);
-    DateTime startTime = DateTime.parse(formattedDateStart);
+    DateTime startTime = DateTime.parse(evento['fecha_inicio']);
+    DateTime endTime = DateTime.parse(evento['fecha_fin']);
 
-    DateTime boorendTime = evento['fecha_fin'].toUtc();
-    String formattedDateEnd =
-        DateFormat('yyyy-MM-dd kk:mm').format(boorendTime);
-    DateTime endTime = DateTime.parse(formattedDateEnd);
+    String nombre = evento['nombre'].toString();
+    String horario = DateFormat.jm().format(startTime) +
+        ' - ' +
+        DateFormat.jm().format(
+            endTime); // Formato del horario (ejemplo: 9:00 AM - 10:00 AM)
 
     appointments.add(Appointment(
-      subject: evento['nombre'].toString(),
+      subject:
+          '$nombre\n$horario', // Combina nombre y horario en una sola línea
       startTime: startTime,
       endTime: endTime,
       color: Colors.blue,

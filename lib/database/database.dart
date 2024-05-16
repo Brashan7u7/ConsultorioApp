@@ -9,11 +9,7 @@ class DatabaseManager {
         host: 'localhost',
         database: 'medicalmanik',
         username: 'postgres',
-<<<<<<< HEAD
-        password: 'DJE20ben',
-=======
         password: '123',
->>>>>>> refs/remotes/origin/main
       ),
       settings: ConnectionSettings(sslMode: SslMode.disable),
     );
@@ -125,13 +121,13 @@ class DatabaseManager {
 
   static Future<void> insertHorarioConsultorio(
     int consultorioId,
-    List<int> lunes,
-    List<int> martes,
-    List<int> miercoles,
-    List<int> jueves,
-    List<int> viernes,
-    List<int> sabado,
-    List<int> domingo,
+    String lunes,
+    String martes,
+    String miercoles,
+    String jueves,
+    String viernes,
+    String sabado,
+    String domingo,
   ) async {
     try {
       final conn = await _connect();
@@ -141,13 +137,13 @@ class DatabaseManager {
             "INSERT INTO horario_consultorio(id, lunes, martes, miercoles, jueves, viernes, sabado, domingo) VALUES (@id,  @lunes, @martes, @miercoles, @jueves, @viernes, @sabado, @domingo)"),
         parameters: {
           "id": consultorioId,
-          "lunes": lunes.join(','),
-          "martes": martes.join(','),
-          "miercoles": miercoles.join(','),
-          "jueves": jueves.join(','),
-          "viernes": viernes.join(','),
-          "sabado": sabado.join(','),
-          "domingo": domingo.join(','),
+          "lunes": lunes,
+          "martes": martes,
+          "miercoles": miercoles,
+          "jueves": jueves,
+          "viernes": viernes,
+          "sabado": sabado,
+          "domingo": domingo,
         },
       );
 
@@ -157,9 +153,15 @@ class DatabaseManager {
     }
   }
 
-  static Future<Map<String, List<int>>> getHorarioConsultorio(
+  static List<String> parseHorarios(String horarios) {
+    if (horarios.isEmpty) return [];
+
+    return horarios.split(',');
+  }
+
+  static Future<Map<String, List<String>>> getHorarioConsultorio(
       int consultorioId) async {
-    Map<String, List<int>> horarios = {};
+    Map<String, List<String>> horarios = {};
 
     try {
       final conn = await _connect();
@@ -172,34 +174,27 @@ class DatabaseManager {
       for (var row in result) {
         // Procesar los horarios recuperados y actualizar el mapa
         // Acceder directamente a las columnas por su nombre
-        List<int> lunesHorarios =
-            row[1]?.toString().split(',').map(int.parse).toList() ?? [];
-        List<int> martesHorarios =
-            row[2]?.toString().split(',').map(int.parse).toList() ?? [];
-        // List<int> miercolesHorarios =
-        //     row[3]?.toString().split(',').map(int.parse).toList() ?? [];
-        // List<int> juevesHorarios =
-        //     row[4]?.toString().split(',').map(int.parse).toList() ?? [];
-        // List<int> viernesHorarios =
-        //     row[5]?.toString().split(',').map(int.parse).toList() ?? [];
-        // List<int> sabadoHorarios =
-        //     row[6]?.toString().split(',').map(int.parse).toList() ?? [];
-        // List<int> domingoHorarios =
-        //     row[7]?.toString().split(',').map(int.parse).toList() ?? [];
+        List<String> lunesHorarios = parseHorarios(row[1] as String);
+        List<String> martesHorarios = parseHorarios(row[2] as String);
+        List<String> miercolesHorarios = parseHorarios(row[3] as String);
+        List<String> juevesHorarios = parseHorarios(row[4] as String);
+        List<String> viernesHorarios = parseHorarios(row[5] as String);
+        List<String> sabadoHorarios = parseHorarios(row[6] as String);
+        List<String> domingoHorarios = parseHorarios(row[7] as String);
+
         // Actualiza el mapa de horarios
         horarios['Lunes'] = lunesHorarios;
         horarios['Martes'] = martesHorarios;
-        // horarios['Miércoles'] = miercolesHorarios;
-        // horarios['Jueves'] = juevesHorarios;
-        // horarios['Viernes'] = viernesHorarios;
-        // horarios['Sábado'] = sabadoHorarios;
-        // horarios['Domingo'] = domingoHorarios;
-        // Actualiza los demás días de la semana
+        horarios['Miércoles'] = miercolesHorarios;
+        horarios['Jueves'] = juevesHorarios;
+        horarios['Viernes'] = viernesHorarios;
+        horarios['Sábado'] = sabadoHorarios;
+        horarios['Domingo'] = domingoHorarios;
       }
-
+      
       await conn.close();
     } catch (e) {
-      print('Error al convertir horarios del lunes: $e');
+      print('Error al convertir horarios: $e');
     }
 
     return horarios;
@@ -207,13 +202,13 @@ class DatabaseManager {
 
   static Future<void> updateHorarioConsultorio(
     int consultorioId,
-    List<int> lunesHorarios,
-    List<int> martesHorarios,
-    List<int> miercolesHorarios,
-    List<int> juevesHorarios,
-    List<int> viernesHorarios,
-    List<int> sabadoHorarios,
-    List<int> domingoHorarios,
+    String lunesHorarios,
+    String martesHorarios,
+    String miercolesHorarios,
+    String juevesHorarios,
+    String viernesHorarios,
+    String sabadoHorarios,
+    String domingoHorarios,
   ) async {
     try {
       final conn = await _connect();
@@ -223,14 +218,13 @@ class DatabaseManager {
             "UPDATE horario_consultorio SET lunes = @lunes, martes = @martes, miercoles = @miercoles, jueves = @jueves, viernes = @viernes, sabado = @sabado, domingo = @domingo WHERE id = @id"),
         parameters: {
           "id": consultorioId,
-          "lunes": lunesHorarios.join(
-              ','), // Convierte la lista de horarios en un string separado por comas
-          "martes": martesHorarios.join(','),
-          "miercoles": miercolesHorarios.join(','),
-          "jueves": juevesHorarios.join(','),
-          "viernes": viernesHorarios.join(','),
-          "sabado": sabadoHorarios.join(','),
-          "domingo": domingoHorarios.join(','),
+          "lunes": lunesHorarios,
+          "martes": martesHorarios,
+          "miercoles": miercolesHorarios,
+          "jueves": juevesHorarios,
+          "viernes": viernesHorarios,
+          "sabado": sabadoHorarios,
+          "domingo": domingoHorarios,
         },
       );
 
@@ -280,15 +274,18 @@ class DatabaseManager {
     try {
       final conn = await _connect();
 
-      final result = await conn.execute("SELECT * FROM evento");
+      final result = await conn.execute(
+          "select id, nombre,TO_CHAR(fecha_inicio,'yyyy-MM-dd HH24:MI:SS') fecha_inicio,  TO_CHAR(fecha_fin,'yyyy-MM-dd HH24:MI:SS')fecha_fin from evento");
+
       for (final row in result) {
         eventos.add({
           'id': row[0],
-          'nombre': row[2],
-          'fecha_inicio': row[4],
-          'fecha_fin': row[5],
+          'nombre': row[1],
+          'fecha_inicio': row[2],
+          'fecha_fin': row[3],
         });
       }
+
       await conn.close();
     } catch (e) {
       print('Error: $e');

@@ -2,11 +2,8 @@ import 'package:calendario_manik/pages/calendar_page.dart';
 import 'package:flutter/material.dart';
 import 'package:calendario_manik/pages/patients_page.dart';
 import 'package:intl/intl.dart';
-<<<<<<< HEAD
 import 'package:flutter_time_picker_spinner/flutter_time_picker_spinner.dart';
-=======
 import 'package:calendario_manik/database/database.dart';
->>>>>>> refs/remotes/origin/main
 
 class Add extends StatelessWidget {
   final bool isCitaInmediata, isEvento, isPacient, isCitaPro;
@@ -438,9 +435,7 @@ class Add extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => Calendar(
-                         
-                        ),
+                        builder: (context) => Calendar(),
                       ),
                     );
                   }

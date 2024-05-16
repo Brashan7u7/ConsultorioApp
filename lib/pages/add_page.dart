@@ -2,11 +2,7 @@ import 'package:calendario_manik/pages/calendar_page.dart';
 import 'package:flutter/material.dart';
 import 'package:calendario_manik/pages/patients_page.dart';
 import 'package:intl/intl.dart';
-<<<<<<< HEAD
 import 'package:flutter_time_picker_spinner/flutter_time_picker_spinner.dart';
-=======
-import 'package:calendario_manik/database/database.dart';
->>>>>>> refs/remotes/origin/main
 
 class Add extends StatelessWidget {
   final bool isCitaInmediata, isEvento, isPacient, isCitaPro;
@@ -579,17 +575,7 @@ class Add extends StatelessWidget {
                     nota: notaController.text,
                   );
 
-                  DatabaseManager.insertEvento(evento).then((_) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => Calendar(),
-                      ),
-                    );
-                  }).catchError((error) {
-                    // Manejar el error, como mostrar un mensaje al usuario
-                    print('Error al guardar el evento: $error');
-                  });
+                  
                 }
               },
               child: const Text('Guardar Evento'),

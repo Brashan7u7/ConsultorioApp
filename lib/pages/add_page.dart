@@ -573,18 +573,6 @@ class Add extends StatelessWidget {
                     servicio: servicioController.text,
                     nota: notaController.text,
                   );
-
-                  DatabaseManager.insertEvento(evento).then((_) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => Calendar(),
-                      ),
-                    );
-                  }).catchError((error) {
-                    // Manejar el error, como mostrar un mensaje al usuario
-                    print('Error al guardar el evento: $error');
-                  });
                 }
               },
               child: const Text('Guardar Evento'),

@@ -191,7 +191,7 @@ class DatabaseManager {
         horarios['Sábado'] = sabadoHorarios;
         horarios['Domingo'] = domingoHorarios;
       }
-      
+
       await conn.close();
     } catch (e) {
       print('Error al convertir horarios: $e');

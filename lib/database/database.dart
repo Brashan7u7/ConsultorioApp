@@ -1,6 +1,8 @@
 import 'package:calendario_manik/pages/add_page.dart';
 import 'package:calendario_manik/pages/consulting_page.dart';
 import 'package:postgres/postgres.dart';
+import 'package:calendario_manik/pages/evento_content.dart';
+import 'package:calendario_manik/models/evento.dart';
 
 class DatabaseManager {
   static Future<Connection> _connect() async {
@@ -9,7 +11,7 @@ class DatabaseManager {
         host: 'localhost',
         database: 'medicalmanik',
         username: 'postgres',
-        password: '123',
+        password: 'DJE20ben',
       ),
       settings: ConnectionSettings(sslMode: SslMode.disable),
     );

@@ -7,6 +7,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart';
 import 'package:calendario_manik/database/database.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 class Calendar extends StatefulWidget {
   const Calendar({Key? key}) : super(key: key);
 
@@ -19,36 +21,147 @@ class _CalendarState extends State<Calendar> {
   void initState() {
     super.initState();
     _loadConsultorios();
-    _loadEventos();
+    _loadSelectedConsultorio();
   }
 
   final CalendarController _calendarController = CalendarController();
   List<Appointment> _calendarDataSource = [];
-
-  bool consultoriosCargados = false;
+  List<TimeRegion> _specialRegions = [];
 
   int intervaloHoras = 1;
 
   // Lista de consultorios
-  List<String> consultorios = [];
+  List<Consultorio> consultorios = [];
+  int currentIndex = 0;
+  int consulIndex = 0; // Índice del consultorio actual
+  int globalIdConsultorio = 0;
 
-  void _loadConsultorios() async {
+  DateTime? _lastTap;
+  int _tapInterval = 300;
+
+  Future<void> _loadConsultorios() async {
+    List<Consultorio> consultoriosList = [];
     List<Map<String, dynamic>> consultoriosData =
         await DatabaseManager.getConsultoriosData();
-    List<String> consultoriosList = consultoriosData
-        .map((consultorio) => consultorio['nombre'] as String)
+    consultoriosList = consultoriosData
+        .map((data) => Consultorio(
+              id: data['id'],
+              nombre: data['nombre'].toString(),
+              telefono: data['telefono'].toString(),
+              direccion: data['direccion'].toString(),
+              codigoPostal: int.parse(data['colonia_id'].toString()),
+              intervaloAtencion: int.parse(data['intervalo'].toString()),
+            ))
         .toList();
     setState(() {
       consultorios = consultoriosList;
-      consultoriosCargados = true;
+      if (consultorios.isNotEmpty) {
+        // Ajustar consulIndex a un valor válido
+        if (consulIndex >= consultorios.length) {
+          consulIndex = 0;
+        }
+        globalIdConsultorio = consultorios[consulIndex].id ?? 0;
+        _loadEventos();
+        _loadHorariosConsultorios();
+      }
+    });
+  }
+
+  void _loadHorariosConsultorios() async {
+    Map<String, List<String>> horariosString =
+        await DatabaseManager.getHorarioConsultorio(globalIdConsultorio);
+
+    List<TimeRegion> specialRegionsList = [];
+
+    horariosString.forEach((dia, horarios) {
+      horarios.forEach((horario) {
+        List<String> horarioSplit = horario.split('-');
+        String horaInicio = horarioSplit[0];
+        String horaFin = horarioSplit[1];
+
+        // Ajusta la fecha y hora según tu lógica
+        DateTime startDate = _getDateTimeForDayAndTime(dia, horaInicio);
+        DateTime endDate = _getDateTimeForDayAndTime(dia, horaFin);
+
+        TimeRegion timeRegion = TimeRegion(
+          startTime: startDate,
+          endTime: endDate,
+          recurrenceRule:
+              'FREQ=WEEKLY;BYDAY=${}',
+          color: Colors.red
+              .withOpacity(0.2), // Cambia el color según tu preferencia
+        );
+
+        specialRegionsList.add(timeRegion);
+      });
     });
 
-    print(consultorios);
+    setState(() {
+      _specialRegions = specialRegionsList;
+    });
+  }
+
+  DateTime _getDateTimeForDayAndTime(String day, String time) {
+    // Ajusta la fecha y hora según tu lógica
+    DateTime now = DateTime.now();
+    switch (day) {
+      case 'Lunes':
+        return DateTime(
+            now.year,
+            now.month,
+            now.day + (DateTime.monday - now.weekday),
+            int.parse(time.split(':')[0]),
+            int.parse(time.split(':')[1]));
+      case 'Martes':
+        return DateTime(
+            now.year,
+            now.month,
+            now.day + (DateTime.tuesday - now.weekday),
+            int.parse(time.split(':')[0]),
+            int.parse(time.split(':')[1]));
+      case 'Miércoles':
+        return DateTime(
+            now.year,
+            now.month,
+            now.day + (DateTime.wednesday - now.weekday),
+            int.parse(time.split(':')[0]),
+            int.parse(time.split(':')[1]));
+      case 'Jueves':
+        return DateTime(
+            now.year,
+            now.month,
+            now.day + (DateTime.thursday - now.weekday),
+            int.parse(time.split(':')[0]),
+            int.parse(time.split(':')[1]));
+      case 'Viernes':
+        return DateTime(
+            now.year,
+            now.month,
+            now.day + (DateTime.friday - now.weekday),
+            int.parse(time.split(':')[0]),
+            int.parse(time.split(':')[1]));
+      case 'Sábado':
+        return DateTime(
+            now.year,
+            now.month,
+            now.day + (DateTime.saturday - now.weekday),
+            int.parse(time.split(':')[0]),
+            int.parse(time.split(':')[1]));
+      case 'Domingo':
+        return DateTime(
+            now.year,
+            now.month,
+            now.day + (DateTime.sunday - now.weekday),
+            int.parse(time.split(':')[0]),
+            int.parse(time.split(':')[1]));
+      default:
+        return DateTime.now();
+    }
   }
 
   void _loadEventos() async {
     List<Map<String, dynamic>> eventosData =
-        await DatabaseManager.getEventosData();
+        await DatabaseManager.getEventosData(globalIdConsultorio);
     List<Appointment> eventosAppointments = _getCalendarDataSource(eventosData);
     setState(() {
       // Actualiza la lista de citas en el dataSource directamente
@@ -56,11 +169,21 @@ class _CalendarState extends State<Calendar> {
     });
   }
 
-  int currentIndex = 0;
-  int consulIndex = 0; // Índice del consultorio actual
+  Future<void> _loadSelectedConsultorio() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      consulIndex = prefs.getInt('selectedConsultorioIndex') ?? 0;
+      // Ajustar consulIndex a un valor válido si es necesario
+      if (consulIndex >= consultorios.length) {
+        consulIndex = 0;
+      }
+    });
+  }
 
-  DateTime? _lastTap;
-  int _tapInterval = 300;
+  Future<void> _saveSelectedConsultorio(int index) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setInt('selectedConsultorioIndex', index);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,24 +191,33 @@ class _CalendarState extends State<Calendar> {
       appBar: AppBar(
         title: Row(
           children: [
-            DropdownButton<String>(
-              value:
-                  consultorios.isNotEmpty && consulIndex < consultorios.length
-                      ? consultorios[consulIndex]
-                      : null,
-              onChanged: (newValue) {
-                setState(() {
-                  consulIndex =
-                      consultorios.indexOf(newValue ?? consultorios.first);
-                });
-                _loadConsultorios();
-              },
-              items: consultorios.map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
+            Expanded(
+              child: DropdownButton<Consultorio>(
+                items: consultorios.map((consultorio) {
+                  return DropdownMenuItem<Consultorio>(
+                    value: consultorio,
+                    child: Text(consultorio.nombre),
+                  );
+                }).toList(),
+                value:
+                    consultorios.isNotEmpty ? consultorios[consulIndex] : null,
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      consulIndex = consultorios.indexOf(value);
+                    });
+                    int newConsultorioId = consultorios[consulIndex].id ?? 0;
+                    if (newConsultorioId != globalIdConsultorio) {
+                      globalIdConsultorio = newConsultorioId;
+                      _saveSelectedConsultorio(consulIndex).then((_) {
+                        _loadEventos();
+                        _loadHorariosConsultorios();
+                      });
+                    }
+                  }
+                },
+                hint: Text("Selecciona un consultorio"),
+              ),
             ),
           ],
         ),
@@ -142,8 +274,7 @@ class _CalendarState extends State<Calendar> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        Consulting(), // Nueva página de consultorios
+                    builder: (context) => Consulting(),
                   ),
                 );
               },
@@ -180,6 +311,7 @@ class _CalendarState extends State<Calendar> {
             timeInterval: Duration(hours: intervaloHoras),
           ),
           dataSource: MeetingDataSource(_calendarDataSource),
+          specialRegions: _specialRegions,
           onTap: (CalendarTapDetails details) {
             if (details.targetElement == CalendarElement.appointment) {
               Appointment tappedAppointment = details.appointments![0];
@@ -303,11 +435,11 @@ class _CalendarState extends State<Calendar> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => Add(
-                        isCitaInmediata: false,
-                        isEvento: true,
-                        isPacient: false,
-                        isCitaPro: false,
-                      ),
+                          isCitaInmediata: false,
+                          isEvento: true,
+                          isPacient: false,
+                          isCitaPro: false,
+                          consultorioId: globalIdConsultorio),
                     ),
                   );
                 },

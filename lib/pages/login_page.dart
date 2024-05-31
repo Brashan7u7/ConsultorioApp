@@ -3,6 +3,8 @@ import 'package:calendario_manik/pages/calendar_page.dart';
 import 'package:calendario_manik/pages/createAccount_page.dart';
 import 'package:calendario_manik/pages/resetPassword_page.dart';
 import 'package:calendario_manik/widgets/custom_scaffold.dart';
+import 'package:calendario_manik/pages/consulting_page.dart';
+import 'package:calendario_manik/database/database.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -17,20 +19,38 @@ class _LoginState extends State<Login> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
+  @override
+  void initState() {
+    super.initState();
+  }
+
   // Datos estáticos para verificar el inicio de sesión
   final String usuarioCorrecto = '1';
   final String contrasenaCorrecta = '1';
+
+  Future<void> _loadConsultorios() async {
+    List<Map<String, dynamic>> consultoriosData =
+        await DatabaseManager.getConsultoriosData();
+    if (consultoriosData.isEmpty) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => Consulting()),
+      );
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => Calendar()),
+      );
+    }
+  }
 
   void _iniciarSesion() {
     String email = emailController.text.trim();
     String password = passwordController.text.trim();
 
     if (email == usuarioCorrecto && password == contrasenaCorrecta) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => Calendar()),
-      );
-    } else {}
+      _loadConsultorios();
+    }
   }
 
   @override

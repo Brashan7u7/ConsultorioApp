@@ -234,7 +234,7 @@ class DatabaseManager {
     }
   }
 
-  static Future<void> insertEvento(Evento evento) async {
+  static Future<void> insertEvento(int consultorioId, Evento evento) async {
     try {
       final conn = await _connect();
 
@@ -259,7 +259,7 @@ class DatabaseManager {
           "fecha_inicio": startDate.toIso8601String(),
           "fecha_fin": endDate.toIso8601String(),
           "usuario_id": 1,
-          "calendario_id": 1,
+          "calendario_id": consultorioId,
         },
       );
 
@@ -269,14 +269,18 @@ class DatabaseManager {
     }
   }
 
-  static Future<List<Map<String, dynamic>>> getEventosData() async {
+  static Future<List<Map<String, dynamic>>> getEventosData(
+      int consultorioId) async {
     List<Map<String, dynamic>> eventos = [];
     try {
       final conn = await _connect();
 
       final result = await conn.execute(
-          "select id, nombre,TO_CHAR(fecha_inicio,'yyyy-MM-dd HH24:MI:SS') fecha_inicio,  TO_CHAR(fecha_fin,'yyyy-MM-dd HH24:MI:SS')fecha_fin from evento");
-
+          Sql.named(
+              "select id, nombre,TO_CHAR(fecha_inicio,'yyyy-MM-dd HH24:MI:SS') fecha_inicio,  TO_CHAR(fecha_fin,'yyyy-MM-dd HH24:MI:SS')fecha_fin from evento WHERE calendario_id=@id"),
+          parameters: {
+            "id": consultorioId,
+          });
       for (final row in result) {
         eventos.add({
           'id': row[0],

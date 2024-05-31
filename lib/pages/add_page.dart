@@ -8,6 +8,7 @@ import 'package:calendario_manik/database/database.dart';
 class Add extends StatelessWidget {
   final bool isCitaInmediata, isEvento, isPacient, isCitaPro;
   final bool? isCitaselect;
+  final int? consultorioId;
 
   TextEditingController? fechaController, horaController;
 
@@ -19,7 +20,8 @@ class Add extends StatelessWidget {
       this.isCitaPro = false,
       this.isCitaselect = false,
       this.fechaController,
-      this.horaController})
+      this.horaController,
+      this.consultorioId})
       : super(key: key);
 
   @override
@@ -573,6 +575,18 @@ class Add extends StatelessWidget {
                     servicio: servicioController.text,
                     nota: notaController.text,
                   );
+                  DatabaseManager.insertEvento(consultorioId!, evento)
+                      .then((_) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Calendar(),
+                      ),
+                    );
+                  }).catchError((error) {
+                    // Manejar el error, como mostrar un mensaje al usuario
+                    print('Error al guardar el evento: $error');
+                  });
                 }
               },
               child: const Text('Guardar Evento'),

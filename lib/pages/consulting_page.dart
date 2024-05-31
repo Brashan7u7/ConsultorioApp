@@ -254,10 +254,13 @@ class _ConsultingState extends State<Consulting> {
                 ElevatedButton(
                   onPressed: () async {
                     _guardarConsultorio();
-                    // Navigator.pushReplacement(
-                    //   context,
-                    //   MaterialPageRoute(builder: (context) => Calendar()),
-                    // );
+
+                    await Future.delayed(Duration(milliseconds: 1000));
+
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => Calendar()),
+                    );
                   },
                   child: const Text('Guardar'),
                 ),

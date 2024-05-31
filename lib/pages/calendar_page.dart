@@ -21,7 +21,7 @@ class _CalendarState extends State<Calendar> {
   void initState() {
     super.initState();
     _loadConsultorios();
-    _loadSelectedConsultorio();
+    //_loadSelectedConsultorio();
   }
 
   final CalendarController _calendarController = CalendarController();
@@ -57,12 +57,14 @@ class _CalendarState extends State<Calendar> {
       consultorios = consultoriosList;
       if (consultorios.isNotEmpty) {
         // Ajustar consulIndex a un valor válido
-        if (consulIndex >= consultorios.length) {
-          consulIndex = 0;
-        }
-        globalIdConsultorio = consultorios[consulIndex].id ?? 0;
-        _loadEventos();
-        _loadHorariosConsultorios();
+        // if (consulIndex >= consultorios.length) {
+        //   consulIndex = 0;
+        // }
+        // globalIdConsultorio = consultorios[consulIndex].id ?? 0;
+        // _loadEventos();
+        // _loadHorariosConsultorios();
+        // print(globalIdConsultorio);
+        _loadSelectedConsultorio();
       }
     });
   }
@@ -86,8 +88,8 @@ class _CalendarState extends State<Calendar> {
         TimeRegion timeRegion = TimeRegion(
           startTime: startDate,
           endTime: endDate,
-          recurrenceRule:
-              'FREQ=WEEKLY;BYDAY=${}',
+          // recurrenceRule:
+          //     'FREQ=WEEKLY;BYDAY=${}',
           color: Colors.red
               .withOpacity(0.2), // Cambia el color según tu preferencia
         );
@@ -177,6 +179,9 @@ class _CalendarState extends State<Calendar> {
       if (consulIndex >= consultorios.length) {
         consulIndex = 0;
       }
+      globalIdConsultorio = consultorios[consulIndex].id ?? 0;
+      _loadEventos();
+      _loadHorariosConsultorios();
     });
   }
 

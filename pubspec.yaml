@@ -36,6 +36,7 @@ dependencies:
     sdk: flutter
 
   url_launcher: ^6.0.12
+  http: ^0.13.3
   syncfusion_flutter_calendar: ^24.2.8
   dash_chat:
     git:

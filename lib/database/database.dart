@@ -3,6 +3,7 @@ import 'package:calendario_manik/pages/consulting_page.dart';
 import 'package:postgres/postgres.dart';
 import 'package:calendario_manik/pages/evento_content.dart';
 import 'package:calendario_manik/models/evento.dart';
+import 'package:calendario_manik/models/paciente.dart';
 
 class DatabaseManager {
   static Future<Connection> _connect() async {
@@ -235,6 +236,54 @@ class DatabaseManager {
       print('Error al actualizar el consultorio: $e');
     }
   }
+
+  static Future<int> insertPaciente(Paciente paciente) async {
+  try {
+    final conn = await _connect();
+
+    final result = await conn.execute("SELECT MAX(id) FROM paciente");
+    int lastId = (result.first.first as int?) ?? 0;
+
+    int newId = lastId + 1;
+
+    await conn.execute(
+      Sql.named(
+          "INSERT INTO paciente(id, nombre, ap_paterno, ap_materno, fecha_nacimiento, sexo, colonia_id, telefono_movil, telefono_fijo, correo, avatar, fecha_registro, direccion, identificador, curp, codigo_postal, municipio_id, estado_id, pais, pais_id, entidad_nacimiento_id, genero_id) VALUES (@id, @nombre, @ap_paterno, @ap_materno, @fechaNacimiento, @sexo, @coloniaId, @telefonoMovil, @telefonoFijo, @correo, @avatar, @fechaRegistro, @direccion, @identificador, @curp, @codigoPostal, @municipioId, @estadoId, @pais, @paisId, @entidadNacimientoId, @generoId)"),
+      parameters: {
+        "id": newId,
+        "nombre": paciente.nombre,
+        "ap_paterno": paciente.apPaterno,
+        "ap_materno": paciente.apMaterno,
+        "fechaNacimiento": paciente.fechaNacimiento,
+        "sexo": paciente.sexo,
+        "coloniaId": paciente.coloniaId,
+        "telefonoMovil": paciente.telefonoMovil,
+        "telefonoFijo": paciente.telefonoFijo,
+        "correo": paciente.correo,
+        "avatar": paciente.avatar,
+        "fechaRegistro": paciente.fechaRegistro.toIso8601String(),
+        "direccion": paciente.direccion,
+        "identificador": paciente.identificador,
+        "curp": paciente.curp,
+        "codigoPostal": paciente.codigoPostal,
+        "municipioId": paciente.municipioId,
+        "estadoId": paciente.estadoId,
+        "pais": paciente.pais,
+        "paisId": paciente.paisId,
+        "entidadNacimientoId": paciente.entidadNacimientoId,
+        "generoId": paciente.generoId,
+      },
+    );
+
+    await conn.close();
+
+    return newId;
+  } catch (e) {
+    print('Error al insertar el paciente: $e');
+    return -1;
+  }
+}
+
 
   static Future<void> insertEvento(Evento evento) async {
     try {

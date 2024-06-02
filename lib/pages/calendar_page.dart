@@ -75,32 +75,67 @@ class _CalendarState extends State<Calendar> {
 
     List<TimeRegion> specialRegionsList = [];
 
-    horariosString.forEach((dia, horarios) {
-      horarios.forEach((horario) {
-        List<String> horarioSplit = horario.split('-');
-        String horaInicio = horarioSplit[0];
-        String horaFin = horarioSplit[1];
+    List<String> diasSemana = [
+      'Lunes',
+      'Martes',
+      'Miércoles',
+      'Jueves',
+      'Viernes',
+      'Sábado',
+      'Domingo'
+    ];
 
-        // Ajusta la fecha y hora según tu lógica
-        DateTime startDate = _getDateTimeForDayAndTime(dia, horaInicio);
-        DateTime endDate = _getDateTimeForDayAndTime(dia, horaFin);
+    // Genera todas las horas posibles para cada día de la semana en el rango de 8:00 a 19:59.
+    for (String dia in diasSemana) {
+      for (int hora = 0; hora <= 23; hora++) {
+        String horaInicio = hora.toString().padLeft(2, '0') + ':00';
+        String horaFin = hora.toString().padLeft(2, '0') + ':59';
 
-        TimeRegion timeRegion = TimeRegion(
-          startTime: startDate,
-          endTime: endDate,
-          // recurrenceRule:
-          //     'FREQ=WEEKLY;BYDAY=${}',
-          color: Colors.red
-              .withOpacity(0.2), // Cambia el color según tu preferencia
-        );
+        // Si la hora no está en horariosString para el día actual, agrégala a specialRegionsList.
+        if (!horariosString.containsKey(dia) ||
+            !horariosString[dia]!.any((horario) =>
+                horario.startsWith(horaInicio) && horario.endsWith(horaFin))) {
+          DateTime startDate = _getDateTimeForDayAndTime(dia, horaInicio);
+          DateTime endDate = _getDateTimeForDayAndTime(dia, horaFin);
 
-        specialRegionsList.add(timeRegion);
-      });
-    });
+          TimeRegion timeRegion = TimeRegion(
+            startTime: startDate,
+            endTime: endDate,
+            enablePointerInteraction: false,
+            recurrenceRule: _getRecurrenceRuleForDay(dia),
+            color:
+                Colors.grey.withOpacity(0.2), // Color para horas no disponibles
+          );
+
+          specialRegionsList.add(timeRegion);
+        }
+      }
+    }
 
     setState(() {
       _specialRegions = specialRegionsList;
     });
+  }
+
+  String _getRecurrenceRuleForDay(String day) {
+    switch (day) {
+      case 'Lunes':
+        return 'FREQ=WEEKLY;BYDAY=MO';
+      case 'Martes':
+        return 'FREQ=WEEKLY;BYDAY=TU';
+      case 'Miércoles':
+        return 'FREQ=WEEKLY;BYDAY=WE';
+      case 'Jueves':
+        return 'FREQ=WEEKLY;BYDAY=TH';
+      case 'Viernes':
+        return 'FREQ=WEEKLY;BYDAY=FR';
+      case 'Sábado':
+        return 'FREQ=WEEKLY;BYDAY=SA';
+      case 'Domingo':
+        return 'FREQ=WEEKLY;BYDAY=SU';
+      default:
+        return 'FREQ=WEEKLY';
+    }
   }
 
   DateTime _getDateTimeForDayAndTime(String day, String time) {

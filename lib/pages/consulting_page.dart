@@ -101,6 +101,17 @@ class _ConsultingState extends State<Consulting> {
     });
   }
 
+  bool showDeleteButton = false;
+
+  void _eliminarConsultorio(int consultorioId) async {
+    if (consultorioId != null) {
+      await DatabaseManager.deleteConsultorio(consultorioId);
+
+      // Limpia los campos del formulario
+      _limpiarFormulario();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -117,6 +128,13 @@ class _ConsultingState extends State<Consulting> {
           },
         ),
         actions: [
+          if (showDeleteButton)
+            IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: () {
+                // Lógica para eliminar el consultorio seleccionado
+              },
+            ),
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () {
@@ -131,6 +149,11 @@ class _ConsultingState extends State<Consulting> {
                   }
                 }
                 selectedDay = daysOfWeek[0];
+              });
+
+              // Ocultar el botón de eliminar al hacer clic en el botón de agregar
+              setState(() {
+                showDeleteButton = false;
               });
             },
           ),
@@ -157,6 +180,7 @@ class _ConsultingState extends State<Consulting> {
                     onChanged: (value) async {
                       setState(() {
                         selectedConsultorio = value;
+                        showDeleteButton = true;
                         if (selectedConsultorio != null) {
                           _nombreController.text = selectedConsultorio!.nombre;
                           _telefonoController.text =
@@ -255,7 +279,7 @@ class _ConsultingState extends State<Consulting> {
                   onPressed: () async {
                     _guardarConsultorio();
 
-                    await Future.delayed(Duration(milliseconds: 1000));
+                    await Future.delayed(Duration(milliseconds: 1500));
 
                     Navigator.pushReplacement(
                       context,

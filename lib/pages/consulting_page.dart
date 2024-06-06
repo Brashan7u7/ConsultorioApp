@@ -37,6 +37,9 @@ class _ConsultingState extends State<Consulting> {
       false; // Variable para controlar si hay consultorios registrados
   List<Consultorio> consultorios = []; // Lista de consultorios
 
+  Map<String, List<int>> occupiedButtonsByDay = {};
+  Map<String, List<int>> freeButtonsByDay = {};
+
   @override
   void initState() {
     super.initState();
@@ -50,6 +53,68 @@ class _ConsultingState extends State<Consulting> {
       }
     }
     selectedDay = daysOfWeek[0];
+    _loadHorarios();
+  }
+
+  Future<void> _loadHorarios() async {
+    Map<String, List<String>> horariosString =
+        await DatabaseManager.getHorarios();
+
+    Map<String, List<String>> horariosLibresPorDia = {};
+    Map<String, List<String>> horariosOcupadosPorDia = {};
+
+    setState(() {
+      selectedButtonsByDay.clear();
+      occupiedButtonsByDay.clear();
+      freeButtonsByDay.clear();
+
+      for (String day in daysOfWeek) {
+        List<String> horariosOcupados = horariosString[day] ?? [];
+        List<int> occupiedIndexes = [];
+        List<int> freeIndexes = [];
+
+        for (String horario in horariosOcupados) {
+          int startHour = int.parse(horario.split('-')[0].split(':')[0]);
+          int startMinute = int.parse(horario.split('-')[0].split(':')[1]);
+          int startMinutes = startHour * 60 + startMinute;
+
+          int buttonIndex = startMinutes ~/ selectedInterval;
+          occupiedIndexes.add(buttonIndex);
+        }
+
+        List<int> allIndexes = List.generate((20 - 8) * 60 ~/ selectedInterval,
+            (index) => index + 8 * 60 ~/ selectedInterval);
+        freeIndexes = allIndexes
+            .where((index) => !occupiedIndexes.contains(index))
+            .toList();
+
+        selectedButtonsByDay[day] = freeIndexes;
+        occupiedButtonsByDay[day] = occupiedIndexes;
+
+        List<String> freeTimes = freeIndexes.map((index) {
+          int startMinute = index * selectedInterval;
+          int endMinute = (index + 1) * selectedInterval - 1;
+          String startTime =
+              '${(startMinute ~/ 60).toString().padLeft(2, '0')}:${(startMinute % 60).toString().padLeft(2, '0')}';
+          String endTime =
+              '${(endMinute ~/ 60).toString().padLeft(2, '0')}:${(endMinute % 60).toString().padLeft(2, '0')}';
+          return '$startTime-$endTime';
+        }).toList();
+
+        List<String> occupiedTimes = occupiedIndexes.map((index) {
+          int startMinute = index * selectedInterval;
+          int endMinute = (index + 1) * selectedInterval - 1;
+          String startTime =
+              '${(startMinute ~/ 60).toString().padLeft(2, '0')}:${(startMinute % 60).toString().padLeft(2, '0')}';
+          String endTime =
+              '${(endMinute ~/ 60).toString().padLeft(2, '0')}:${(endMinute % 60).toString().padLeft(2, '0')}';
+          return '$startTime-$endTime';
+        }).toList();
+
+        horariosLibresPorDia[day] = freeTimes;
+        horariosOcupadosPorDia[day] = occupiedTimes;
+      }
+    });
   }
 
   Future<void> _loadConsultorios() async {
@@ -79,6 +144,8 @@ class _ConsultingState extends State<Consulting> {
     setState(() {
       // Limpiamos los botones seleccionados por día para actualizarlos
       selectedButtonsByDay.clear();
+      occupiedButtonsByDay.clear();
+      freeButtonsByDay.clear();
       // Recorremos los horarios obtenidos
       for (String day in horariosString.keys) {
         List<String> horarios = horariosString[day] ?? [];
@@ -101,6 +168,16 @@ class _ConsultingState extends State<Consulting> {
     });
   }
 
+  bool showDeleteButton = false;
+
+  void _eliminarConsultorio(int consultorioId) async {
+    await DatabaseManager.deleteConsultorio(consultorioId);
+
+    // Limpia los campos del formulario
+    _limpiarFormulario();
+    showDeleteButton = false;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -117,6 +194,20 @@ class _ConsultingState extends State<Consulting> {
           },
         ),
         actions: [
+          if (showDeleteButton)
+            IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: () async {
+                _eliminarConsultorio(selectedConsultorio!.id!);
+
+                await Future.delayed(Duration(milliseconds: 1500));
+
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => Calendar()),
+                );
+              },
+            ),
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () {
@@ -131,6 +222,11 @@ class _ConsultingState extends State<Consulting> {
                   }
                 }
                 selectedDay = daysOfWeek[0];
+              });
+
+              // Ocultar el botón de eliminar al hacer clic en el botón de agregar
+              setState(() {
+                showDeleteButton = false;
               });
             },
           ),
@@ -157,6 +253,7 @@ class _ConsultingState extends State<Consulting> {
                     onChanged: (value) async {
                       setState(() {
                         selectedConsultorio = value;
+                        showDeleteButton = true;
                         if (selectedConsultorio != null) {
                           _nombreController.text = selectedConsultorio!.nombre;
                           _telefonoController.text =
@@ -255,7 +352,7 @@ class _ConsultingState extends State<Consulting> {
                   onPressed: () async {
                     _guardarConsultorio();
 
-                    await Future.delayed(Duration(milliseconds: 1000));
+                    await Future.delayed(Duration(milliseconds: 1500));
 
                     Navigator.pushReplacement(
                       context,
@@ -289,32 +386,36 @@ class _ConsultingState extends State<Consulting> {
                 '${(endMinute ~/ 60).toString().padLeft(2, '0')}:${(endMinute % 60).toString().padLeft(2, '0')}';
             String timeInterval = '$startTime-$endTime';
 
+            bool isOccupied =
+                occupiedButtonsByDay[selectedDay]?.contains(index) ?? false;
+            bool isSelected =
+                selectedButtonsByDay[selectedDay]?.contains(index) ?? false;
+
             return Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      if (selectedButtonsByDay.containsKey(selectedDay)) {
-                        if (selectedButtonsByDay[selectedDay]!
-                            .contains(index)) {
-                          selectedButtonsByDay[selectedDay]!.remove(index);
-                        } else {
-                          selectedButtonsByDay[selectedDay]!.add(index);
-                        }
-                      } else {
-                        selectedButtonsByDay[selectedDay!] = [index];
-                      }
-                    });
-                  },
+                  onPressed: isOccupied
+                      ? null // Deshabilita el botón si está ocupado
+                      : () {
+                          setState(() {
+                            if (isSelected) {
+                              selectedButtonsByDay[selectedDay]!.remove(index);
+                            } else {
+                              selectedButtonsByDay[selectedDay]!.add(index);
+                            }
+                          });
+                        },
                   style: ButtonStyle(
                     backgroundColor: MaterialStateProperty.resolveWith<Color?>(
                       (Set<MaterialState> states) {
-                        return selectedButtonsByDay.containsKey(selectedDay) &&
-                                selectedButtonsByDay[selectedDay]!
-                                    .contains(index)
-                            ? Colors.lightGreenAccent
-                            : Colors.grey[300];
+                        if (isOccupied) {
+                          return Colors.red;
+                        } else if (isSelected) {
+                          return Colors.lightGreenAccent;
+                        } else {
+                          return Colors.grey[300];
+                        }
                       },
                     ),
                     foregroundColor:
@@ -339,6 +440,8 @@ class _ConsultingState extends State<Consulting> {
     selectedInterval = 60;
     selectedDay = null;
     selectedConsultorio = null;
+    selectedDay = daysOfWeek[0];
+    _loadHorarios();
   }
 
   void _guardarConsultorio() async {

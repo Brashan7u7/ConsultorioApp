@@ -50,7 +50,7 @@ class _PacienteContentState extends State<PacienteContent> {
         setState(() {
           municipioIdController.text = data['municipio'];
           estadoIdController.text = data['estado'];
-          paisController.text = 'México'; // Asumimos que siempre es México
+          paisController.text = 'México'; 
         });
       } else {
         print(
@@ -198,7 +198,7 @@ class _PacienteContentState extends State<PacienteContent> {
                   if (value == null || value.isEmpty) {
                     return 'El CURP es obligatorio';
                   }
-                  // Aquí podrías agregar una validación adicional del CURP si es necesario
+                 
                   return null;
                 },
               ),
@@ -211,7 +211,7 @@ class _PacienteContentState extends State<PacienteContent> {
                 ],
                 onChanged: (value) {
                   if (value.length == 5) {
-                    // Asume que el código postal tiene 5 dígitos
+                   
                     fetchLocationData(value);
                   }
                 },
@@ -243,11 +243,10 @@ class _PacienteContentState extends State<PacienteContent> {
     if (_formKey.currentState!.validate()) {
       try {
         String formattedDate = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
-        // Asigna la fecha actual al controlador de fecha de registro
         fechaRegistroController.text = formattedDate;
         await DatabaseManager.insertPaciente(
           Paciente(
-            id: 0, // Asigna un valor válido según la lógica de tu aplicación
+            id: 0, 
             nombre: nameController.text,
             apPaterno: apPaternoController.text,
             apMaterno: apMaternoController.text,

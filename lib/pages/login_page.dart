@@ -49,8 +49,11 @@ class _LoginState extends State<Login> {
     String password = passwordController.text.trim();
 
     if (email == usuarioCorrecto && password == contrasenaCorrecta) {
-      _loadConsultorios();
-    }
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => Calendar()),
+      );
+    } else {}
   }
 
   @override

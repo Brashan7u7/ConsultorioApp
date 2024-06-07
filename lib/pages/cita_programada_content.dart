@@ -1,18 +1,55 @@
-import 'package:calendario_manik/pages/add_page.dart';
+import 'package:calendario_manik/database/database.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:calendario_manik/pages/add_page.dart';
 import 'package:calendario_manik/pages/calendar_page.dart';
+import 'package:intl/intl.dart';
 
-class CitaProgramadaContent extends StatelessWidget {
+class CitaProgramadaContent extends StatefulWidget {
+  @override
+  _CitaProgramadaContentState createState() => _CitaProgramadaContentState();
+}
+
+class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
+  final _formKey = GlobalKey<FormState>();
+  int selectedInterval = 60;
+  TextEditingController nameController = TextEditingController(text: "");
+  List<String> suggestedPatients = [];
+  bool isPatientRegistered = true; // Variable para controlar si el paciente está registrado
+
+  @override
+  void initState() {
+    super.initState();
+    nameController.addListener(searchPatients);
+  }
+
+  @override
+  void dispose() {
+    nameController.removeListener(searchPatients);
+    super.dispose();
+  }
+
+  void searchPatients() async {
+    String query = nameController.text.trim();
+    if (query.isNotEmpty) {
+      List<String> patients = await DatabaseManager.searchPatients(query);
+      setState(() {
+        suggestedPatients = patients;
+        // Verificar si el paciente está registrado
+        isPatientRegistered = patients.isNotEmpty;
+      });
+    } else {
+      setState(() {
+        suggestedPatients = [];
+        isPatientRegistered = true; // Restablecer a true cuando no hay consulta
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final _formKey = GlobalKey<FormState>();
-    String? _selectedOption;
     DateTime _selectedDateTime = DateTime.now();
     TextEditingController fechaController = TextEditingController(text: "");
     TextEditingController horaController = TextEditingController(text: "");
-
-    TextEditingController nameController = TextEditingController(text: "");
     TextEditingController duracionController = TextEditingController(text: "");
     TextEditingController servicioController = TextEditingController(text: "");
     TextEditingController notaController = TextEditingController(text: "");
@@ -35,38 +72,15 @@ class CitaProgramadaContent extends StatelessWidget {
 
     fechaController.addListener(() {
       if (fechaController.text.isNotEmpty && horaController.text.isNotEmpty) {
-        appointmentTime =
-            DateTime.parse('${fechaController.text} ${horaController.text}');
+        appointmentTime = DateTime.parse('${fechaController.text} ${horaController.text}');
       }
     });
 
     horaController.addListener(() {
       if (fechaController.text.isNotEmpty && horaController.text.isNotEmpty) {
-        appointmentTime =
-            DateTime.parse('${fechaController.text} ${horaController.text}');
+        appointmentTime = DateTime.parse('${fechaController.text} ${horaController.text}');
       }
     });
-
-    Future<void> _selectTime(BuildContext context) async {
-      final TimeOfDay? newTime = await showTimePicker(
-        context: context,
-        initialTime: TimeOfDay(hour: 7, minute: 15),
-        initialEntryMode: TimePickerEntryMode.input,
-      );
-    }
-
-    Future<void> _selectDay(BuildContext context) async {
-      final DateTime firstDate = DateTime.now();
-      final DateTime lastDate = DateTime(DateTime.now().year + 1);
-
-      final DateTime? picked = await showDatePicker(
-        context: context,
-        initialDate: DateTime.now(),
-        firstDate: firstDate,
-        lastDate: lastDate,
-        initialDatePickerMode: DatePickerMode.day,
-      );
-    }
 
     return SingleChildScrollView(
       child: Form(
@@ -99,28 +113,79 @@ class CitaProgramadaContent extends StatelessWidget {
                   ),
                 ],
               ),
+              // Lista de sugerencias de pacientes
+              if (suggestedPatients.isNotEmpty)
+                ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: suggestedPatients.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      title: Text(suggestedPatients[index]),
+                      onTap: () {
+                        // Actualizar el campo de texto con el paciente seleccionado
+                        nameController.text = suggestedPatients[index];
+                        // Limpiar la lista de sugerencias
+                        setState(() {
+                          suggestedPatients = [];
+                        });
+                      },
+                    );
+                  },
+                ),
               const SizedBox(height: 20.0),
               DropdownButtonFormField<String>(
-                value: servicioController.text.isEmpty
-                    ? null
-                    : servicioController.text,
-                hint: const Text('Recomendación de la proxima cita'),
+                  items: const [
+                    DropdownMenuItem<String>(
+                      value: '60',
+                      child: Text('60 minutos'),
+                    ),
+                    DropdownMenuItem<String>(
+                      value: '30',
+                      child: Text('30 minutos'),
+                    ),
+                    DropdownMenuItem<String>(
+                      value: '20',
+                      child: Text('20 minutos'),
+                    ),
+                    DropdownMenuItem<String>(
+                      value: '15',
+                      child: Text('15 minutos'),
+                    ),
+                  ],
+                  value: selectedInterval.toString(),
+                  onChanged: (value) {
+                    setState(() {
+                     selectedInterval = int.parse(value!);//no es
+                    });
+                  },
+                  decoration: const InputDecoration(
+                    labelText: 'Intervalo de Atención (minutos)',
+                  ),
+                ),
+              const SizedBox(height: 10.0),
+              DropdownButtonFormField<String>(
+                value: servicioController.text.isEmpty ? null : servicioController.text,
+                hint: const Text('Recomendación de la próxima cita'),
                 items: const <DropdownMenuItem<String>>[
                   DropdownMenuItem<String>(
                     value: 'Opción 1',
-                    child: Text('Siguiente hora más cercana'),
+                    child: Text('Próximo día disponible'),
                   ),
                   DropdownMenuItem<String>(
                     value: 'Opción 2',
-                    child: Text('Siguiente día del mes más cercano'),
+                    child: Text('Próxima semana disponible'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: 'Opción 3',
+                    child: Text('Próximo mes disponible'),
                   ),
                 ],
                 onChanged: (value) {
-                  servicioController.text = value!;
+                  servicioController.text = value!;//No es
                   if (value == 'Opción 1') {
-                    _selectTime(context);
+                    // Lógica para la opción 1
                   } else if (value == 'Opción 2') {
-                    _selectDay(context);
+                    // Lógica para la opción 2
                   }
                 },
               ),
@@ -165,10 +230,8 @@ class CitaProgramadaContent extends StatelessWidget {
                           initialTime: TimeOfDay.now(),
                         );
                         if (pickedTime != null) {
-                          DateTime parsedTime = DateFormat.jm().parse(
-                              pickedTime.format(context).toString());
-                          String formattedTime =
-                              DateFormat('HH:mm:ss').format(parsedTime);
+                          String formattedTime = DateFormat('HH:mm:ss').format(DateTime(0, 1, 1, pickedTime.hour, pickedTime.minute));
+
                           horaController.text = formattedTime;
                         }
                       },

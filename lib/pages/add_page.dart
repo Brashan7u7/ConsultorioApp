@@ -13,7 +13,7 @@ class Add extends StatelessWidget {
   final bool? isCitaselect;
   final int? consultorioId;
 
-  TextEditingController? fechaController, horaController;
+  TextEditingController? fechaController, horaController, duracionController;
 
   Add(
       {Key? key,
@@ -24,6 +24,7 @@ class Add extends StatelessWidget {
       this.isCitaselect = false,
       this.fechaController,
       this.horaController,
+      this.duracionController,
       this.consultorioId})
       : super(key: key);
 
@@ -48,7 +49,8 @@ class Add extends StatelessWidget {
           : (isCitaselect ?? false)
               ? CitaSelectContent(
                   fechaController: fechaController!,
-                  horaController: horaController!)
+                  horaController: horaController!,
+)
               : isEvento
                   ? EventoContent(consultorioId: consultorioId)
                   : isPacient

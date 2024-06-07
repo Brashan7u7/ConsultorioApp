@@ -33,7 +33,6 @@ class DatabaseManager {
     List<Map<String, dynamic>> consultoriosData = [];
     try {
       final conn = await _connect();
-
       final result = await conn.execute("SELECT * FROM consultorio");
       for (var row in result) {
         consultoriosData.add({
@@ -45,7 +44,6 @@ class DatabaseManager {
           'intervalo': row[8],
         });
       }
-
       await conn.close();
     } catch (e) {
       print('Error: $e');
@@ -56,7 +54,6 @@ class DatabaseManager {
   static Future<void> updateConsultorio(Consultorio consultorio) async {
     try {
       final conn = await _connect();
-
       await conn.execute(
         Sql.named(
             "UPDATE consultorio SET nombre = @nombre, direccion = @direccion, colonia_id = @colonia_id, telefono = @telefono, intervalo = @intervalo  WHERE id = @id"),
@@ -69,7 +66,6 @@ class DatabaseManager {
           "intervalo": consultorio.intervaloAtencion,
         },
       );
-
       await conn.close();
     } catch (e) {
       print('Error al actualizar el consultorio: $e');
@@ -79,12 +75,10 @@ class DatabaseManager {
   static Future<void> deleteConsultorio(int id) async {
     try {
       final conn = await _connect();
-
       await conn.execute(
         Sql.named("DELETE FROM consultorio WHERE id = @id"),
         parameters: {"id": id},
       );
-
       await conn.close();
     } catch (e) {
       print('Error al eliminar el consultorio: $e');
@@ -94,12 +88,9 @@ class DatabaseManager {
   static Future<int> insertConsultorio(Consultorio consultorio) async {
     try {
       final conn = await _connect();
-
       final result = await conn.execute("SELECT MAX(id) FROM consultorio");
       int lastId = (result.first.first as int?) ?? 0;
-
       int newId = lastId + 1;
-
       await conn.execute(
         Sql.named(
             "INSERT INTO consultorio(id, nombre, direccion, colonia_id, telefono, intervalo) VALUES (@id, @nombre, @direccion, @colonia_id, @telefono, @intervalo)"),
@@ -112,9 +103,7 @@ class DatabaseManager {
           "intervalo": consultorio.intervaloAtencion,
         },
       );
-
       await conn.close();
-
       return newId;
     } catch (e) {
       print('Error al insertar el consultorio: $e');
@@ -158,7 +147,6 @@ class DatabaseManager {
 
   static List<String> parseHorarios(String horarios) {
     if (horarios.isEmpty) return [];
-
     return horarios.split(',');
   }
 
@@ -202,6 +190,27 @@ class DatabaseManager {
 
     return horarios;
   }
+static Future<List<String>> searchPatients(String query) async {
+  List<String> patients = [];
+  try {
+    final conn = await _connect();
+
+    final result = await conn.execute(
+      Sql.named("SELECT nombre FROM paciente WHERE nombre ILIKE @query"),
+      parameters: {"query": '%$query%'},
+    );
+
+    for (var row in result) {
+      patients.add(row[0] as String);
+    }
+
+    await conn.close();
+  } catch (e) {
+    print('Error al buscar pacientes: $e');
+  }
+  return patients;
+}
+
 
   static Future<Map<String, List<String>>> getHorarios() async {
   Map<String, List<String>> horarios = {
@@ -247,7 +256,6 @@ class DatabaseManager {
 
   return horarios;
 }
-
 
   static Future<void> updateHorarioConsultorio(
     int consultorioId,

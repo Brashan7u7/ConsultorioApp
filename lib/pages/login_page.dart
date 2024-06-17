@@ -45,7 +45,7 @@ class _LoginState extends State<Login> {
     String email = emailController.text.trim();
     String password = passwordController.text.trim();
 
-    List<Map<String, dynamic>> usuarios = await DatabaseManager.getUsuario();
+    List<Map<String, dynamic>> usuarios = await DatabaseManager.getPatients();
     final user = usuarios.firstWhere(
         (u) => u['correo'] == email && u['contrasena'] == password,
         orElse: () => {});

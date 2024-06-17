@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:calendario_manik/pages/calendar_page.dart';
 import 'package:calendario_manik/pages/add_page.dart';
+import 'package:calendario_manik/database/database.dart';
 
 class Patients extends StatefulWidget {
   final String? name,
@@ -30,182 +31,47 @@ class Patients extends StatefulWidget {
 
 class _PatientsState extends State<Patients> {
   int currentIndex = 2;
-  final List<DataPatients> _allPatients = [
-    DataPatients(
-      id: "1",
-      name: "Manuel",
-      sexo: "Masculino",
-      genero: "Hombre",
-      primerPat: "García",
-      segundPat: "",
-      fechaNaci: "01/01/1990",
-      correo: "manuel@example.com",
-      telefono: "+52 951 123 4567",
-    ),
-    DataPatients(
-      id: "2",
-      name: "Luisa",
-      sexo: "Femenino",
-      genero: "Mujer",
-      primerPat: "Martínez",
-      segundPat: "",
-      fechaNaci: "15/05/1985",
-      correo: "luisa@example.com",
-      telefono: "+52 951 987 6543",
-    ),
-    DataPatients(
-      id: "3",
-      name: "Juan",
-      sexo: "Masculino",
-      genero: "Hombre",
-      primerPat: "Gómez",
-      segundPat: "",
-      fechaNaci: "10/10/1975",
-      correo: "juan@example.com",
-      telefono: "+52 951 555 1234",
-    ),
-    DataPatients(
-      id: "4",
-      name: "María",
-      sexo: "Femenino",
-      genero: "Mujer",
-      primerPat: "López",
-      segundPat: "",
-      fechaNaci: "25/12/1980",
-      correo: "maria@example.com",
-      telefono: "+52 951 789 0123",
-    ),
-    DataPatients(
-      id: "5",
-      name: "Carlos",
-      sexo: "Masculino",
-      genero: "Hombre",
-      primerPat: "Hernández",
-      segundPat: "",
-      fechaNaci: "03/07/1995",
-      correo: "carlos@example.com",
-      telefono: "+52 951 321 9876",
-    ),
-    DataPatients(
-      id: "6",
-      name: "Ana",
-      sexo: "Femenino",
-      genero: "Mujer",
-      primerPat: "Sánchez",
-      segundPat: "Martínez",
-      fechaNaci: "12/08/1992",
-      correo: "ana@example.com",
-      telefono: "+52 951 456 7890",
-    ),
-    DataPatients(
-      id: "7",
-      name: "Pedro",
-      sexo: "Masculino",
-      genero: "Hombre",
-      primerPat: "Díaz",
-      segundPat: "García",
-      fechaNaci: "05/04/1987",
-      correo: "pedro@example.com",
-      telefono: "+52 951 888 8888",
-    ),
-    DataPatients(
-      id: "8",
-      name: "Laura",
-      sexo: "Femenino",
-      genero: "Mujer",
-      primerPat: "Ramírez",
-      segundPat: "López",
-      fechaNaci: "20/11/1983",
-      correo: "laura@example.com",
-      telefono: "+52 951 777 7777",
-    ),
-    DataPatients(
-      id: "9",
-      name: "Sofía",
-      sexo: "Femenino",
-      genero: "Mujer",
-      primerPat: "Gutiérrez",
-      segundPat: "Hernández",
-      fechaNaci: "17/09/1998",
-      correo: "sofia@example.com",
-      telefono: "+52 951 666 6666",
-    ),
-    DataPatients(
-      id: "10",
-      name: "Miguel",
-      sexo: "Masculino",
-      genero: "Hombre",
-      primerPat: "Pérez",
-      segundPat: "Gómez",
-      fechaNaci: "30/06/1979",
-      correo: "miguel@example.com",
-      telefono: "+52 951 999 9999",
-    ),
-    DataPatients(
-      id: "11",
-      name: "Alejandra",
-      sexo: "Femenino",
-      genero: "Mujer",
-      primerPat: "Flores",
-      segundPat: "Castillo",
-      fechaNaci: "25/03/1984",
-      correo: "alejandra@example.com",
-      telefono: "+52 951 000 0000",
-    ),
-    DataPatients(
-      id: "12",
-      name: "Fernando",
-      sexo: "Masculino",
-      genero: "Hombre",
-      primerPat: "Cruz",
-      segundPat: "González",
-      fechaNaci: "10/10/1990",
-      correo: "fernando@example.com",
-      telefono: "+52 951 111 1111",
-    ),
-    DataPatients(
-      id: "13",
-      name: "Paola",
-      sexo: "Femenino",
-      genero: "Mujer",
-      primerPat: "Torres",
-      segundPat: "Martínez",
-      fechaNaci: "15/07/1995",
-      correo: "paola@example.com",
-      telefono: "+52 951 222 2222",
-    ),
-    DataPatients(
-      id: "14",
-      name: "Eduardo",
-      sexo: "Masculino",
-      genero: "Hombre",
-      primerPat: "Castillo",
-      segundPat: "López",
-      fechaNaci: "02/12/1988",
-      correo: "eduardo@example.com",
-      telefono: "+52 951 333 3333",
-    ),
-    DataPatients(
-      id: "15",
-      name: "Gabriela",
-      sexo: "Femenino",
-      genero: "Mujer",
-      primerPat: "Luna",
-      segundPat: "Sánchez",
-      fechaNaci: "20/05/1993",
-      correo: "gabriela@example.com",
-      telefono: "+52 951 444 4444",
-    ),
-  ];
-
+  List<DataPatients> _allPatients = [];
   List<DataPatients> _filteredPatients = [];
   final TextEditingController _searchController = TextEditingController();
 
-  @override
-  void initState() {
-    _filteredPatients.addAll(_allPatients);
-    super.initState();
-  }
+
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _fetchPatients(); // Llama a la función para obtener los pacientes desde la base de datos
+  // }
+
+  // Future<void> _fetchPatients() async {
+  //   try {
+  //     // Obtener los datos desde la base de datos
+  //     List<Map<String, dynamic>> patientsData = await getPatients();
+
+      
+  //     List<DataPatients> patients = patientsData.map((data) {
+  //       return DataPatients(
+  //         id: data['id'].toString(),
+  //         name: data['nombre'],
+  //         sexo: data['sexo'] == 'M' ? 'Masculino' : 'Femenino',
+  //         genero: data['sexo'] == 'M' ? 'Hombre' : 'Mujer',
+  //         primerPat: data['apPaterno'],
+  //         segundPat: data['apMaterno'],
+  //         fechaNaci: data['fechaNacimiento'].toString(),
+  //         correo: data['correo'],
+  //         telefono: data['telefonoMovil'] ?? data['telefonoFijo'],
+  //       );
+  //     }).toList();
+
+  //     // Actualizar las listas de pacientes
+  //     setState(() {
+  //       _allPatients = patients;
+  //       _filteredPatients = patients;
+  //     });
+  //   } catch (e) {
+  //     print('Error fetching patients: $e');
+  //   }
+  // }
+
 
   @override
   Widget build(BuildContext context) {
@@ -247,7 +113,7 @@ class _PatientsState extends State<Patients> {
                       _viewPatient(context, _filteredPatients[index]);
                     },
                     title: Text(
-                        "${_filteredPatients[index].name} ${_filteredPatients[index].primerPat}"),
+                        "${_filteredPatients[index].name} ${_filteredPatients[index].primerPat} ${_filteredPatients[index].segundPat}"),
                     subtitle: Text(_filteredPatients[index].telefono),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,

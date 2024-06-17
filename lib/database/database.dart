@@ -444,6 +444,7 @@ class DatabaseManager {
     }
   }
 
+
   static Future<List<Map<String, dynamic>>> getUsuario() async {
     List<Map<String, dynamic>> usuarios = [];
     try {
@@ -462,4 +463,33 @@ class DatabaseManager {
     }
     return usuarios;
   }
+
+
+static Future<List<Map<String, dynamic>>> getPatients() async {
+  try {
+    final conn = await _connect();
+    final result = await conn.execute("SELECT * FROM paciente");
+    List<Map<String, dynamic>> patients = [];
+    for (var row in result) {
+      patients.add({
+        'id': row[0],
+        'nombre': row[1],
+        'apPaterno': row[2],
+        'apMaterno': row[3],
+        'fechaNacimiento': row[4],
+        'sexo': row[5],
+        'telefonoMovil': row[7],
+        'telefonoFijo': row[8],
+        'correo': row[9],
+      });
+    }
+    await conn.close();
+    return patients;
+  } catch (e) {
+    print('Error: $e');
+    return [];
+  }
+}
+
+
 }

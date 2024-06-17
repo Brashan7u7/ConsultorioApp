@@ -405,7 +405,42 @@ class DatabaseManager {
   }
 
 
+static Future<int> insertCitaInmediata(int consultorioId, Evento evento, String nota) async {
+    try {
+      final conn = await _connect();
 
+      final result = await conn.execute("SELECT MAX(id) FROM evento");
+      int lastId = (result.first.first as int?) ?? 0;
+
+      int newId = lastId + 1;
+
+      // Obtener la fecha y hora actual
+      DateTime now = DateTime.now();
+
+      await conn.execute(
+        Sql.named(
+          "INSERT INTO evento(id, token, nombre, descripcion, fecha_inicio, fecha_fin, usuario_id, calendario_id) VALUES (@id, @token, @nombre, @descripcion, @fecha_inicio, @fecha_fin, @usuario_id, @calendario_id)",
+        ),
+        parameters: {
+          "id": newId,
+          "token": 2, // Asegúrate de obtener el token correcto
+          "nombre": evento.nombre, // Puedes cambiar esto según tus requisitos
+          "descripcion": nota,
+          "fecha_inicio": now.toIso8601String(),
+          "fecha_fin": now.toIso8601String(), // Misma fecha y hora para cita inmediata
+          "usuario_id": 1, // Ajusta el usuario_id según tu lógica de autenticación
+          "calendario_id": consultorioId,
+        },
+      );
+
+      await conn.close();
+
+      return newId;
+    } catch (e) {
+      print('Error al insertar la cita inmediata: $e');
+      return -1;
+    }
+  }
 
 
 }

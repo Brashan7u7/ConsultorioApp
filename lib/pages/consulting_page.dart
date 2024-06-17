@@ -271,6 +271,7 @@ class _ConsultingState extends State<Consulting> {
                       if (value != null) {
                         await _loadHorariosConsultorios(
                             selectedConsultorio!.id);
+                        
                       }
                     },
                   ),

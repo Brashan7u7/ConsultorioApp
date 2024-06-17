@@ -35,7 +35,6 @@ dependencies:
   flutter_localizations:
     sdk: flutter
 
- 
   url_launcher: ^6.0.12
   http: ^0.13.3
   syncfusion_flutter_calendar: ^24.2.8
@@ -74,7 +73,7 @@ flutter:
     - lib/images/usuario2.png
     - lib/images/logo.png
     - lib/images/disesup.png
-    - assets/data.xlsx
+    - lib/assets/data.xlsx
 
   # To add assets to your application, add an assets section, like this:
   # assets:

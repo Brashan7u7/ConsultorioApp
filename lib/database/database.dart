@@ -12,7 +12,7 @@ class DatabaseManager {
         host: 'localhost',
         database: 'medicalmanik',
         username: 'postgres',
-        password: 'DJE20ben',
+        password: '123',
       ),
       settings: ConnectionSettings(sslMode: SslMode.disable),
     );
@@ -190,72 +190,72 @@ class DatabaseManager {
 
     return horarios;
   }
-static Future<List<String>> searchPatients(String query) async {
-  List<String> patients = [];
-  try {
-    final conn = await _connect();
 
-    final result = await conn.execute(
-      Sql.named("SELECT nombre FROM paciente WHERE nombre ILIKE @query"),
-      parameters: {"query": '%$query%'},
-    );
+  static Future<List<String>> searchPatients(String query) async {
+    List<String> patients = [];
+    try {
+      final conn = await _connect();
 
-    for (var row in result) {
-      patients.add(row[0] as String);
+      final result = await conn.execute(
+        Sql.named("SELECT nombre FROM paciente WHERE nombre ILIKE @query"),
+        parameters: {"query": '%$query%'},
+      );
+
+      for (var row in result) {
+        patients.add(row[0] as String);
+      }
+
+      await conn.close();
+    } catch (e) {
+      print('Error al buscar pacientes: $e');
     }
-
-    await conn.close();
-  } catch (e) {
-    print('Error al buscar pacientes: $e');
+    return patients;
   }
-  return patients;
-}
-
 
   static Future<Map<String, List<String>>> getHorarios() async {
-  Map<String, List<String>> horarios = {
-    'Lunes': [],
-    'Martes': [],
-    'Miércoles': [],
-    'Jueves': [],
-    'Viernes': [],
-    'Sábado': [],
-    'Domingo': [],
-  };
+    Map<String, List<String>> horarios = {
+      'Lunes': [],
+      'Martes': [],
+      'Miércoles': [],
+      'Jueves': [],
+      'Viernes': [],
+      'Sábado': [],
+      'Domingo': [],
+    };
 
-  try {
-    final conn = await _connect();
+    try {
+      final conn = await _connect();
 
-    final result = await conn.execute("SELECT * FROM horario_consultorio");
+      final result = await conn.execute("SELECT * FROM horario_consultorio");
 
-    for (var row in result) {
-      // Procesar los horarios recuperados y actualizar el mapa
-      // Acceder directamente a las columnas por su nombre
-      List<String> lunesHorarios = parseHorarios(row[1] as String);
-      List<String> martesHorarios = parseHorarios(row[2] as String);
-      List<String> miercolesHorarios = parseHorarios(row[3] as String);
-      List<String> juevesHorarios = parseHorarios(row[4] as String);
-      List<String> viernesHorarios = parseHorarios(row[5] as String);
-      List<String> sabadoHorarios = parseHorarios(row[6] as String);
-      List<String> domingoHorarios = parseHorarios(row[7] as String);
+      for (var row in result) {
+        // Procesar los horarios recuperados y actualizar el mapa
+        // Acceder directamente a las columnas por su nombre
+        List<String> lunesHorarios = parseHorarios(row[1] as String);
+        List<String> martesHorarios = parseHorarios(row[2] as String);
+        List<String> miercolesHorarios = parseHorarios(row[3] as String);
+        List<String> juevesHorarios = parseHorarios(row[4] as String);
+        List<String> viernesHorarios = parseHorarios(row[5] as String);
+        List<String> sabadoHorarios = parseHorarios(row[6] as String);
+        List<String> domingoHorarios = parseHorarios(row[7] as String);
 
-      // Agrega los horarios al mapa acumulando los valores
-      horarios['Lunes']!.addAll(lunesHorarios);
-      horarios['Martes']!.addAll(martesHorarios);
-      horarios['Miércoles']!.addAll(miercolesHorarios);
-      horarios['Jueves']!.addAll(juevesHorarios);
-      horarios['Viernes']!.addAll(viernesHorarios);
-      horarios['Sábado']!.addAll(sabadoHorarios);
-      horarios['Domingo']!.addAll(domingoHorarios);
+        // Agrega los horarios al mapa acumulando los valores
+        horarios['Lunes']!.addAll(lunesHorarios);
+        horarios['Martes']!.addAll(martesHorarios);
+        horarios['Miércoles']!.addAll(miercolesHorarios);
+        horarios['Jueves']!.addAll(juevesHorarios);
+        horarios['Viernes']!.addAll(viernesHorarios);
+        horarios['Sábado']!.addAll(sabadoHorarios);
+        horarios['Domingo']!.addAll(domingoHorarios);
+      }
+
+      await conn.close();
+    } catch (e) {
+      print('Error al convertir horarios: $e');
     }
 
-    await conn.close();
-  } catch (e) {
-    print('Error al convertir horarios: $e');
+    return horarios;
   }
-
-  return horarios;
-}
 
   static Future<void> updateHorarioConsultorio(
     int consultorioId,

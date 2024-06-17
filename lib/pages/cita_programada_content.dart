@@ -1,4 +1,5 @@
 import 'package:calendario_manik/database/database.dart';
+import 'package:calendario_manik/models/evento.dart';
 import 'package:flutter/material.dart';
 import 'package:calendario_manik/pages/add_page.dart';
 import 'package:calendario_manik/pages/calendar_page.dart';
@@ -253,17 +254,45 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
               ),
               const SizedBox(height: 20.0),
               ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => Calendar(),
-                      ),
-                    );
-                  }
-                },
-                child: const Text('Guardar Cita Programada'),
+  onPressed: () async {
+    if (_formKey.currentState!.validate()) {
+      // Recolectar datos del formulario
+      String nombre = nameController.text;
+      String fecha = fechaController.text;
+      String hora = horaController.text;
+      String duracion = selectedInterval.toString();
+      String servicio = servicioController.text;
+      String nota = notaController.text;
+
+      // Obtener el ID del consultorio de alguna manera (supongamos que está disponible en una variable)
+      int consultorioId = 1; // Por ejemplo, asumiendo que el ID del consultorio está disponible aquí
+
+      // Crear el objeto Evento
+      Evento evento = Evento(
+        nombre: nombre,
+        fecha: fecha,
+        hora: hora,
+        duracion: duracion,
+        servicio: servicio,
+        nota: nota,
+      );
+
+      // Insertar el evento en la base de datos
+      await DatabaseManager.insertEvento(consultorioId, evento);
+
+      // Mostrar mensaje de éxito o redireccionar a otra pantalla si es necesario
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Cita programada agregada correctamente')),
+      );
+
+      // Opcional: Redirigir a la página de calendario u otra página relevante
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => Calendar()),
+      );
+    }
+  },
+  child: const Text('Guardar Cita Programada'),
               ),
             ],
           ),

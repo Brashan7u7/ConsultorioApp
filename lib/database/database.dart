@@ -12,7 +12,7 @@ class DatabaseManager {
         host: 'localhost',
         database: 'medicalmanik',
         username: 'postgres',
-        password: '123',
+        password: 'DJE20ben',
       ),
       settings: ConnectionSettings(sslMode: SslMode.disable),
     );
@@ -197,7 +197,7 @@ class DatabaseManager {
       final conn = await _connect();
 
       final result = await conn.execute(
-        Sql.named("SELECT nombre FROM paciente WHERE nombre ILIKE @query"),
+        Sql.named("SELECT nombre FROM paciente WHERE nombre LIKE @query"),
         parameters: {"query": '%$query%'},
       );
 
@@ -211,6 +211,8 @@ class DatabaseManager {
     }
     return patients;
   }
+
+
 
   static Future<Map<String, List<String>>> getHorarios() async {
     Map<String, List<String>> horarios = {
@@ -338,40 +340,41 @@ class DatabaseManager {
     }
   }
 
-  static Future<void> insertEvento(int consultorioId, Evento evento) async {
-    try {
-      final conn = await _connect();
+ static Future<void> insertEvento(int consultorioId, Evento evento) async {
+  try {
+    final conn = await _connect();
 
-      final result = await conn.execute("SELECT MAX(id) FROM evento");
-      int lastId = (result.first.first as int?) ?? 0;
+    final result = await conn.execute("SELECT MAX(id) FROM evento");
+    int lastId = (result.first.first as int?) ?? 0;
 
-      int newId = lastId + 1;
+    int newId = lastId + 1;
 
-      // Calcular la fecha de inicio y fin basándose en la duración
-      DateTime startDate = DateTime.parse(evento.fecha + " " + evento.hora);
-      int duration = int.parse(evento.duracion);
-      DateTime endDate = startDate.add(Duration(minutes: duration));
+    // Calcular la fecha de inicio y fin basándose en la duración
+    DateTime startDate = DateTime.parse(evento.fecha + " " + evento.hora);
+    int duration = int.parse(evento.duracion);
+    DateTime endDate = startDate.add(Duration(minutes: duration));
 
-      await conn.execute(
-        Sql.named(
-            "INSERT INTO evento(id, token, nombre, descripcion, fecha_inicio, fecha_fin, usuario_id, calendario_id) VALUES (@id, @token, @nombre,@descripcion, @fecha_inicio, @fecha_fin, @usuario_id, @calendario_id)"),
-        parameters: {
-          "id": newId,
-          "token": 1,
-          "nombre": evento.nombre,
-          "descripcion": evento.nota,
-          "fecha_inicio": startDate.toIso8601String(),
-          "fecha_fin": endDate.toIso8601String(),
-          "usuario_id": 1,
-          "calendario_id": consultorioId,
-        },
-      );
+    await conn.execute(
+      Sql.named(
+        "INSERT INTO evento(id, token, nombre, descripcion, fecha_inicio, fecha_fin, usuario_id, calendario_id) VALUES (@id, @token, @nombre,@descripcion, @fecha_inicio, @fecha_fin, @usuario_id, @calendario_id)"),
+      parameters: {
+        "id": newId,
+        "token": 2,
+        "nombre": evento.nombre,
+        "descripcion": evento.nota,
+        "fecha_inicio": startDate.toIso8601String(),
+        "fecha_fin": endDate.toIso8601String(),
+        "usuario_id": 1, // Aquí deberías obtener el usuario_id correcto
+        "calendario_id": consultorioId,
+      },
+    );
 
-      await conn.close();
-    } catch (e) {
-      print('Error al insertar el evento: $e');
-    }
+    await conn.close();
+  } catch (e) {
+    print('Error al insertar el evento: $e');
   }
+}
+
 
   static Future<List<Map<String, dynamic>>> getEventosData(
       int consultorioId) async {
@@ -400,4 +403,9 @@ class DatabaseManager {
     }
     return eventos;
   }
+
+
+
+
+
 }

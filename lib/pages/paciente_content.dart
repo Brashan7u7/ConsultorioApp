@@ -50,7 +50,7 @@ class _PacienteContentState extends State<PacienteContent> {
         setState(() {
           municipioIdController.text = data['municipio'];
           estadoIdController.text = data['estado'];
-          paisController.text = 'México'; 
+          paisIdController.text = 'México';
         });
       } else {
         print(
@@ -142,10 +142,10 @@ class _PacienteContentState extends State<PacienteContent> {
                   return null;
                 },
               ),
-              TextFormField(
-                controller: coloniaIdController,
-                decoration: InputDecoration(labelText: 'ColoniaId'),
-              ),
+              // TextFormField(
+              //   controller: coloniaIdController,
+              //   decoration: InputDecoration(labelText: 'ColoniaId'),
+              // ),
               TextFormField(
                 controller: telefonoMovilController,
                 decoration: InputDecoration(labelText: 'Teléfono Móvil'),
@@ -179,10 +179,10 @@ class _PacienteContentState extends State<PacienteContent> {
                   return null;
                 },
               ),
-              TextFormField(
-                controller: avatarController,
-                decoration: InputDecoration(labelText: 'Avatar'),
-              ),
+              // TextFormField(
+              //   controller: avatarController,
+              //   decoration: InputDecoration(labelText: 'Avatar'),
+              // ),
               TextFormField(
                 controller: direccionController,
                 decoration: InputDecoration(labelText: 'Dirección'),
@@ -198,7 +198,7 @@ class _PacienteContentState extends State<PacienteContent> {
                   if (value == null || value.isEmpty) {
                     return 'El CURP es obligatorio';
                   }
-                 
+
                   return null;
                 },
               ),
@@ -211,7 +211,6 @@ class _PacienteContentState extends State<PacienteContent> {
                 ],
                 onChanged: (value) {
                   if (value.length == 5) {
-                   
                     fetchLocationData(value);
                   }
                 },
@@ -228,62 +227,64 @@ class _PacienteContentState extends State<PacienteContent> {
                 controller: paisIdController,
                 decoration: InputDecoration(labelText: 'País'),
               ),
-              TextFormField(
-                controller: entidadNacimientoIdController,
-                decoration:
-                    InputDecoration(labelText: 'ID Entidad de Nacimiento'),
-              ),
-              TextFormField(
-                controller: generoIdController,
-                decoration: InputDecoration(labelText: 'ID Género'),
-              ),
+              // TextFormField(
+              //   controller: entidadNacimientoIdController,
+              //   decoration:
+              //       InputDecoration(labelText: 'ID Entidad de Nacimiento'),
+              // ),
+              // TextFormField(
+              //   controller: generoIdController,
+              //   decoration: InputDecoration(labelText: 'ID Género'),
+              // ),
               SizedBox(height: 20.0),
-             ElevatedButton(
-  onPressed: () async {
-    if (_formKey.currentState!.validate()) {
-      try {
-        String formattedDate = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
-        fechaRegistroController.text = formattedDate;
-        await DatabaseManager.insertPaciente(
-          Paciente(
-            id: 0, 
-            nombre: nameController.text,
-            apPaterno: apPaternoController.text,
-            apMaterno: apMaternoController.text,
-            fechaNacimiento: fechaNacimientoController.text,
-            sexo: sexoController.text,
-            coloniaId: int.parse(coloniaIdController.text),
-            telefonoMovil: telefonoMovilController.text,
-            telefonoFijo: telefonoFijoController.text,
-            correo: correoController.text,
-            avatar: avatarController.text,
-            fechaRegistro: DateTime.parse(fechaRegistroController.text),
-            direccion: direccionController.text,
-            identificador: identificadorController.text,
-            curp: curpController.text,
-            codigoPostal: int.parse(codigoPostalController.text),
-            municipioId: int.parse(municipioIdController.text),
-            estadoId: int.parse(estadoIdController.text),
-            pais: paisController.text,
-            paisId: int.parse(paisIdController.text),
-            entidadNacimientoId: entidadNacimientoIdController.text,
-            generoId: int.parse(generoIdController.text),
-          ),
-        );
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Paciente guardado con éxito')),
-        );
-      } catch (e) {
-        print('Error al insertar el paciente: $e');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al guardar el paciente')),
-        );
-      }
-    }
-  },
-  child: Text('Guardar'),
-),
-
+              ElevatedButton(
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    try {
+                      String formattedDate = DateFormat('yyyy-MM-dd HH:mm:ss')
+                          .format(DateTime.now());
+                      fechaRegistroController.text = formattedDate;
+                      await DatabaseManager.insertPaciente(
+                        Paciente(
+                          id: 0,
+                          nombre: nameController.text,
+                          apPaterno: apPaternoController.text,
+                          apMaterno: apMaternoController.text,
+                          fechaNacimiento: fechaNacimientoController.text,
+                          sexo: sexoController.text,
+                          coloniaId: int.parse(coloniaIdController.text),
+                          telefonoMovil: telefonoMovilController.text,
+                          telefonoFijo: telefonoFijoController.text,
+                          correo: correoController.text,
+                          avatar: avatarController.text,
+                          fechaRegistro:
+                              DateTime.parse(fechaRegistroController.text),
+                          direccion: direccionController.text,
+                          identificador: identificadorController.text,
+                          curp: curpController.text,
+                          codigoPostal: int.parse(codigoPostalController.text),
+                          municipioId: int.parse(municipioIdController.text),
+                          estadoId: int.parse(estadoIdController.text),
+                          pais: paisController.text,
+                          paisId: int.parse(paisIdController.text),
+                          entidadNacimientoId:
+                              entidadNacimientoIdController.text,
+                          generoId: int.parse(generoIdController.text),
+                        ),
+                      );
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Paciente guardado con éxito')),
+                      );
+                    } catch (e) {
+                      print('Error al insertar el paciente: $e');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error al guardar el paciente')),
+                      );
+                    }
+                  }
+                },
+                child: Text('Guardar'),
+              ),
             ],
           ),
         ),

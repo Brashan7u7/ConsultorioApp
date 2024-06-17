@@ -1,6 +1,7 @@
 import 'package:calendario_manik/database/database.dart';
 import 'package:calendario_manik/pages/calendar_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class Consulting extends StatefulWidget {
   const Consulting({Key? key}) : super(key: key);
@@ -39,6 +40,8 @@ class _ConsultingState extends State<Consulting> {
 
   Map<String, List<int>> occupiedButtonsByDay = {};
   Map<String, List<int>> freeButtonsByDay = {};
+
+  bool camposvacios = false;
 
   @override
   void initState() {
@@ -178,6 +181,26 @@ class _ConsultingState extends State<Consulting> {
     showDeleteButton = false;
   }
 
+  _showConfirmationDialog(BuildContext context) async {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Eliminar consultorio'),
+        content: Text('¿Estás seguro de eliminar este consultorio?'),
+        actions: [
+          TextButton(
+            child: Text('Cancelar'),
+            onPressed: () => Navigator.of(context).pop(false),
+          ),
+          TextButton(
+            child: Text('Eliminar'),
+            onPressed: () => Navigator.of(context).pop(true),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -198,14 +221,17 @@ class _ConsultingState extends State<Consulting> {
             IconButton(
               icon: const Icon(Icons.delete),
               onPressed: () async {
-                _eliminarConsultorio(selectedConsultorio!.id!);
+                bool confirmDelete = await _showConfirmationDialog(context);
+                if (confirmDelete) {
+                  _eliminarConsultorio(selectedConsultorio!.id!);
 
-                await Future.delayed(Duration(milliseconds: 1500));
+                  await Future.delayed(Duration(milliseconds: 1500));
 
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => Calendar()),
-                );
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => Calendar()),
+                  );
+                }
               },
             ),
           IconButton(
@@ -271,7 +297,6 @@ class _ConsultingState extends State<Consulting> {
                       if (value != null) {
                         await _loadHorariosConsultorios(
                             selectedConsultorio!.id);
-                        
                       }
                     },
                   ),
@@ -280,18 +305,41 @@ class _ConsultingState extends State<Consulting> {
                   decoration: const InputDecoration(
                     labelText: 'Nombre del Consultorio',
                   ),
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Por favor ingresa el nombre del consultorio';
+                    }
+                    return null; // retorna null si la validación es exitosa
+                  },
                 ),
                 TextFormField(
                   controller: _telefonoController,
                   decoration: const InputDecoration(
                     labelText: 'Teléfono Fijo',
                   ),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly
+                  ], // solo acepta numeros
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Por favor ingresa el teléfono';
+                    } else if (value.length < 7) {
+                      return 'El teléfono debe tener al menos 7 dígitos';
+                    }
+                    return null;
+                  },
                 ),
                 TextFormField(
                   controller: _calleController,
                   decoration: const InputDecoration(
                     labelText: 'Calle y Número',
                   ),
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Por favor ingresa la calle y número';
+                    }
+                    return null;
+                  },
                 ),
                 TextFormField(
                   controller: _codigoPostalController,
@@ -299,6 +347,20 @@ class _ConsultingState extends State<Consulting> {
                   decoration: const InputDecoration(
                     labelText: 'Código Postal',
                   ),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly
+                  ], // solo acepta numeros
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Por favor ingresa el código postal';
+                    } else {
+                      // Validación específica para asegurarse de que el código postal tenga la longitud adecuada
+                      if (value.length != 5) {
+                        return 'El código postal debe tener 5 dígitos';
+                      }
+                    }
+                    return null;
+                  },
                 ),
                 DropdownButtonFormField<String>(
                   items: const [
@@ -353,12 +415,14 @@ class _ConsultingState extends State<Consulting> {
                   onPressed: () async {
                     _guardarConsultorio();
 
-                    await Future.delayed(Duration(milliseconds: 1500));
+                    if (camposvacios != true) {
+                      await Future.delayed(Duration(milliseconds: 1500));
 
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => Calendar()),
-                    );
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => Calendar()),
+                      );
+                    }
                   },
                   child: const Text('Guardar'),
                 ),
@@ -411,11 +475,11 @@ class _ConsultingState extends State<Consulting> {
                     backgroundColor: MaterialStateProperty.resolveWith<Color?>(
                       (Set<MaterialState> states) {
                         if (isOccupied) {
-                          return Colors.red;
+                          return Colors.grey[200];
                         } else if (isSelected) {
-                          return Colors.lightGreenAccent;
+                          return Colors.lightBlue[100];
                         } else {
-                          return Colors.grey[300];
+                          return Colors.grey[350];
                         }
                       },
                     ),
@@ -446,137 +510,148 @@ class _ConsultingState extends State<Consulting> {
   }
 
   void _guardarConsultorio() async {
-    if (selectedConsultorio != null) {
-      if (mounted) {
-        setState(() {
-          // Si hay un consultorio seleccionado, se actualiza en lugar de agregar uno nuevo
+    if (_formKey.currentState!.validate()) {
+      if (selectedConsultorio != null) {
+        if (mounted) {
           setState(() {
-            selectedConsultorio!.nombre = _nombreController.text;
-            selectedConsultorio!.telefono = _telefonoController.text;
-            selectedConsultorio!.direccion = _calleController.text;
-            selectedConsultorio!.codigoPostal =
-                int.tryParse(_codigoPostalController.text) ?? 0;
-            selectedConsultorio!.intervaloAtencion = selectedInterval;
+            // Si hay un consultorio seleccionado, se actualiza en lugar de agregar uno nuevo
+            setState(() {
+              selectedConsultorio!.nombre = _nombreController.text;
+              selectedConsultorio!.telefono = _telefonoController.text;
+              selectedConsultorio!.direccion = _calleController.text;
+              selectedConsultorio!.codigoPostal =
+                  int.tryParse(_codigoPostalController.text) ?? 0;
+              selectedConsultorio!.intervaloAtencion = selectedInterval;
 
-            DatabaseManager.updateConsultorio(selectedConsultorio!);
+              DatabaseManager.updateConsultorio(selectedConsultorio!);
 
-            Map<String, String> horariosSeleccionados = {};
-            for (String day in daysOfWeek) {
-              if (selectedButtonsByDay.containsKey(day) && day == selectedDay) {
-                List<int> buttonsPressed = selectedButtonsByDay[day]!;
-                String horariosStr = buttonsPressed.map((index) {
-                  int startMinute = index * selectedInterval;
-                  int endMinute = (index + 1) * selectedInterval - 1;
-                  String startTime =
-                      '${(startMinute ~/ 60).toString().padLeft(2, '0')}:${(startMinute % 60).toString().padLeft(2, '0')}';
-                  String endTime =
-                      '${(endMinute ~/ 60).toString().padLeft(2, '0')}:${(endMinute % 60).toString().padLeft(2, '0')}';
-                  return '$startTime-$endTime';
-                }).join(',');
-                horariosSeleccionados[day] = horariosStr;
-              } else if (selectedButtonsByDay.containsKey(day)) {
-                List<int> buttonsPressed = selectedButtonsByDay[day]!;
-                String horariosStr = buttonsPressed.map((index) {
-                  int startMinute = index * selectedInterval;
-                  int endMinute = (index + 1) * selectedInterval - 1;
-                  String startTime =
-                      '${(startMinute ~/ 60).toString().padLeft(2, '0')}:${(startMinute % 60).toString().padLeft(2, '0')}';
-                  String endTime =
-                      '${(endMinute ~/ 60).toString().padLeft(2, '0')}:${(endMinute % 60).toString().padLeft(2, '0')}';
-                  return '$startTime-$endTime';
-                }).join(',');
-                horariosSeleccionados[day] = horariosStr;
+              Map<String, String> horariosSeleccionados = {};
+              for (String day in daysOfWeek) {
+                if (selectedButtonsByDay.containsKey(day) &&
+                    day == selectedDay) {
+                  List<int> buttonsPressed = selectedButtonsByDay[day]!;
+                  String horariosStr = buttonsPressed.map((index) {
+                    int startMinute = index * selectedInterval;
+                    int endMinute = (index + 1) * selectedInterval - 1;
+                    String startTime =
+                        '${(startMinute ~/ 60).toString().padLeft(2, '0')}:${(startMinute % 60).toString().padLeft(2, '0')}';
+                    String endTime =
+                        '${(endMinute ~/ 60).toString().padLeft(2, '0')}:${(endMinute % 60).toString().padLeft(2, '0')}';
+                    return '$startTime-$endTime';
+                  }).join(',');
+                  horariosSeleccionados[day] = horariosStr;
+                } else if (selectedButtonsByDay.containsKey(day)) {
+                  List<int> buttonsPressed = selectedButtonsByDay[day]!;
+                  String horariosStr = buttonsPressed.map((index) {
+                    int startMinute = index * selectedInterval;
+                    int endMinute = (index + 1) * selectedInterval - 1;
+                    String startTime =
+                        '${(startMinute ~/ 60).toString().padLeft(2, '0')}:${(startMinute % 60).toString().padLeft(2, '0')}';
+                    String endTime =
+                        '${(endMinute ~/ 60).toString().padLeft(2, '0')}:${(endMinute % 60).toString().padLeft(2, '0')}';
+                    return '$startTime-$endTime';
+                  }).join(',');
+                  horariosSeleccionados[day] = horariosStr;
+                }
               }
-            }
 
-            DatabaseManager.updateHorarioConsultorio(
-              selectedConsultorio!.id!,
-              horariosSeleccionados['Lunes'] ?? "",
-              horariosSeleccionados['Martes'] ?? "",
-              horariosSeleccionados['Miércoles'] ?? "",
-              horariosSeleccionados['Jueves'] ?? "",
-              horariosSeleccionados['Viernes'] ?? "",
-              horariosSeleccionados['Sábado'] ?? "",
-              horariosSeleccionados['Domingo'] ?? "",
-            );
+              DatabaseManager.updateHorarioConsultorio(
+                selectedConsultorio!.id!,
+                horariosSeleccionados['Lunes'] ?? "",
+                horariosSeleccionados['Martes'] ?? "",
+                horariosSeleccionados['Miércoles'] ?? "",
+                horariosSeleccionados['Jueves'] ?? "",
+                horariosSeleccionados['Viernes'] ?? "",
+                horariosSeleccionados['Sábado'] ?? "",
+                horariosSeleccionados['Domingo'] ?? "",
+              );
+            });
           });
-        });
-      }
-    } else {
-      final nuevoConsultorio = Consultorio(
-        nombre: _nombreController.text,
-        telefono: _telefonoController.text,
-        direccion: _calleController.text,
-        codigoPostal: int.tryParse(_codigoPostalController.text) ?? 0,
-        intervaloAtencion: selectedInterval,
-      );
-
-      if (mounted) {
-        setState(() {
-          // Clear the form fields
-          _nombreController.clear();
-          _telefonoController.clear();
-          _calleController.clear();
-          _codigoPostalController.clear();
-          selectedInterval = 60;
-          selectedDay = null;
-          selectedConsultorio = null;
-        });
-      }
-      bool existeConsultorio = consultorios
-          .any((consultorio) => consultorio.nombre == nuevoConsultorio.nombre);
-
-      if (!existeConsultorio) {
-        int consultorioId =
-            await DatabaseManager.insertConsultorio(nuevoConsultorio);
-
-        Map<String, String> horariosSeleccionados = {};
-        for (String day in daysOfWeek) {
-          if (selectedButtonsByDay.containsKey(day)) {
-            List<int> buttonsPressed = selectedButtonsByDay[day]!;
-            String horariosStr = buttonsPressed.map((index) {
-              int startMinute = index * selectedInterval;
-              int endMinute = (index + 1) * selectedInterval - 1;
-              String startTime =
-                  '${(startMinute ~/ 60).toString().padLeft(2, '0')}:${(startMinute % 60).toString().padLeft(2, '0')}';
-              String endTime =
-                  '${(endMinute ~/ 60).toString().padLeft(2, '0')}:${(endMinute % 60).toString().padLeft(2, '0')}';
-              return '$startTime-$endTime';
-            }).join(',');
-            horariosSeleccionados[day] = horariosStr;
-          }
         }
-
-        DatabaseManager.insertHorarioConsultorio(
-          consultorioId,
-          horariosSeleccionados['Lunes'] ?? '',
-          horariosSeleccionados['Martes'] ?? '',
-          horariosSeleccionados['Miércoles'] ?? '',
-          horariosSeleccionados['Jueves'] ?? '',
-          horariosSeleccionados['Viernes'] ?? '',
-          horariosSeleccionados['Sábado'] ?? '',
-          horariosSeleccionados['Domingo'] ?? '',
+      } else {
+        final nuevoConsultorio = Consultorio(
+          nombre: _nombreController.text,
+          telefono: _telefonoController.text,
+          direccion: _calleController.text,
+          codigoPostal: int.tryParse(_codigoPostalController.text) ?? 0,
+          intervaloAtencion: selectedInterval,
         );
 
         if (mounted) {
           setState(() {
-            // Add the new consultorio to the list
-            consultorios.add(nuevoConsultorio);
-            hasConsultorios = true;
+            // Clear the form fields
+            _nombreController.clear();
+            _telefonoController.clear();
+            _calleController.clear();
+            _codigoPostalController.clear();
+            selectedInterval = 60;
+            selectedDay = null;
+            selectedConsultorio = null;
           });
         }
-      } else {
-        if (mounted) {
-          setState(() {
-            // Show an error message
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Ya existe un consultorio con el mismo nombre.'),
-              ),
-            );
-          });
+        bool existeConsultorio = consultorios.any(
+            (consultorio) => consultorio.nombre == nuevoConsultorio.nombre);
+
+        if (!existeConsultorio) {
+          int consultorioId =
+              await DatabaseManager.insertConsultorio(nuevoConsultorio);
+
+          Map<String, String> horariosSeleccionados = {};
+          for (String day in daysOfWeek) {
+            if (selectedButtonsByDay.containsKey(day)) {
+              List<int> buttonsPressed = selectedButtonsByDay[day]!;
+              String horariosStr = buttonsPressed.map((index) {
+                int startMinute = index * selectedInterval;
+                int endMinute = (index + 1) * selectedInterval - 1;
+                String startTime =
+                    '${(startMinute ~/ 60).toString().padLeft(2, '0')}:${(startMinute % 60).toString().padLeft(2, '0')}';
+                String endTime =
+                    '${(endMinute ~/ 60).toString().padLeft(2, '0')}:${(endMinute % 60).toString().padLeft(2, '0')}';
+                return '$startTime-$endTime';
+              }).join(',');
+              horariosSeleccionados[day] = horariosStr;
+            }
+          }
+
+          DatabaseManager.insertHorarioConsultorio(
+            consultorioId,
+            horariosSeleccionados['Lunes'] ?? '',
+            horariosSeleccionados['Martes'] ?? '',
+            horariosSeleccionados['Miércoles'] ?? '',
+            horariosSeleccionados['Jueves'] ?? '',
+            horariosSeleccionados['Viernes'] ?? '',
+            horariosSeleccionados['Sábado'] ?? '',
+            horariosSeleccionados['Domingo'] ?? '',
+          );
+
+          if (mounted) {
+            setState(() {
+              // Add the new consultorio to the list
+              consultorios.add(nuevoConsultorio);
+              hasConsultorios = true;
+            });
+          }
+        } else {
+          if (mounted) {
+            setState(() {
+              // Show an error message
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content:
+                      Text('Ya existe un consultorio con el mismo nombre.'),
+                ),
+              );
+            });
+          }
         }
       }
+    } else {
+      camposvacios = true;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Por favor, complete todos los campos.'),
+        ),
+      );
     }
   }
 }

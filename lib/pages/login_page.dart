@@ -5,6 +5,7 @@ import 'package:calendario_manik/pages/resetPassword_page.dart';
 import 'package:calendario_manik/widgets/custom_scaffold.dart';
 import 'package:calendario_manik/pages/consulting_page.dart';
 import 'package:calendario_manik/database/database.dart';
+import 'dart:collection';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -24,10 +25,6 @@ class _LoginState extends State<Login> {
     super.initState();
   }
 
-  // Datos estáticos para verificar el inicio de sesión
-  final String usuarioCorrecto = '1';
-  final String contrasenaCorrecta = '1';
-
   Future<void> _loadConsultorios() async {
     List<Map<String, dynamic>> consultoriosData =
         await DatabaseManager.getConsultoriosData();
@@ -44,16 +41,37 @@ class _LoginState extends State<Login> {
     }
   }
 
-  void _iniciarSesion() {
+  void _iniciarSesion() async {
     String email = emailController.text.trim();
     String password = passwordController.text.trim();
 
-    if (email == usuarioCorrecto && password == contrasenaCorrecta) {
+    List<Map<String, dynamic>> usuarios = await DatabaseManager.getUsuario();
+    final user = usuarios.firstWhere(
+        (u) => u['correo'] == email && u['contrasena'] == password,
+        orElse: () => {});
+
+    if (user.isNotEmpty) {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => Calendar()),
       );
-    } else {}
+    } else {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Error'),
+          content: Text('Correo electrónico o contraseña incorrectos'),
+          actions: [
+            TextButton(
+              child: Text('Aceptar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   @override

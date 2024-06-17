@@ -10,7 +10,8 @@ import 'package:calendario_manik/database/database.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Calendar extends StatefulWidget {
-  const Calendar({Key? key}) : super(key: key);
+  final Map<String, dynamic>? user;
+  const Calendar({Key? key, this.user}) : super(key: key);
 
   @override
   State<Calendar> createState() => _CalendarState();
@@ -38,6 +39,8 @@ class _CalendarState extends State<Calendar> {
 
   DateTime? _lastTap;
   int _tapInterval = 300;
+
+  int usuario_id = 0;
 
   Future<void> _loadConsultorios() async {
     List<Consultorio> consultoriosList = [];

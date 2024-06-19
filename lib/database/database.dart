@@ -12,7 +12,7 @@ class DatabaseManager {
         host: 'localhost',
         database: 'medicalmanik',
         username: 'postgres',
-        password: '123',
+        password: 'DJE20ben',
       ),
       settings: ConnectionSettings(sslMode: SslMode.disable),
     );
@@ -305,7 +305,7 @@ class DatabaseManager {
 
       await conn.execute(
         Sql.named(
-            "INSERT INTO paciente(id, nombre, ap_paterno, ap_materno, fecha_nacimiento, sexo, colonia_id, telefono_movil, telefono_fijo, correo, avatar, fecha_registro, direccion, identificador, curp, codigo_postal, municipio_id, estado_id, pais, pais_id, entidad_nacimiento_id, genero_id) VALUES (@id, @nombre, @ap_paterno, @ap_materno, @fechaNacimiento, @sexo, @coloniaId, @telefonoMovil, @telefonoFijo, @correo, @avatar, @fechaRegistro, @direccion, @identificador, @curp, @codigoPostal, @municipioId, @estadoId, @pais, @paisId, @entidadNacimientoId, @generoId)"),
+            "INSERT INTO paciente(id, nombre, ap_paterno, ap_materno, fecha_nacimiento, sexo, telefono_movil, telefono_fijo, correo,  direccion, identificador, curp, codigo_postal) VALUES (@id, @nombre, @ap_paterno, @ap_materno, @fechaNacimiento, @sexo, @telefonoMovil, @telefonoFijo, @correo, @direccion, @identificador, @curp, @codigoPostal)"),
         parameters: {
           "id": newId,
           "nombre": paciente.nombre,
@@ -313,22 +313,22 @@ class DatabaseManager {
           "ap_materno": paciente.apMaterno,
           "fechaNacimiento": paciente.fechaNacimiento,
           "sexo": paciente.sexo,
-          "coloniaId": paciente.coloniaId,
+          //"coloniaId": paciente.coloniaId,
           "telefonoMovil": paciente.telefonoMovil,
           "telefonoFijo": paciente.telefonoFijo,
           "correo": paciente.correo,
-          "avatar": paciente.avatar,
-          "fechaRegistro": paciente.fechaRegistro.toIso8601String(),
+          //"avatar": paciente.avatar,
+          //"fechaRegistro": paciente.fechaRegistro.toIso8601String(),
           "direccion": paciente.direccion,
           "identificador": paciente.identificador,
           "curp": paciente.curp,
           "codigoPostal": paciente.codigoPostal,
-          "municipioId": paciente.municipioId,
-          "estadoId": paciente.estadoId,
-          "pais": paciente.pais,
-          "paisId": paciente.paisId,
-          "entidadNacimientoId": paciente.entidadNacimientoId,
-          "generoId": paciente.generoId,
+          //"municipioId": paciente.municipioId,
+          // "estadoId": paciente.estadoId,
+          // "pais": paciente.pais,
+          // "paisId": paciente.paisId,
+          // "entidadNacimientoId": paciente.entidadNacimientoId,
+          // "generoId": paciente.generoId,
         },
       );
 
@@ -444,7 +444,6 @@ class DatabaseManager {
     }
   }
 
-
   static Future<List<Map<String, dynamic>>> getUsuario() async {
     List<Map<String, dynamic>> usuarios = [];
     try {
@@ -457,6 +456,7 @@ class DatabaseManager {
           'contrasena': row[2],
         });
       }
+
       await conn.close();
     } catch (e) {
       print('Error: $e');
@@ -464,32 +464,29 @@ class DatabaseManager {
     return usuarios;
   }
 
-
-static Future<List<Map<String, dynamic>>> getPatients() async {
-  try {
-    final conn = await _connect();
-    final result = await conn.execute("SELECT * FROM paciente");
-    List<Map<String, dynamic>> patients = [];
-    for (var row in result) {
-      patients.add({
-        'id': row[0],
-        'nombre': row[1],
-        'apPaterno': row[2],
-        'apMaterno': row[3],
-        'fechaNacimiento': row[4],
-        'sexo': row[5],
-        'telefonoMovil': row[7],
-        'telefonoFijo': row[8],
-        'correo': row[9],
-      });
+  static Future<List<Map<String, dynamic>>> getPatients() async {
+    try {
+      final conn = await _connect();
+      final result = await conn.execute("SELECT * FROM paciente");
+      List<Map<String, dynamic>> patients = [];
+      for (var row in result) {
+        patients.add({
+          'id': row[0],
+          'nombre': row[1],
+          'apPaterno': row[2],
+          'apMaterno': row[3],
+          'fechaNacimiento': row[4],
+          'sexo': row[5],
+          'telefonoMovil': row[7],
+          'telefonoFijo': row[8],
+          'correo': row[9],
+        });
+      }
+      await conn.close();
+      return patients;
+    } catch (e) {
+      print('Error: $e');
+      return [];
     }
-    await conn.close();
-    return patients;
-  } catch (e) {
-    print('Error: $e');
-    return [];
   }
-}
-
-
 }

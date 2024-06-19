@@ -252,24 +252,24 @@ class _PacienteContentState extends State<PacienteContent> {
                           apMaterno: apMaternoController.text,
                           fechaNacimiento: fechaNacimientoController.text,
                           sexo: sexoController.text,
-                          coloniaId: int.parse(coloniaIdController.text),
+                          //coloniaId: int.parse(coloniaIdController.text),
                           telefonoMovil: telefonoMovilController.text,
                           telefonoFijo: telefonoFijoController.text,
                           correo: correoController.text,
-                          avatar: avatarController.text,
-                          fechaRegistro:
-                              DateTime.parse(fechaRegistroController.text),
+                          //avatar: avatarController.text,
+                          //fechaRegistro:
+                          //DateTime.parse(fechaRegistroController.text),
                           direccion: direccionController.text,
                           identificador: identificadorController.text,
                           curp: curpController.text,
                           codigoPostal: int.parse(codigoPostalController.text),
-                          municipioId: int.parse(municipioIdController.text),
-                          estadoId: int.parse(estadoIdController.text),
+                          //municipioId: int.parse(municipioIdController.text),
+                          //estadoId: int.parse(estadoIdController.text),
                           pais: paisController.text,
-                          paisId: int.parse(paisIdController.text),
-                          entidadNacimientoId:
-                              entidadNacimientoIdController.text,
-                          generoId: int.parse(generoIdController.text),
+                          //paisId: int.parse(paisIdController.text),
+                          //entidadNacimientoId:
+                          //    entidadNacimientoIdController.text,
+                          //generoId: int.parse(generoIdController.text),
                         ),
                       );
                       ScaffoldMessenger.of(context).showSnackBar(

@@ -1,6 +1,7 @@
 import 'package:calendario_manik/models/paciente.dart';
 import 'package:flutter/material.dart';
 import 'package:calendario_manik/database/database.dart';
+import 'package:calendario_manik/pages/patients_page.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
@@ -36,8 +37,7 @@ class _PacienteContentState extends State<PacienteContent> {
   TextEditingController entidadNacimientoIdController = TextEditingController();
   TextEditingController generoIdController = TextEditingController();
 
-  String selectedSexo = 'Masculino';
-  final List<String> opcionesSexo = ['Masculino', 'Femenino'];
+  String selectedSexo = 'M';
 
   Future<void> fetchLocationData(String postalCode) async {
     final response = await http.get(Uri.parse(
@@ -118,30 +118,25 @@ class _PacienteContentState extends State<PacienteContent> {
                 },
               ),
               DropdownButtonFormField<String>(
-                value: selectedSexo,
-                items: opcionesSexo.map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  if (newValue != null) {
+                  items: const [
+                    DropdownMenuItem<String>(
+                      value: 'M',
+                      child: Text('Masculino'),
+                    ),
+                    DropdownMenuItem<String>(
+                      value: 'F',
+                      child: Text('Femenino'),
+                    ),
+                  ],
+                  value: selectedSexo,
+                  onChanged: (value) {
                     setState(() {
-                      selectedSexo = newValue;
-                      sexoController.text =
-                          (newValue == 'Masculino') ? 'M' : 'F';
+                      selectedSexo = value!;
                     });
-                  }
-                },
-                decoration: InputDecoration(labelText: 'Sexo'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'El sexo es obligatorio';
-                  }
-                  return null;
-                },
-              ),
+                  },
+                  decoration: const InputDecoration(
+                    labelText: 'Sexo',
+                  )),
               // TextFormField(
               //   controller: coloniaIdController,
               //   decoration: InputDecoration(labelText: 'ColoniaId'),
@@ -154,6 +149,14 @@ class _PacienteContentState extends State<PacienteContent> {
                   FilteringTextInputFormatter.digitsOnly,
                   LengthLimitingTextInputFormatter(10),
                 ],
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return 'Por favor ingresa el teléfono';
+                  } else if (value.length < 7) {
+                    return 'El teléfono debe tener al menos 7 dígitos';
+                  }
+                  return null;
+                },
               ),
               TextFormField(
                 controller: telefonoFijoController,
@@ -163,6 +166,14 @@ class _PacienteContentState extends State<PacienteContent> {
                   FilteringTextInputFormatter.digitsOnly,
                   LengthLimitingTextInputFormatter(10),
                 ],
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return 'Por favor ingresa el teléfono';
+                  } else if (value.length < 7) {
+                    return 'El teléfono debe tener al menos 7 dígitos';
+                  }
+                  return null;
+                },
               ),
               TextFormField(
                 controller: correoController,
@@ -215,18 +226,18 @@ class _PacienteContentState extends State<PacienteContent> {
                   }
                 },
               ),
-              TextFormField(
-                controller: municipioIdController,
-                decoration: InputDecoration(labelText: 'Municipio'),
-              ),
-              TextFormField(
-                controller: estadoIdController,
-                decoration: InputDecoration(labelText: 'Estado'),
-              ),
-              TextFormField(
-                controller: paisIdController,
-                decoration: InputDecoration(labelText: 'País'),
-              ),
+              // TextFormField(
+              //   controller: municipioIdController,
+              //   decoration: InputDecoration(labelText: 'Municipio'),
+              // ),
+              // TextFormField(
+              //   controller: estadoIdController,
+              //   decoration: InputDecoration(labelText: 'Estado'),
+              // ),
+              // TextFormField(
+              //   controller: paisIdController,
+              //   decoration: InputDecoration(labelText: 'País'),
+              // ),
               // TextFormField(
               //   controller: entidadNacimientoIdController,
               //   decoration:
@@ -246,34 +257,39 @@ class _PacienteContentState extends State<PacienteContent> {
                       fechaRegistroController.text = formattedDate;
                       await DatabaseManager.insertPaciente(
                         Paciente(
-                          id: 0,
                           nombre: nameController.text,
                           apPaterno: apPaternoController.text,
                           apMaterno: apMaternoController.text,
                           fechaNacimiento: fechaNacimientoController.text,
-                          sexo: sexoController.text,
+                          sexo: selectedSexo,
                           //coloniaId: int.parse(coloniaIdController.text),
                           telefonoMovil: telefonoMovilController.text,
                           telefonoFijo: telefonoFijoController.text,
                           correo: correoController.text,
-                          //avatar: avatarController.text,
-                          //fechaRegistro:
-                          //DateTime.parse(fechaRegistroController.text),
+                          // avatar: avatarController.text,
+                          // fechaRegistro:
+                          //     DateTime.parse(fechaRegistroController.text),
                           direccion: direccionController.text,
                           identificador: identificadorController.text,
                           curp: curpController.text,
                           codigoPostal: int.parse(codigoPostalController.text),
-                          //municipioId: int.parse(municipioIdController.text),
-                          //estadoId: int.parse(estadoIdController.text),
-                          pais: paisController.text,
-                          //paisId: int.parse(paisIdController.text),
-                          //entidadNacimientoId:
-                          //    entidadNacimientoIdController.text,
-                          //generoId: int.parse(generoIdController.text),
+                          // municipioId: int.parse(municipioIdController.text),
+                          // estadoId: int.parse(estadoIdController.text),
+                          // pais: paisController.text,
+                          // paisId: int.parse(paisIdController.text),
+                          // entidadNacimientoId:
+                          //     entidadNacimientoIdController.text,
+                          // generoId: int.parse(generoIdController.text),
                         ),
                       );
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Paciente guardado con éxito')),
+                      );
+                      await Future.delayed(Duration(milliseconds: 1500));
+
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => Patients()),
                       );
                     } catch (e) {
                       print('Error al insertar el paciente: $e');

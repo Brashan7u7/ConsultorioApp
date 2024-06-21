@@ -9,7 +9,8 @@ class DatabaseManager {
   static Future<Connection> _connect() async {
     return await Connection.open(
       Endpoint(
-        host: 'localhost',
+        host: '192.168.1.71',
+        port: 5432,
         database: 'medicalmanik',
         username: 'postgres',
         password: 'DJE20ben',
@@ -25,7 +26,7 @@ class DatabaseManager {
 
       await conn.close();
     } catch (e) {
-      print('Error: $e');
+      print('No se ha conectado a la base de datos!!!!: $e');
     }
   }
 
@@ -305,7 +306,7 @@ class DatabaseManager {
 
       await conn.execute(
         Sql.named(
-            "INSERT INTO paciente(id, nombre, ap_paterno, ap_materno, fecha_nacimiento, sexo, telefono_movil, telefono_fijo, correo,  direccion, identificador, curp, codigo_postal) VALUES (@id, @nombre, @ap_paterno, @ap_materno, @fechaNacimiento, @sexo, @telefonoMovil, @telefonoFijo, @correo, @direccion, @identificador, @curp, @codigoPostal)"),
+            "INSERT INTO paciente(id, nombre, ap_paterno, ap_materno, fecha_nacimiento, sexo, telefono_movil, telefono_fijo, correo, direccion, identificador, curp, codigo_postal) VALUES (@id, @nombre, @ap_paterno, @ap_materno, @fechaNacimiento, @sexo, @telefonoMovil, @telefonoFijo, @correo, @direccion, @identificador, @curp, @codigoPostal)"),
         parameters: {
           "id": newId,
           "nombre": paciente.nombre,
@@ -313,17 +314,18 @@ class DatabaseManager {
           "ap_materno": paciente.apMaterno,
           "fechaNacimiento": paciente.fechaNacimiento,
           "sexo": paciente.sexo,
-          //"coloniaId": paciente.coloniaId,
           "telefonoMovil": paciente.telefonoMovil,
           "telefonoFijo": paciente.telefonoFijo,
           "correo": paciente.correo,
+          //"avatar": paciente.avatar,
+          //"fechaRegistro": paciente.fechaRegistro.toIso8601String(),
           //"avatar": paciente.avatar,
           //"fechaRegistro": paciente.fechaRegistro.toIso8601String(),
           "direccion": paciente.direccion,
           "identificador": paciente.identificador,
           "curp": paciente.curp,
           "codigoPostal": paciente.codigoPostal,
-          //"municipioId": paciente.municipioId,
+          // "municipioId": paciente.municipioId,
           // "estadoId": paciente.estadoId,
           // "pais": paciente.pais,
           // "paisId": paciente.paisId,
@@ -464,29 +466,43 @@ class DatabaseManager {
     return usuarios;
   }
 
-  static Future<List<Map<String, dynamic>>> getPatients() async {
+  static Future<List<Map<String, dynamic>>> getPacientes() async {
+    List<Map<String, dynamic>> pacientes = [];
     try {
       final conn = await _connect();
       final result = await conn.execute("SELECT * FROM paciente");
-      List<Map<String, dynamic>> patients = [];
       for (var row in result) {
-        patients.add({
+        pacientes.add({
           'id': row[0],
           'nombre': row[1],
-          'apPaterno': row[2],
-          'apMaterno': row[3],
-          'fechaNacimiento': row[4],
+          'ap_paterno': row[2],
+          'ap_materno': row[3],
+          'fecha_nacimiento': row[4],
           'sexo': row[5],
-          'telefonoMovil': row[7],
-          'telefonoFijo': row[8],
+          'telefono_movil': row[7],
+          'telefono_fijo': row[8],
           'correo': row[9],
+          'direccion': row[12],
+          'identificador': row[13],
         });
       }
       await conn.close();
-      return patients;
     } catch (e) {
       print('Error: $e');
-      return [];
+    }
+    return pacientes;
+  }
+
+  static Future<void> deletePaciente(int id) async {
+    try {
+      final conn = await _connect();
+      await conn.execute(
+        Sql.named("DELETE FROM paciente WHERE id = @id"),
+        parameters: {"id": id},
+      );
+      await conn.close();
+    } catch (e) {
+      print('Error al eliminar el paciente: $e');
     }
   }
 }

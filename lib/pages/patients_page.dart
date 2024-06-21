@@ -2,27 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:calendario_manik/pages/calendar_page.dart';
 import 'package:calendario_manik/pages/add_page.dart';
 import 'package:calendario_manik/database/database.dart';
+import 'package:intl/intl.dart';
 
 class Patients extends StatefulWidget {
-  final String? name,
-      sexo,
-      genero,
-      primerPat,
-      segundPat,
-      fechaNaci,
-      correo,
-      telefono;
-
   Patients({
     Key? key,
-    this.name,
-    this.sexo,
-    this.genero,
-    this.primerPat,
-    this.segundPat,
-    this.fechaNaci,
-    this.correo,
-    this.telefono,
   }) : super(key: key);
 
   @override
@@ -31,47 +15,46 @@ class Patients extends StatefulWidget {
 
 class _PatientsState extends State<Patients> {
   int currentIndex = 2;
-  List<DataPatients> _allPatients = [];
+  final List<DataPatients> _allPatients = [];
+
   List<DataPatients> _filteredPatients = [];
   final TextEditingController _searchController = TextEditingController();
 
+  @override
+  void initState() {
+    _filteredPatients.addAll(_allPatients);
+    super.initState();
+    _loaderPacientes();
+  }
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   _fetchPatients(); // Llama a la función para obtener los pacientes desde la base de datos
-  // }
+  Future<void> _loaderPacientes() async {
+    List<Map<String, dynamic>> pacientesData =
+        await DatabaseManager.getPacientes();
 
-  // Future<void> _fetchPatients() async {
-  //   try {
-  //     // Obtener los datos desde la base de datos
-  //     List<Map<String, dynamic>> patientsData = await getPatients();
+    List<DataPatients> pacientesList = pacientesData.map((data) {
+      return DataPatients(
+        id: data['id'],
+        name: data['nombre'] ?? '',
+        sexo: data['sexo'] ?? '',
+        primerPat: data['ap_paterno'] ?? '',
+        segundPat: data['ap_materno'] ?? '',
+        fechaNaci: data['fecha_nacimiento'] != null
+            ? DateFormat('dd-MM-yyyy')
+                .format(data['fecha_nacimiento'] as DateTime)
+            : '',
+        correo: data['correo'] ?? '',
+        telefonomov: data['telefono_movil'] ?? '',
+        telefonofij: data['telefono_fijo'] ?? '',
+        direccion: data['direccion'] ?? '',
+        identificador: data['identificador'] ?? '',
+      );
+    }).toList();
 
-      
-  //     List<DataPatients> patients = patientsData.map((data) {
-  //       return DataPatients(
-  //         id: data['id'].toString(),
-  //         name: data['nombre'],
-  //         sexo: data['sexo'] == 'M' ? 'Masculino' : 'Femenino',
-  //         genero: data['sexo'] == 'M' ? 'Hombre' : 'Mujer',
-  //         primerPat: data['apPaterno'],
-  //         segundPat: data['apMaterno'],
-  //         fechaNaci: data['fechaNacimiento'].toString(),
-  //         correo: data['correo'],
-  //         telefono: data['telefonoMovil'] ?? data['telefonoFijo'],
-  //       );
-  //     }).toList();
-
-  //     // Actualizar las listas de pacientes
-  //     setState(() {
-  //       _allPatients = patients;
-  //       _filteredPatients = patients;
-  //     });
-  //   } catch (e) {
-  //     print('Error fetching patients: $e');
-  //   }
-  // }
-
+    setState(() {
+      _allPatients.addAll(pacientesList);
+      _filteredPatients = _allPatients;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -113,8 +96,8 @@ class _PatientsState extends State<Patients> {
                       _viewPatient(context, _filteredPatients[index]);
                     },
                     title: Text(
-                        "${_filteredPatients[index].name} ${_filteredPatients[index].primerPat} ${_filteredPatients[index].segundPat}"),
-                    subtitle: Text(_filteredPatients[index].telefono),
+                        "${_filteredPatients[index].name} ${_filteredPatients[index].primerPat}"),
+                    subtitle: Text(_filteredPatients[index].telefonomov),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -248,12 +231,14 @@ class _PatientsState extends State<Patients> {
             children: [
               Text("Nombre: ${patient.name}"),
               Text("Sexo: ${patient.sexo}"),
-              Text("Género: ${patient.genero}"),
               Text("Primer apellido: ${patient.primerPat}"),
               Text("Segundo apellido: ${patient.segundPat}"),
               Text("Fecha de nacimiento: ${patient.fechaNaci}"),
               Text("Correo: ${patient.correo}"),
-              Text("Teléfono: ${patient.telefono}"),
+              Text("Teléfono Movil: ${patient.telefonomov}"),
+              Text("Teléfono Fijo: ${patient.telefonofij}"),
+              Text("Direccion: ${patient.direccion}"),
+              Text("Identificador: ${patient.identificador}"),
             ],
           ),
         );
@@ -271,7 +256,8 @@ class _PatientsState extends State<Patients> {
               "¿Estás seguro de que quieres eliminar a ${patient.name} ${patient.primerPat}?"),
           actions: [
             TextButton(
-              onPressed: () {
+              onPressed: () async {
+                await DatabaseManager.deletePaciente(patient.id);
                 setState(() {
                   _allPatients.remove(patient);
                   _filteredPatients.remove(patient);
@@ -294,25 +280,29 @@ class _PatientsState extends State<Patients> {
 }
 
 class DataPatients {
-  String id;
+  int id;
   String name;
   String sexo;
-  String genero;
   String primerPat;
   String segundPat;
   String fechaNaci;
   String correo;
-  String telefono;
+  String telefonomov;
+  String telefonofij;
+  String direccion;
+  String identificador;
 
   DataPatients({
     required this.id,
     required this.name,
     required this.sexo,
-    required this.genero,
     required this.primerPat,
     required this.segundPat,
     required this.fechaNaci,
     required this.correo,
-    required this.telefono,
+    required this.telefonomov,
+    required this.telefonofij,
+    required this.direccion,
+    required this.identificador,
   });
 }

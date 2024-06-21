@@ -13,7 +13,7 @@ class DatabaseManager {
         port: 5432,
         database: 'medicalmanik',
         username: 'postgres',
-        password: 'DJE20ben',
+        password: '123',
       ),
       settings: ConnectionSettings(sslMode: SslMode.disable),
     );

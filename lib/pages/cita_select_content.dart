@@ -2,14 +2,21 @@ import 'package:calendario_manik/pages/add_page.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class CitaSelectContent extends StatelessWidget {
+class CitaSelectContent extends StatefulWidget {
   final TextEditingController fechaController;
   final TextEditingController horaController;
- 
-  TextEditingController nameController = TextEditingController(text: "");
 
-  CitaSelectContent(
-      {required this.fechaController, required this.horaController});
+  const CitaSelectContent(
+      {Key? key, required this.fechaController, required this.horaController})
+      : super(key: key);
+
+  @override
+  State<CitaSelectContent> createState() => _CitaSelectContentState();
+}
+
+class _CitaSelectContentState extends State<CitaSelectContent> {
+  TextEditingController nameController = TextEditingController(text: "");
+  int selectedInterval = 60;
 
   @override
   Widget build(BuildContext context) {
@@ -53,25 +60,49 @@ class CitaSelectContent extends StatelessWidget {
           ],
         ),
         TextFormField(
-          controller: fechaController,
+          controller: widget.fechaController,
           readOnly: true,
           decoration: const InputDecoration(labelText: 'Fecha'),
         ),
         TextFormField(
-          controller: horaController,
+          controller: widget.horaController,
           readOnly: true,
           decoration: const InputDecoration(labelText: 'Hora'),
         ),
-        TextFormField(
-          
-          readOnly: true,
-          decoration: const InputDecoration(labelText: 'Duracion'),
+        DropdownButtonFormField<String>(
+          items: const [
+            DropdownMenuItem<String>(
+              value: '60',
+              child: Text('60 minutos'),
+            ),
+            DropdownMenuItem<String>(
+              value: '30',
+              child: Text('30 minutos'),
+            ),
+            DropdownMenuItem<String>(
+              value: '20',
+              child: Text('20 minutos'),
+            ),
+            DropdownMenuItem<String>(
+              value: '15',
+              child: Text('15 minutos'),
+            ),
+          ],
+          value: selectedInterval.toString(),
+          onChanged: (value) {
+            setState(() {
+              selectedInterval = int.parse(value!);
+            });
+          },
+          decoration: const InputDecoration(
+            labelText: 'Intervalo de Atención (minutos)',
+          ),
         ),
         const SizedBox(height: 20.0),
         ElevatedButton(
           onPressed: () {
-            if (fechaController.text.isNotEmpty &&
-                horaController.text.isNotEmpty) {
+            if (widget.fechaController.text.isNotEmpty &&
+                widget.horaController.text.isNotEmpty) {
               // Guardar cita seleccionada o hacer algo más
             }
           },

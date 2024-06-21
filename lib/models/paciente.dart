@@ -6,9 +6,12 @@ class Paciente {
   String fechaNacimiento;
   String sexo;
   //int coloniaId;
+  //int coloniaId;
   String telefonoMovil;
   String telefonoFijo;
   String correo;
+  //String avatar;
+  //DateTime fechaRegistro;
   //String avatar;
   //DateTime fechaRegistro;
   String direccion;
@@ -29,6 +32,7 @@ class Paciente {
     required this.apMaterno,
     required this.fechaNacimiento,
     required this.sexo,
+    //required this.coloniaId,
     //required this.coloniaId,
     required this.telefonoMovil,
     required this.telefonoFijo,

@@ -13,7 +13,7 @@ class DatabaseManager {
         port: 5432,
         database: 'medicalmanik',
         username: 'postgres',
-        password: '123',
+        password: 'DJE20ben',
       ),
       settings: ConnectionSettings(sslMode: SslMode.disable),
     );
@@ -319,6 +319,8 @@ class DatabaseManager {
           "correo": paciente.correo,
           //"avatar": paciente.avatar,
           //"fechaRegistro": paciente.fechaRegistro.toIso8601String(),
+          //"avatar": paciente.avatar,
+          //"fechaRegistro": paciente.fechaRegistro.toIso8601String(),
           "direccion": paciente.direccion,
           "identificador": paciente.identificador,
           "curp": paciente.curp,
@@ -456,6 +458,7 @@ class DatabaseManager {
           'contrasena': row[2],
         });
       }
+
       await conn.close();
     } catch (e) {
       print('Error: $e');

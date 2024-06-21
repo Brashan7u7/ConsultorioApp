@@ -1,32 +1,42 @@
 import 'package:calendario_manik/pages/add_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_switch/flutter_switch.dart';
 import 'package:intl/intl.dart';
 
-class CitaSelectContent extends StatelessWidget {
+class CitaSelectContent extends StatefulWidget {
   final TextEditingController fechaController;
   final TextEditingController horaController;
- 
-  TextEditingController nameController = TextEditingController(text: "");
 
   CitaSelectContent(
       {required this.fechaController, required this.horaController});
 
   @override
-  Widget build(BuildContext context) {
-    void _openAddPatientPage() {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => Add(
-            isCitaInmediata: false,
-            isEvento: false,
-            isPacient: true,
-            isCitaPro: false,
-          ),
-        ),
-      );
-    }
+  _CitaSelectContentState createState() => _CitaSelectContentState();
+}
 
+class _CitaSelectContentState extends State<CitaSelectContent> {
+  int selectedInterval = 60;
+  TextEditingController nameController = TextEditingController(text: "");
+  String valor = "Consulta";
+
+  void _openAddPatientPage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => Add(
+          isCitaInmediata: false,
+          isEvento: false,
+          isPacient: true,
+          isCitaPro: false,
+        ),
+      ),
+    );
+  }
+
+  bool status = false;
+  @override
+  Widget build(BuildContext context) {
+    TextEditingController notaController = TextEditingController(text: "");
     return Column(
       children: [
         Row(
@@ -53,25 +63,121 @@ class CitaSelectContent extends StatelessWidget {
           ],
         ),
         TextFormField(
-          controller: fechaController,
+          controller: widget.fechaController,
           readOnly: true,
           decoration: const InputDecoration(labelText: 'Fecha'),
         ),
         TextFormField(
-          controller: horaController,
+          controller: widget.horaController,
           readOnly: true,
           decoration: const InputDecoration(labelText: 'Hora'),
         ),
+        DropdownButtonFormField<String>(
+          items: const [
+            DropdownMenuItem<String>(
+              value: '60',
+              child: Text('60 minutos'),
+            ),
+            DropdownMenuItem<String>(
+              value: '30',
+              child: Text('30 minutos'),
+            ),
+            DropdownMenuItem<String>(
+              value: '20',
+              child: Text('20 minutos'),
+            ),
+            DropdownMenuItem<String>(
+              value: '15',
+              child: Text('15 minutos'),
+            ),
+          ],
+          value: selectedInterval.toString(),
+          onChanged: (value) {
+            setState(() {
+              selectedInterval = int.parse(value!);
+            });
+          },
+          decoration: const InputDecoration(
+            labelText: 'Intervalo de Atención (minutos)',
+          ),
+        ),
+        const SizedBox(height: 20.0),
+        Row(
+          children: [
+            Expanded(
+              child: DropdownButtonFormField<String>(
+                items: const [
+                  DropdownMenuItem<String>(
+                    value: 'Consulta',
+                    child: Text('Consulta'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: 'Valoración',
+                    child: Text('Valoración'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: 'Estudios',
+                    child: Text('Estudios'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: 'Vacunas',
+                    child: Text('Vacunas'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: 'Nota de evolución',
+                    child: Text('Nota de evolución'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: 'interconsulta',
+                    child: Text('Nota de interconsulta'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: 'Rehabilitación',
+                    child: Text('Rehabilitación'),
+                  ),
+                ],
+                value: valor,
+                onChanged: (value) {
+                  setState(() {
+                    valor = value!;
+                  });
+                },
+                decoration: const InputDecoration(
+                  labelText: 'Motivo de consulta',
+                ),
+              ),
+            ),
+            const SizedBox(width: 20.0),
+            Expanded(
+              child: FlutterSwitch(
+                activeText: "Subsecuente",
+                inactiveText: "Primera ves",
+                value: status,
+                valueFontSize: 11.0,
+                width: 110,
+                height: 30,
+                borderRadius: 30.0,
+                showOnOff: true,
+                onToggle: (val) {
+                  setState(() {
+                    status = val;
+                  });
+                },
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 20.0),
         TextFormField(
-          
-          readOnly: true,
-          decoration: const InputDecoration(labelText: 'Duracion'),
+          controller: notaController,
+          decoration: const InputDecoration(labelText: 'Nota para cita'),
+          maxLines: 3,
         ),
         const SizedBox(height: 20.0),
         ElevatedButton(
           onPressed: () {
-            if (fechaController.text.isNotEmpty &&
-                horaController.text.isNotEmpty) {
+            if (widget.fechaController.text.isNotEmpty &&
+                widget.horaController.text.isNotEmpty) {
               // Guardar cita seleccionada o hacer algo más
             }
           },

@@ -1,4 +1,7 @@
+import 'package:calendario_manik/database/database.dart';
+import 'package:calendario_manik/models/evento.dart';
 import 'package:calendario_manik/pages/add_page.dart';
+import 'package:calendario_manik/pages/calendar_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_switch/flutter_switch.dart';
 import 'package:intl/intl.dart';
@@ -7,8 +10,10 @@ class CitaSelectContent extends StatefulWidget {
   final TextEditingController fechaController;
   final TextEditingController horaController;
 
-  CitaSelectContent(
-      {required this.fechaController, required this.horaController});
+  CitaSelectContent({
+    required this.fechaController,
+    required this.horaController,
+  });
 
   @override
   _CitaSelectContentState createState() => _CitaSelectContentState();
@@ -18,6 +23,8 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
   int selectedInterval = 60;
   TextEditingController nameController = TextEditingController(text: "");
   String valor = "Consulta";
+  TextEditingController notaController = TextEditingController(text: "");
+  bool status = false;
 
   void _openAddPatientPage() {
     Navigator.push(
@@ -33,10 +40,8 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
     );
   }
 
-  bool status = false;
   @override
   Widget build(BuildContext context) {
-    TextEditingController notaController = TextEditingController(text: "");
     return Column(
       children: [
         Row(
@@ -175,10 +180,45 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
         ),
         const SizedBox(height: 20.0),
         ElevatedButton(
-          onPressed: () {
+          onPressed: () async {
             if (widget.fechaController.text.isNotEmpty &&
                 widget.horaController.text.isNotEmpty) {
-              // Guardar cita seleccionada o hacer algo más
+              // Recolectar datos del formulario
+              String nombre = nameController.text;
+              String fecha = widget.fechaController.text;
+              String hora = widget.horaController.text;
+              String duracion = selectedInterval.toString();
+              String servicio = valor; // Usar el valor seleccionado
+              String nota = notaController.text;
+
+              // Obtener el ID del consultorio de alguna manera (aquí asumo que está disponible en una variable)
+              int consultorioId = 1; // Ejemplo: ID del consultorio
+
+              // Crear el objeto Evento
+              Evento evento = Evento(
+                nombre: nombre,
+                fecha: fecha,
+                hora: hora,
+                duracion: duracion,
+                servicio: servicio,
+                nota: nota,
+              );
+
+              // Insertar el evento en la base de datos
+              await DatabaseManager.insertEvento(consultorioId, evento);
+
+              // Mostrar mensaje de éxito o redireccionar a otra pantalla si es necesario
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Cita programada agregada correctamente'),
+                ),
+              );
+
+              // Opcional: Redirigir a la página de calendario u otra página relevante
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => Calendar()),
+              );
             }
           },
           child: const Text('Guardar Cita Seleccionada'),

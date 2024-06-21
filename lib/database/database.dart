@@ -9,7 +9,7 @@ class DatabaseManager {
   static Future<Connection> _connect() async {
     return await Connection.open(
       Endpoint(
-        host: '192.168.1.71',
+        host: 'localhost',
         port: 5432,
         database: 'medicalmanik',
         username: 'postgres',
@@ -29,7 +29,40 @@ class DatabaseManager {
       print('No se ha conectado a la base de datos!!!!: $e');
     }
   }
+static Future<void> insertEvento(int consultorioId, Evento evento) async {
+    try {
+      final conn = await _connect();
 
+      final result = await conn.execute("SELECT MAX(id) FROM evento");
+      int lastId = (result.first.first as int?) ?? 0;
+
+      int newId = lastId + 1;
+
+      // Calcular la fecha de inicio y fin basándose en la duración
+      DateTime startDate = DateTime.parse(evento.fecha + " " + evento.hora);
+      int duration = int.parse(evento.duracion);
+      DateTime endDate = startDate.add(Duration(minutes: duration));
+
+      await conn.execute(
+        Sql.named(
+            "INSERT INTO evento(id, token, nombre, descripcion, fecha_inicio, fecha_fin, usuario_id, calendario_id) VALUES (@id, @token, @nombre,@descripcion, @fecha_inicio, @fecha_fin, @usuario_id, @calendario_id)"),
+        parameters: {
+          "id": newId,
+          "token": 2,
+          "nombre": evento.nombre,
+          "descripcion": evento.nota,
+          "fecha_inicio": startDate.toIso8601String(),
+          "fecha_fin": endDate.toIso8601String(),
+          "usuario_id": 1, // Aquí deberías obtener el usuario_id correcto
+          "calendario_id": consultorioId,
+        },
+      );
+
+      await conn.close();
+    } catch (e) {
+      print('Error al insertar el evento: $e');
+    }
+  }
   static Future<List<Map<String, dynamic>>> getConsultoriosData() async {
     List<Map<String, dynamic>> consultoriosData = [];
     try {
@@ -343,40 +376,7 @@ class DatabaseManager {
     }
   }
 
-  static Future<void> insertEvento(int consultorioId, Evento evento) async {
-    try {
-      final conn = await _connect();
-
-      final result = await conn.execute("SELECT MAX(id) FROM evento");
-      int lastId = (result.first.first as int?) ?? 0;
-
-      int newId = lastId + 1;
-
-      // Calcular la fecha de inicio y fin basándose en la duración
-      DateTime startDate = DateTime.parse(evento.fecha + " " + evento.hora);
-      int duration = int.parse(evento.duracion);
-      DateTime endDate = startDate.add(Duration(minutes: duration));
-
-      await conn.execute(
-        Sql.named(
-            "INSERT INTO evento(id, token, nombre, descripcion, fecha_inicio, fecha_fin, usuario_id, calendario_id) VALUES (@id, @token, @nombre,@descripcion, @fecha_inicio, @fecha_fin, @usuario_id, @calendario_id)"),
-        parameters: {
-          "id": newId,
-          "token": 2,
-          "nombre": evento.nombre,
-          "descripcion": evento.nota,
-          "fecha_inicio": startDate.toIso8601String(),
-          "fecha_fin": endDate.toIso8601String(),
-          "usuario_id": 1, // Aquí deberías obtener el usuario_id correcto
-          "calendario_id": consultorioId,
-        },
-      );
-
-      await conn.close();
-    } catch (e) {
-      print('Error al insertar el evento: $e');
-    }
-  }
+  
 
   static Future<List<Map<String, dynamic>>> getEventosData(
       int consultorioId) async {
@@ -492,6 +492,8 @@ class DatabaseManager {
     }
     return pacientes;
   }
+
+
 
   static Future<void> deletePaciente(int id) async {
     try {

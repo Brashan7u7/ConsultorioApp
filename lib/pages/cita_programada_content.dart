@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:calendario_manik/pages/add_page.dart';
 import 'package:calendario_manik/pages/calendar_page.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_switch/flutter_switch.dart';
 
 class CitaProgramadaContent extends StatefulWidget {
   @override
@@ -13,9 +14,11 @@ class CitaProgramadaContent extends StatefulWidget {
 class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
   final _formKey = GlobalKey<FormState>();
   int selectedInterval = 60;
+  String valor = "Consulta";
   TextEditingController nameController = TextEditingController(text: "");
   List<String> suggestedPatients = [];
-  bool isPatientRegistered = true; // Variable para controlar si el paciente está registrado
+  bool isPatientRegistered =
+      true; // Variable para controlar si el paciente está registrado
 
   @override
   void initState() {
@@ -46,6 +49,7 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
     }
   }
 
+  bool status = false;
   @override
   Widget build(BuildContext context) {
     DateTime _selectedDateTime = DateTime.now();
@@ -73,13 +77,15 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
 
     fechaController.addListener(() {
       if (fechaController.text.isNotEmpty && horaController.text.isNotEmpty) {
-        appointmentTime = DateTime.parse('${fechaController.text} ${horaController.text}');
+        appointmentTime =
+            DateTime.parse('${fechaController.text} ${horaController.text}');
       }
     });
 
     horaController.addListener(() {
       if (fechaController.text.isNotEmpty && horaController.text.isNotEmpty) {
-        appointmentTime = DateTime.parse('${fechaController.text} ${horaController.text}');
+        appointmentTime =
+            DateTime.parse('${fechaController.text} ${horaController.text}');
       }
     });
 
@@ -135,37 +141,39 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                 ),
               const SizedBox(height: 20.0),
               DropdownButtonFormField<String>(
-                  items: const [
-                    DropdownMenuItem<String>(
-                      value: '60',
-                      child: Text('60 minutos'),
-                    ),
-                    DropdownMenuItem<String>(
-                      value: '30',
-                      child: Text('30 minutos'),
-                    ),
-                    DropdownMenuItem<String>(
-                      value: '20',
-                      child: Text('20 minutos'),
-                    ),
-                    DropdownMenuItem<String>(
-                      value: '15',
-                      child: Text('15 minutos'),
-                    ),
-                  ],
-                  value: selectedInterval.toString(),
-                  onChanged: (value) {
-                    setState(() {
-                     selectedInterval = int.parse(value!);//no es
-                    });
-                  },
-                  decoration: const InputDecoration(
-                    labelText: 'Intervalo de Atención (minutos)',
+                items: const [
+                  DropdownMenuItem<String>(
+                    value: '60',
+                    child: Text('60 minutos'),
                   ),
+                  DropdownMenuItem<String>(
+                    value: '30',
+                    child: Text('30 minutos'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: '20',
+                    child: Text('20 minutos'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: '15',
+                    child: Text('15 minutos'),
+                  ),
+                ],
+                value: selectedInterval.toString(),
+                onChanged: (value) {
+                  setState(() {
+                    selectedInterval = int.parse(value!); //no es
+                  });
+                },
+                decoration: const InputDecoration(
+                  labelText: 'Intervalo de Atención (minutos)',
                 ),
+              ),
               const SizedBox(height: 10.0),
               DropdownButtonFormField<String>(
-                value: servicioController.text.isEmpty ? null : servicioController.text,
+                value: servicioController.text.isEmpty
+                    ? null
+                    : servicioController.text,
                 hint: const Text('Recomendación de la próxima cita'),
                 items: const <DropdownMenuItem<String>>[
                   DropdownMenuItem<String>(
@@ -182,7 +190,7 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                   ),
                 ],
                 onChanged: (value) {
-                  servicioController.text = value!;//No es
+                  servicioController.text = value!; //No es
                   if (value == 'Opción 1') {
                     // Lógica para la opción 1
                   } else if (value == 'Opción 2') {
@@ -231,7 +239,9 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                           initialTime: TimeOfDay.now(),
                         );
                         if (pickedTime != null) {
-                          String formattedTime = DateFormat('HH:mm:ss').format(DateTime(0, 1, 1, pickedTime.hour, pickedTime.minute));
+                          String formattedTime = DateFormat('HH:mm:ss').format(
+                              DateTime(
+                                  0, 1, 1, pickedTime.hour, pickedTime.minute));
 
                           horaController.text = formattedTime;
                         }
@@ -247,52 +257,121 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                 ],
               ),
               const SizedBox(height: 20.0),
+              Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      items: const [
+                        DropdownMenuItem<String>(
+                          value: 'Consulta',
+                          child: Text('Consulta'),
+                        ),
+                        DropdownMenuItem<String>(
+                          value: 'Valoración',
+                          child: Text('Valoración'),
+                        ),
+                        DropdownMenuItem<String>(
+                          value: 'Estudios',
+                          child: Text('Estudios'),
+                        ),
+                        DropdownMenuItem<String>(
+                          value: 'Vacunas',
+                          child: Text('Vacunas'),
+                        ),
+                        DropdownMenuItem<String>(
+                          value: 'Nota de evolución',
+                          child: Text('Nota de evolución'),
+                        ),
+                        DropdownMenuItem<String>(
+                          value: 'interconsulta',
+                          child: Text('Nota de interconsulta'),
+                        ),
+                        DropdownMenuItem<String>(
+                          value: 'Rehabilitación',
+                          child: Text('Rehabilitación'),
+                        ),
+                      ],
+                      value: valor,
+                      onChanged: (value) {
+                        setState(() {
+                          valor = value!;
+                        });
+                      },
+                      decoration: const InputDecoration(
+                        labelText: 'Motivo de consulta',
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 20.0),
+                  Expanded(
+                    child: FlutterSwitch(
+                      activeText: "Subsecuente",
+                      inactiveText: "Primera ves",
+                      value: status,
+                      valueFontSize: 11.0,
+                      width: 110,
+                      height: 30,
+                      borderRadius: 30.0,
+                      showOnOff: true,
+                      onToggle: (val) {
+                        setState(() {
+                          status = val;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+
               TextFormField(
                 controller: notaController,
                 decoration: const InputDecoration(labelText: 'Nota para cita'),
                 maxLines: 3,
               ),
-              const SizedBox(height: 20.0),
+              const SizedBox(height: 50.0),
               ElevatedButton(
-  onPressed: () async {
-    if (_formKey.currentState!.validate()) {
-      // Recolectar datos del formulario
-      String nombre = nameController.text;
-      String fecha = fechaController.text;
-      String hora = horaController.text;
-      String duracion = selectedInterval.toString();
-      String servicio = servicioController.text;
-      String nota = notaController.text;
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    // Recolectar datos del formulario
+                    String nombre = nameController.text;
+                    String fecha = fechaController.text;
+                    String hora = horaController.text;
+                    String duracion = selectedInterval.toString();
+                    String servicio = servicioController.text;
+                    String nota = notaController.text;
 
-      // Obtener el ID del consultorio de alguna manera (supongamos que está disponible en una variable)
-      int consultorioId = 1; // Por ejemplo, asumiendo que el ID del consultorio está disponible aquí
+                    // Obtener el ID del consultorio de alguna manera (supongamos que está disponible en una variable)
+                    int consultorioId =
+                        1; // Por ejemplo, asumiendo que el ID del consultorio está disponible aquí
 
-      // Crear el objeto Evento
-      Evento evento = Evento(
-        nombre: nombre,
-        fecha: fecha,
-        hora: hora,
-        duracion: duracion,
-        servicio: servicio,
-        nota: nota,
-      );
+                    // Crear el objeto Evento
+                    Evento evento = Evento(
+                      nombre: nombre,
+                      fecha: fecha,
+                      hora: hora,
+                      duracion: duracion,
+                      servicio: servicio,
+                      nota: nota,
+                    );
 
-      // Insertar el evento en la base de datos
-      await DatabaseManager.insertEvento(consultorioId, evento);
+                    // Insertar el evento en la base de datos
+                    await DatabaseManager.insertEvento(consultorioId, evento);
 
-      // Mostrar mensaje de éxito o redireccionar a otra pantalla si es necesario
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Cita programada agregada correctamente')),
-      );
+                    // Mostrar mensaje de éxito o redireccionar a otra pantalla si es necesario
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content:
+                              Text('Cita programada agregada correctamente')),
+                    );
 
-      // Opcional: Redirigir a la página de calendario u otra página relevante
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => Calendar()),
-      );
-    }
-  },
-  child: const Text('Guardar Cita Programada'),
+                    // Opcional: Redirigir a la página de calendario u otra página relevante
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => Calendar()),
+                    );
+                  }
+                },
+                child: const Text('Guardar Cita Programada'),
               ),
             ],
           ),

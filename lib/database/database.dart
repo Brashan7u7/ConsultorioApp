@@ -9,7 +9,7 @@ class DatabaseManager {
   static Future<Connection> _connect() async {
     return await Connection.open(
       Endpoint(
-        host: 'localhost',
+        host: '192.168.1.71',
         port: 5432,
         database: 'medicalmanik',
         username: 'postgres',
@@ -29,7 +29,8 @@ class DatabaseManager {
       print('No se ha conectado a la base de datos!!!!: $e');
     }
   }
-static Future<void> insertEvento(int consultorioId, Evento evento) async {
+
+  static Future<void> insertEvento(int consultorioId, Evento evento) async {
     try {
       final conn = await _connect();
 
@@ -63,14 +64,15 @@ static Future<void> insertEvento(int consultorioId, Evento evento) async {
       print('Error al insertar el evento: $e');
     }
   }
-  static Future<List<Map<String, dynamic>>> getConsultoriosData() async {
+
+  static Future<List<Map<String, dynamic>>> getConsultoriosData(id) async {
     List<Map<String, dynamic>> consultoriosData = [];
     try {
       final conn = await _connect();
-      // final result = await conn.execute(
-      //     Sql.named("SELECT * FROM consultorio WHERE usuario_id=@id"),
-      //     parameters: {"id": id});
-      final result = await conn.execute("SELECT * FROM consultorio");
+      final result = await conn.execute(
+          Sql.named("SELECT * FROM consultorio WHERE usuario_id=@id"),
+          parameters: {"id": id});
+      //final result = await conn.execute("SELECT * FROM consultorio");
       for (var row in result) {
         consultoriosData.add({
           'id': row[0],
@@ -376,8 +378,6 @@ static Future<void> insertEvento(int consultorioId, Evento evento) async {
     }
   }
 
-  
-
   static Future<List<Map<String, dynamic>>> getEventosData(
       int consultorioId) async {
     List<Map<String, dynamic>> eventos = [];
@@ -492,8 +492,6 @@ static Future<void> insertEvento(int consultorioId, Evento evento) async {
     }
     return pacientes;
   }
-
-
 
   static Future<void> deletePaciente(int id) async {
     try {

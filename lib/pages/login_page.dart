@@ -25,9 +25,13 @@ class _LoginState extends State<Login> {
     super.initState();
   }
 
+  int usuario_id = 0;
+
   Future<void> _loadConsultorios() async {
     List<Map<String, dynamic>> consultoriosData =
-        await DatabaseManager.getConsultoriosData();
+        await DatabaseManager.getConsultoriosData(usuario_id);
+
+    await Future.delayed(Duration(milliseconds: 1500));
     if (consultoriosData.isEmpty) {
       Navigator.push(
         context,
@@ -36,7 +40,8 @@ class _LoginState extends State<Login> {
     } else {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => Calendar()),
+        MaterialPageRoute(
+            builder: (context) => Calendar(usuario_id: usuario_id)),
       );
     }
   }
@@ -50,11 +55,10 @@ class _LoginState extends State<Login> {
         (u) => u['correo'] == email && u['contrasena'] == password,
         orElse: () => {});
 
+    usuario_id = user['id'];
+
     if (user.isNotEmpty) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => Calendar()),
-      );
+      _loadConsultorios();
     } else {
       showDialog(
         context: context,

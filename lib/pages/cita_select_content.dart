@@ -9,11 +9,14 @@ import 'package:intl/intl.dart';
 class CitaSelectContent extends StatefulWidget {
   final TextEditingController fechaController;
   final TextEditingController horaController;
+  final int? consultorioId;
+  final int? usuario_id;
 
-  CitaSelectContent({
-    required this.fechaController,
-    required this.horaController,
-  });
+  CitaSelectContent(
+      {required this.fechaController,
+      required this.horaController,
+      this.consultorioId,
+      this.usuario_id});
 
   @override
   _CitaSelectContentState createState() => _CitaSelectContentState();
@@ -191,9 +194,6 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
               String servicio = valor; // Usar el valor seleccionado
               String nota = notaController.text;
 
-              // Obtener el ID del consultorio de alguna manera (aquí asumo que está disponible en una variable)
-              int consultorioId = 1; // Ejemplo: ID del consultorio
-
               // Crear el objeto Evento
               Evento evento = Evento(
                 nombre: nombre,
@@ -205,7 +205,7 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
               );
 
               // Insertar el evento en la base de datos
-              await DatabaseManager.insertEvento(consultorioId, evento);
+              await DatabaseManager.insertEvento(widget.consultorioId!, evento);
 
               // Mostrar mensaje de éxito o redireccionar a otra pantalla si es necesario
               ScaffoldMessenger.of(context).showSnackBar(
@@ -217,7 +217,9 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
               // Opcional: Redirigir a la página de calendario u otra página relevante
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => Calendar()),
+                MaterialPageRoute(
+                    builder: (context) =>
+                        Calendar(usuario_id: widget.usuario_id)),
               );
             }
           },

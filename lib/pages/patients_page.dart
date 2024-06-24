@@ -5,8 +5,10 @@ import 'package:calendario_manik/database/database.dart';
 import 'package:intl/intl.dart';
 
 class Patients extends StatefulWidget {
+  final int? usuario_id;
   Patients({
     Key? key,
+    this.usuario_id,
   }) : super(key: key);
 
   @override
@@ -136,7 +138,7 @@ class _PatientsState extends State<Patients> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => Calendar(),
+                builder: (context) => Calendar(usuario_id: widget.usuario_id),
               ),
             );
           }

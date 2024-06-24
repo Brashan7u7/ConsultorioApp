@@ -12,6 +12,7 @@ class Add extends StatelessWidget {
   final bool isCitaInmediata, isEvento, isPacient, isCitaPro;
   final bool? isCitaselect;
   final int? consultorioId;
+  final int? usuario_id;
 
   TextEditingController? fechaController, horaController, duracionController;
 
@@ -25,7 +26,8 @@ class Add extends StatelessWidget {
       this.fechaController,
       this.horaController,
       this.duracionController,
-      this.consultorioId})
+      this.consultorioId,
+      this.usuario_id})
       : super(key: key);
 
   @override
@@ -45,19 +47,21 @@ class Add extends StatelessWidget {
                             : ""),
       ),
       body: isCitaInmediata
-          ? CitaRapidaContent()
+          ? CitaRapidaContent(usuario_id: usuario_id)
           : (isCitaselect ?? false)
               ? CitaSelectContent(
                   fechaController: fechaController!,
                   horaController: horaController!,
-)
+                  consultorioId: consultorioId,
+                  usuario_id: usuario_id)
               : isEvento
-                  ? EventoContent(consultorioId: consultorioId)
+                  ? EventoContent(
+                      consultorioId: consultorioId, usuario_id: usuario_id)
                   : isPacient
                       ? PacienteContent()
                       : isCitaPro
                           ? CitaProgramadaContent()
-                          : Calendar(),
+                          : Calendar(usuario_id: usuario_id),
     );
   }
 }

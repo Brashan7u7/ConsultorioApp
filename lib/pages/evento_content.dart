@@ -6,8 +6,10 @@ import 'package:calendario_manik/pages/calendar_page.dart';
 
 class EventoContent extends StatelessWidget {
   final int? consultorioId;
+  final int? usuario_id;
 
-  EventoContent({Key? key, this.consultorioId}) : super(key: key);
+  EventoContent({Key? key, this.consultorioId, this.usuario_id})
+      : super(key: key);
   @override
   Widget build(BuildContext context) {
     final _formKey = GlobalKey<FormState>();
@@ -135,7 +137,7 @@ class EventoContent extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => Calendar(),
+                        builder: (context) => Calendar(usuario_id: usuario_id),
                       ),
                     );
                   }).catchError((error) {

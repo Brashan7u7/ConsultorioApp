@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class Consulting extends StatefulWidget {
-  const Consulting({Key? key}) : super(key: key);
+  final int? usuario_id;
+  const Consulting({Key? key, this.usuario_id}) : super(key: key);
 
   @override
   State<Consulting> createState() => _ConsultingState();
@@ -123,7 +124,7 @@ class _ConsultingState extends State<Consulting> {
   Future<void> _loadConsultorios() async {
     List<Consultorio> consultoriosList = [];
     List<Map<String, dynamic>> consultoriosData =
-        await DatabaseManager.getConsultoriosData();
+        await DatabaseManager.getConsultoriosData(widget.usuario_id);
     consultoriosList = consultoriosData
         .map((data) => Consultorio(
               id: data['id'],
@@ -212,7 +213,9 @@ class _ConsultingState extends State<Consulting> {
           onPressed: () {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => Calendar()),
+              MaterialPageRoute(
+                  builder: (context) =>
+                      Calendar(usuario_id: widget.usuario_id)),
             );
           },
         ),
@@ -229,7 +232,9 @@ class _ConsultingState extends State<Consulting> {
 
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => Calendar()),
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            Calendar(usuario_id: widget.usuario_id)),
                   );
                 }
               },
@@ -420,7 +425,9 @@ class _ConsultingState extends State<Consulting> {
 
                       Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(builder: (context) => Calendar()),
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                Calendar(usuario_id: widget.usuario_id)),
                       );
                     }
                   },

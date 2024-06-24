@@ -6,12 +6,13 @@ import 'package:calendario_manik/pages/consulting_page.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart';
 import 'package:calendario_manik/database/database.dart';
+import 'package:calendario_manik/pages/login_page.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Calendar extends StatefulWidget {
-  final Map<String, dynamic>? user;
-  const Calendar({Key? key, this.user}) : super(key: key);
+  final int? usuario_id;
+  Calendar({Key? key, this.usuario_id}) : super(key: key);
 
   @override
   State<Calendar> createState() => _CalendarState();
@@ -40,12 +41,10 @@ class _CalendarState extends State<Calendar> {
   DateTime? _lastTap;
   int _tapInterval = 300;
 
-  int usuario_id = 0;
-
   Future<void> _loadConsultorios() async {
     List<Consultorio> consultoriosList = [];
     List<Map<String, dynamic>> consultoriosData =
-        await DatabaseManager.getConsultoriosData();
+        await DatabaseManager.getConsultoriosData(widget.usuario_id);
     consultoriosList = consultoriosData
         .map((data) => Consultorio(
               id: data['id'],
@@ -317,7 +316,8 @@ class _CalendarState extends State<Calendar> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => Consulting(),
+                    builder: (context) =>
+                        Consulting(usuario_id: widget.usuario_id),
                   ),
                 );
               },
@@ -332,6 +332,14 @@ class _CalendarState extends State<Calendar> {
                 title: Text(
                   'Cerrar Sesión',
                 ),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Login(),
+                    ),
+                  );
+                },
               ),
             ),
           ],
@@ -389,14 +397,14 @@ class _CalendarState extends State<Calendar> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => Calendar(),
+                builder: (context) => Calendar(usuario_id: widget.usuario_id),
               ),
             );
           } else if (index == 2) {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => Patients(),
+                builder: (context) => Patients(usuario_id: widget.usuario_id),
               ),
             );
           }
@@ -460,11 +468,11 @@ class _CalendarState extends State<Calendar> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => Add(
-                        isCitaInmediata: false,
-                        isEvento: false,
-                        isPacient: false,
-                        isCitaPro: true,
-                      ),
+                          isCitaInmediata: false,
+                          isEvento: false,
+                          isPacient: false,
+                          isCitaPro: true,
+                          usuario_id: widget.usuario_id),
                     ),
                   );
                 },
@@ -482,7 +490,8 @@ class _CalendarState extends State<Calendar> {
                           isEvento: true,
                           isPacient: false,
                           isCitaPro: false,
-                          consultorioId: globalIdConsultorio),
+                          consultorioId: globalIdConsultorio,
+                          usuario_id: widget.usuario_id),
                     ),
                   );
                 },
@@ -573,18 +582,18 @@ class _CalendarState extends State<Calendar> {
       context,
       MaterialPageRoute(
         builder: (context) => Add(
-          isCitaInmediata: false,
-          isCitaselect: true,
-          fechaController: TextEditingController(
-            text: _calendarController.selectedDate.toString().split(' ')[0],
-          ),
-          horaController: TextEditingController(
-            text: _calendarController.selectedDate.toString().split(' ')[1],
-          ),
-          isCitaPro: false,
-          isEvento: false,
-          isPacient: false,
-        ),
+            isCitaInmediata: false,
+            isCitaselect: true,
+            fechaController: TextEditingController(
+              text: _calendarController.selectedDate.toString().split(' ')[0],
+            ),
+            horaController: TextEditingController(
+              text: _calendarController.selectedDate.toString().split(' ')[1],
+            ),
+            isCitaPro: false,
+            isEvento: false,
+            isPacient: false,
+            usuario_id: widget.usuario_id),
       ),
     );
   }

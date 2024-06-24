@@ -7,6 +7,9 @@ import 'package:intl/intl.dart'; // Importa el paquete intl para formateo de fec
 import 'package:flutter_switch/flutter_switch.dart';
 
 class CitaRapidaContent extends StatefulWidget {
+  final int? usuario_id;
+
+  CitaRapidaContent({Key? key, this.usuario_id}) : super(key: key);
   @override
   _CitaRapidaContentState createState() => _CitaRapidaContentState();
 }
@@ -43,15 +46,12 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
         nota: nota,
       );
 
-
       // Insertar la cita inmediata en la base de datos
       int citaId = await DatabaseManager.insertCitaInmediata(
         consultorioId,
         evento,
         nota,
       );
-
-     
 
       if (citaId != -1) {
         // Éxito al guardar la cita
@@ -63,7 +63,7 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => Calendar(),
+            builder: (context) => Calendar(usuario_id: widget.usuario_id),
           ),
         );
       } else {
@@ -74,19 +74,21 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
       }
     }
   }
- void _openAddPatientPage() {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => Add(
-            isCitaInmediata: false,
-            isEvento: false,
-            isPacient: true,
-            isCitaPro: false,
-          ),
+
+  void _openAddPatientPage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => Add(
+          isCitaInmediata: false,
+          isEvento: false,
+          isPacient: true,
+          isCitaPro: false,
         ),
-      );
-    }
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -100,62 +102,63 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Escriba el nombre del paciente',
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Escriba el nombre del paciente',
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'El nombre del paciente es obligatorio';
+                          }
+                          return null;
+                        },
                       ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'El nombre del paciente es obligatorio';
-                        }
-                        return null;
-                      },
                     ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.add),
-                    onPressed: _openAddPatientPage,
-                    tooltip: 'Agregar paciente',
-                  ),
-                ],
-              ),
-              // Lista de sugerencias de pacientes
-              if (suggestedPatients.isNotEmpty)
-                ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: suggestedPatients.length,
-                  itemBuilder: (context, index) {
-                    return ListTile(
-                      title: Text(suggestedPatients[index]),
-                      onTap: () {
-                        // Actualizar el campo de texto con el paciente seleccionado
-                        nameController.text = suggestedPatients[index];
-                        // Limpiar la lista de sugerencias
-                        setState(() {
-                          suggestedPatients = [];
-                        });
-                      },
-                    );
-                  },
+                    IconButton(
+                      icon: const Icon(Icons.add),
+                      onPressed: _openAddPatientPage,
+                      tooltip: 'Agregar paciente',
+                    ),
+                  ],
                 ),
+                // Lista de sugerencias de pacientes
+                if (suggestedPatients.isNotEmpty)
+                  ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: suggestedPatients.length,
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        title: Text(suggestedPatients[index]),
+                        onTap: () {
+                          // Actualizar el campo de texto con el paciente seleccionado
+                          nameController.text = suggestedPatients[index];
+                          // Limpiar la lista de sugerencias
+                          setState(() {
+                            suggestedPatients = [];
+                          });
+                        },
+                      );
+                    },
+                  ),
                 SizedBox(height: 20.0),
                 Text(
                   'Fecha y hora por registrar:',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                  SizedBox(height: 10.0),
-               
+                SizedBox(height: 10.0),
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Fecha: ${DateFormat('dd/MM/yyyy').format(DateTime.now())}'),
+                    Text(
+                        'Fecha: ${DateFormat('dd/MM/yyyy').format(DateTime.now())}'),
                     Text('Hora: ${DateFormat('HH:mm').format(DateTime.now())}'),
                   ],
                 ),
-                      SizedBox(height: 20.0),
+                SizedBox(height: 20.0),
                 Row(
                   children: [
                     Expanded(
@@ -240,4 +243,3 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
     );
   }
 }
-

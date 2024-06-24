@@ -4,7 +4,8 @@ import 'package:calendario_manik/pages/patients_page.dart';
 import 'package:calendario_manik/pages/add_page.dart';
 
 class BottomNavBar extends StatefulWidget {
-  const BottomNavBar({Key? key}) : super(key: key);
+  final int? usuario_id;
+  const BottomNavBar({Key? key, this.usuario_id}) : super(key: key);
 
   @override
   State<BottomNavBar> createState() => _BottomNavBarState();
@@ -15,6 +16,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
 
   int state = 0;
   List<String> _buttonNames = ['Calendario', 'Agendar', 'Pacientes'];
+  late List<Widget> _pages;
 
   void _navigateBottomBar(int index) {
     if (index == 1 && state == 2) {
@@ -37,7 +39,8 @@ class _BottomNavBarState extends State<BottomNavBar> {
                           isCitaInmediata: false,
                           isEvento: false,
                           isPacient: true,
-                          isCitaPro: false),
+                          isCitaPro: false,
+                          usuario_id: widget.usuario_id),
                     ),
                   );
                 },
@@ -68,6 +71,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
                         isEvento: false,
                         isPacient: false,
                         isCitaPro: false,
+                        usuario_id: widget.usuario_id,
                       ),
                     ),
                   );
@@ -86,6 +90,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
                         isEvento: false,
                         isPacient: false,
                         isCitaPro: true,
+                        usuario_id: widget.usuario_id,
                       ),
                     ),
                   );
@@ -104,6 +109,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
                         isEvento: true,
                         isPacient: false,
                         isCitaPro: false,
+                        usuario_id: widget.usuario_id,
                       ),
                     ),
                   );
@@ -128,16 +134,20 @@ class _BottomNavBarState extends State<BottomNavBar> {
     }
   }
 
-  final List _pages = [
-    const Calendar(),
-    Add(
-      isCitaInmediata: false,
-      isCitaPro: false,
-      isEvento: false,
-      isPacient: false,
-    ),
-    Patients(),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      Calendar(usuario_id: widget.usuario_id),
+      Add(
+          isCitaInmediata: false,
+          isCitaPro: false,
+          isEvento: false,
+          isPacient: false,
+          usuario_id: widget.usuario_id),
+      Patients(usuario_id: widget.usuario_id),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {

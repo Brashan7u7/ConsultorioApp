@@ -61,6 +61,28 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
     });
   }
 }
+ Future<void> _getRecommendedDateTimeSemanal() async {
+  List<Map<String, dynamic>> recommendations = await DatabaseManager.getRecomeSema();
+  if (recommendations.isNotEmpty) {
+    DateTime fecha = DateTime.parse(recommendations[0]['fecha']);
+    String hora = recommendations[0]['hora'];
+    setState(() {
+      _recommendedDate = DateFormat('dd/MM/yyyy').format(fecha);
+      _recommendedTime = hora; // No need to parse, just assign the value
+    });
+  }
+}
+ Future<void> _getRecommendedDateTimeMen() async {
+  List<Map<String, dynamic>> recommendations = await DatabaseManager.getRecomeMen();
+  if (recommendations.isNotEmpty) {
+    DateTime fecha = DateTime.parse(recommendations[0]['fecha']);
+    String hora = recommendations[0]['hora'];
+    setState(() {
+      _recommendedDate = DateFormat('dd/MM/yyyy').format(fecha);
+      _recommendedTime = hora; // No need to parse, just assign the value
+    });
+  }
+}
 
   bool status = false;
   
@@ -208,9 +230,9 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                   if (value == 'Opción 1') {
                     await _getRecommendedDateTime();
                   } else if (value == 'Opción 2') {
-                    // Lógica para la opción 2
+                    await _getRecommendedDateTimeSemanal(); 
                   } else if (value == 'Opción 3') {
-                    // Lógica para la opción 3
+                    await _getRecommendedDateTimeMen();
                   }
                 },
               ),

@@ -454,6 +454,8 @@ class _CalendarState extends State<Calendar> {
                         isEvento: false,
                         isPacient: false,
                         isCitaPro: false,
+                        usuario_id: widget.usuario_id,
+                        consultorioId: globalIdConsultorio,
                       ),
                     ),
                   );
@@ -468,11 +470,13 @@ class _CalendarState extends State<Calendar> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => Add(
-                          isCitaInmediata: false,
-                          isEvento: false,
-                          isPacient: false,
-                          isCitaPro: true,
-                          usuario_id: widget.usuario_id),
+                        isCitaInmediata: false,
+                        isEvento: false,
+                        isPacient: false,
+                        isCitaPro: true,
+                        usuario_id: widget.usuario_id,
+                        consultorioId: globalIdConsultorio,
+                      ),
                     ),
                   );
                 },

@@ -600,8 +600,8 @@ class _ConsultingState extends State<Consulting> {
             (consultorio) => consultorio.nombre == nuevoConsultorio.nombre);
 
         if (!existeConsultorio) {
-          int consultorioId =
-              await DatabaseManager.insertConsultorio(nuevoConsultorio);
+          int consultorioId = await DatabaseManager.insertConsultorio(
+              nuevoConsultorio, widget.usuario_id!);
 
           Map<String, String> horariosSeleccionados = {};
           for (String day in daysOfWeek) {

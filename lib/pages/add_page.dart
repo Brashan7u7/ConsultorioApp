@@ -60,7 +60,10 @@ class Add extends StatelessWidget {
                   : isPacient
                       ? PacienteContent()
                       : isCitaPro
-                          ? CitaProgramadaContent()
+                          ? CitaProgramadaContent(
+                              usuario_id: usuario_id,
+                              consultorioId: consultorioId,
+                            )
                           : Calendar(usuario_id: usuario_id),
     );
   }

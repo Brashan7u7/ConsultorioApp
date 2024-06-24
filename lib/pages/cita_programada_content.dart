@@ -7,9 +7,10 @@ import 'package:intl/intl.dart';
 import 'package:flutter_switch/flutter_switch.dart';
 
 class CitaProgramadaContent extends StatefulWidget {
-  final int? usuario_id;
+  final int? usuario_id, consultorioId;
 
-  CitaProgramadaContent({Key? key, this.usuario_id}) : super(key: key);
+  CitaProgramadaContent({Key? key, this.usuario_id, this.consultorioId})
+      : super(key: key);
 
   @override
   _CitaProgramadaContentState createState() => _CitaProgramadaContentState();
@@ -23,6 +24,8 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
   List<String> suggestedPatients = [];
   bool isPatientRegistered =
       true; // Variable para controlar si el paciente está registrado
+  String? _recommendedDate, fechaRecomenGuar;
+  String? _recommendedTime;
 
   @override
   void initState() {
@@ -53,7 +56,50 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
     }
   }
 
+  Future<void> _getRecommendedDateTime() async {
+    List<Map<String, dynamic>> recommendations =
+        await DatabaseManager.getRecomeDiaria();
+    if (recommendations.isNotEmpty) {
+      DateTime fecha = DateTime.parse(recommendations[0]['fecha']);
+      String hora = recommendations[0]['hora'];
+      setState(() {
+        _recommendedDate = DateFormat('dd/MM/yyyy').format(fecha);
+        fechaRecomenGuar = DateFormat('yyyy-MM-dd').format(fecha);
+        _recommendedTime = hora; // No need to parse, just assign the value
+      });
+    }
+  }
+
+  Future<void> _getRecommendedDateTimeSemanal() async {
+    List<Map<String, dynamic>> recommendations =
+        await DatabaseManager.getRecomeSema();
+    if (recommendations.isNotEmpty) {
+      DateTime fecha = DateTime.parse(recommendations[0]['fecha']);
+      String hora = recommendations[0]['hora'];
+      setState(() {
+        _recommendedDate = DateFormat('dd/MM/yyyy').format(fecha);
+        fechaRecomenGuar = DateFormat('yyyy-MM-dd').format(fecha);
+        _recommendedTime = hora; // No need to parse, just assign the value
+      });
+    }
+  }
+
+  Future<void> _getRecommendedDateTimeMen() async {
+    List<Map<String, dynamic>> recommendations =
+        await DatabaseManager.getRecomeMen();
+    if (recommendations.isNotEmpty) {
+      DateTime fecha = DateTime.parse(recommendations[0]['fecha']);
+      String hora = recommendations[0]['hora'];
+      setState(() {
+        _recommendedDate = DateFormat('dd/MM/yyyy').format(fecha);
+        fechaRecomenGuar = DateFormat('yyyy-MM-dd').format(fecha);
+        _recommendedTime = hora; // No need to parse, just assign the value
+      });
+    }
+  }
+
   bool status = false;
+
   @override
   Widget build(BuildContext context) {
     DateTime _selectedDateTime = DateTime.now();
@@ -72,6 +118,8 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
             isEvento: false,
             isPacient: true,
             isCitaPro: false,
+            usuario_id: widget.usuario_id,
+            consultorioId: widget.consultorioId,
           ),
         ),
       );
@@ -84,6 +132,7 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
         appointmentTime =
             DateTime.parse('${fechaController.text} ${horaController.text}');
       }
+      print(fechaController);
     });
 
     horaController.addListener(() {
@@ -91,6 +140,7 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
         appointmentTime =
             DateTime.parse('${fechaController.text} ${horaController.text}');
       }
+      print(horaController);
     });
 
     return SingleChildScrollView(
@@ -166,7 +216,7 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                 value: selectedInterval.toString(),
                 onChanged: (value) {
                   setState(() {
-                    selectedInterval = int.parse(value!); //no es
+                    selectedInterval = int.parse(value!);
                   });
                 },
                 decoration: const InputDecoration(
@@ -193,74 +243,31 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                     child: Text('Próximo mes disponible'),
                   ),
                 ],
-                onChanged: (value) {
-                  servicioController.text = value!; //No es
+                onChanged: (value) async {
+                  servicioController.text = value!;
                   if (value == 'Opción 1') {
-                    // Lógica para la opción 1
+                    await _getRecommendedDateTime();
                   } else if (value == 'Opción 2') {
-                    // Lógica para la opción 2
+                    await _getRecommendedDateTimeSemanal();
+                  } else if (value == 'Opción 3') {
+                    await _getRecommendedDateTimeMen();
                   }
                 },
               ),
-              const SizedBox(height: 10.0),
+              SizedBox(height: 20.0),
+              Text(
+                'Fecha y hora por registrar:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 10.0),
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: fechaController,
-                      readOnly: true,
-                      decoration: const InputDecoration(labelText: 'Fecha'),
-                      onTap: () async {
-                        DateTime? pickedDate = await showDatePicker(
-                          context: context,
-                          initialDate: DateTime.now(),
-                          firstDate: DateTime(2000),
-                          lastDate: DateTime(2101),
-                        );
-                        if (pickedDate != null) {
-                          String formattedDate =
-                              DateFormat('yyyy-MM-dd').format(pickedDate);
-                          fechaController.text = formattedDate;
-                        }
-                      },
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'La fecha es obligatoria';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 10.0),
-                  Expanded(
-                    child: TextFormField(
-                      controller: horaController,
-                      readOnly: true,
-                      decoration: const InputDecoration(labelText: 'Hora'),
-                      onTap: () async {
-                        TimeOfDay? pickedTime = await showTimePicker(
-                          context: context,
-                          initialTime: TimeOfDay.now(),
-                        );
-                        if (pickedTime != null) {
-                          String formattedTime = DateFormat('HH:mm:ss').format(
-                              DateTime(
-                                  0, 1, 1, pickedTime.hour, pickedTime.minute));
-
-                          horaController.text = formattedTime;
-                        }
-                      },
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'La hora es obligatoria';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
+                  Text('Fecha: ${_recommendedDate ?? ''}'),
+                  Text('Hora: ${_recommendedTime ?? ''}'),
                 ],
               ),
-              const SizedBox(height: 20.0),
+              SizedBox(height: 20.0),
               Row(
                 children: [
                   Expanded(
@@ -310,7 +317,7 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                   Expanded(
                     child: FlutterSwitch(
                       activeText: "Subsecuente",
-                      inactiveText: "Primera ves",
+                      inactiveText: "Primera vez",
                       value: status,
                       valueFontSize: 11.0,
                       width: 110,
@@ -326,7 +333,6 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                   ),
                 ],
               ),
-
               TextFormField(
                 controller: notaController,
                 decoration: const InputDecoration(labelText: 'Nota para cita'),
@@ -338,28 +344,25 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                   if (_formKey.currentState!.validate()) {
                     // Recolectar datos del formulario
                     String nombre = nameController.text;
-                    String fecha = fechaController.text;
-                    String hora = horaController.text;
+                    String? fecha = fechaRecomenGuar;
+                    String? hora = _recommendedTime;
                     String duracion = selectedInterval.toString();
                     String servicio = servicioController.text;
                     String nota = notaController.text;
 
-                    // Obtener el ID del consultorio de alguna manera (supongamos que está disponible en una variable)
-                    int consultorioId =
-                        1; // Por ejemplo, asumiendo que el ID del consultorio está disponible aquí
-
                     // Crear el objeto Evento
                     Evento evento = Evento(
                       nombre: nombre,
-                      fecha: fecha,
-                      hora: hora,
+                      fecha: fecha!,
+                      hora: hora!,
                       duracion: duracion,
                       servicio: servicio,
                       nota: nota,
                     );
 
                     // Insertar el evento en la base de datos
-                    await DatabaseManager.insertEvento(consultorioId, evento);
+                    await DatabaseManager.insertEvento(
+                        widget.consultorioId!, evento);
 
                     // Mostrar mensaje de éxito o redireccionar a otra pantalla si es necesario
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -372,8 +375,9 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) =>
-                              Calendar(usuario_id: widget.usuario_id)),
+                          builder: (context) => Calendar(
+                                usuario_id: widget.usuario_id,
+                              )),
                     );
                   }
                 },

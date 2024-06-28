@@ -24,8 +24,8 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
   List<String> suggestedPatients = [];
   bool isPatientRegistered =
       true; // Variable para controlar si el paciente está registrado
-  String? _recommendedDate, fechaRecomenGuar;
-  String? _recommendedTime;
+  List<Map<String, dynamic>> _recommendedAppointments = [];
+  String? _selectedAppointment;
 
   @override
   void initState() {
@@ -56,46 +56,20 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
     }
   }
 
-  Future<void> _getRecommendedDateTime() async {
-    List<Map<String, dynamic>> recommendations =
-        await DatabaseManager.getRecomeDiaria();
-    if (recommendations.isNotEmpty) {
-      DateTime fecha = DateTime.parse(recommendations[0]['fecha']);
-      String hora = recommendations[0]['hora'];
-      setState(() {
-        _recommendedDate = DateFormat('dd/MM/yyyy').format(fecha);
-        fechaRecomenGuar = DateFormat('yyyy-MM-dd').format(fecha);
-        _recommendedTime = hora; // No need to parse, just assign the value
-      });
+  Future<void> _getRecommendedDateTime(String option) async {
+    List<Map<String, dynamic>> recommendations = [];
+    if (option == 'Opción 1') {
+      recommendations = await DatabaseManager.getRecomeDiaria();
+    } else if (option == 'Opción 2') {
+      recommendations = await DatabaseManager.getRecomeSema();
+    } else if (option == 'Opción 3') {
+      recommendations = await DatabaseManager.getRecomeMen();
     }
-  }
-
-  Future<void> _getRecommendedDateTimeSemanal() async {
-    List<Map<String, dynamic>> recommendations =
-        await DatabaseManager.getRecomeSema();
-    if (recommendations.isNotEmpty) {
-      DateTime fecha = DateTime.parse(recommendations[0]['fecha']);
-      String hora = recommendations[0]['hora'];
-      setState(() {
-        _recommendedDate = DateFormat('dd/MM/yyyy').format(fecha);
-        fechaRecomenGuar = DateFormat('yyyy-MM-dd').format(fecha);
-        _recommendedTime = hora; // No need to parse, just assign the value
-      });
-    }
-  }
-
-  Future<void> _getRecommendedDateTimeMen() async {
-    List<Map<String, dynamic>> recommendations =
-        await DatabaseManager.getRecomeMen();
-    if (recommendations.isNotEmpty) {
-      DateTime fecha = DateTime.parse(recommendations[0]['fecha']);
-      String hora = recommendations[0]['hora'];
-      setState(() {
-        _recommendedDate = DateFormat('dd/MM/yyyy').format(fecha);
-        fechaRecomenGuar = DateFormat('yyyy-MM-dd').format(fecha);
-        _recommendedTime = hora; // No need to parse, just assign the value
-      });
-    }
+    
+    setState(() {
+      _recommendedAppointments = recommendations;
+      _selectedAppointment = recommendations.isNotEmpty ? recommendations[0]['fecha'] + ' ' + recommendations[0]['hora'] : null;
+    });
   }
 
   bool status = false;
@@ -245,29 +219,30 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                 ],
                 onChanged: (value) async {
                   servicioController.text = value!;
-                  if (value == 'Opción 1') {
-                    await _getRecommendedDateTime();
-                  } else if (value == 'Opción 2') {
-                    await _getRecommendedDateTimeSemanal();
-                  } else if (value == 'Opción 3') {
-                    await _getRecommendedDateTimeMen();
-                  }
+                  await _getRecommendedDateTime(value);
                 },
               ),
               SizedBox(height: 20.0),
-              Text(
-                'Fecha y hora por registrar:',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 10.0),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Fecha: ${_recommendedDate ?? ''}'),
-                  Text('Hora: ${_recommendedTime ?? ''}'),
-                ],
-              ),
-              SizedBox(height: 20.0),
+              if (_recommendedAppointments.isNotEmpty)
+                DropdownButtonFormField<String>(
+                  value: _selectedAppointment,
+                  hint: Text('Seleccione una cita recomendada'),
+                  items: _recommendedAppointments.map((appointment) {
+                    DateTime fecha = DateTime.parse(appointment['fecha']);
+                    String formattedDate = DateFormat('dd/MM/yyyy').format(fecha);
+                    String hora = appointment['hora'];
+                    return DropdownMenuItem<String>(
+                      value: appointment['fecha'] + ' ' + hora,
+                      child: Text('$formattedDate a las $hora'),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedAppointment = value!;
+                    });
+                  },
+                ),
+              const SizedBox(height: 20.0),
               Row(
                 children: [
                   Expanded(
@@ -345,8 +320,8 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                   if (_formKey.currentState!.validate()) {
                     // Recolectar datos del formulario
                     String nombre = nameController.text;
-                    String? fecha = fechaRecomenGuar;
-                    String? hora = _recommendedTime;
+                    String? fecha = _selectedAppointment?.split(' ')[0];
+                    String? hora = _selectedAppointment?.split(' ')[1];
                     String duracion = selectedInterval.toString();
                     String servicio = servicioController.text;
                     String nota = notaController.text;

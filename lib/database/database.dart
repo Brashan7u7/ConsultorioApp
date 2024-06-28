@@ -14,7 +14,7 @@ class DatabaseManager {
         port: 5432,
         database: 'medicalmanik',
         username: 'postgres',
-        password: '123',
+        password: 'DJE20ben',
       ),
       settings: ConnectionSettings(sslMode: SslMode.disable),
     );
@@ -567,7 +567,7 @@ class DatabaseManager {
           hora_disponible
       FROM 
           horas_libres
-      LIMIT 5;
+      LIMIT 100;
     """);
       for (var row in result) {
         recomeDiaria.add({
@@ -680,7 +680,7 @@ class DatabaseManager {
           hora_disponible
       FROM 
           horas_libres
-      LIMIT 1;
+      LIMIT 100;
     """);
       for (var row in result) {
         recomeSema.add({
@@ -793,7 +793,7 @@ class DatabaseManager {
           hora_disponible
       FROM 
           horas_libres
-      LIMIT 1;
+      LIMIT 100;
     """);
       for (var row in result) {
         recomeMen.add({

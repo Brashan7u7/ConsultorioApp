@@ -275,6 +275,7 @@ class _ConsultingState extends State<Consulting> {
                   const Text('No hay consultorios registrados'),
                 if (hasConsultorios)
                   DropdownButtonFormField<Consultorio>(
+                    hint: Text('Seleccione un consultorio para modificar'),
                     items: consultorios.map((consultorio) {
                       return DropdownMenuItem<Consultorio>(
                         value: consultorio,

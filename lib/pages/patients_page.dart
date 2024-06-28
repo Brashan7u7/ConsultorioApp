@@ -27,6 +27,7 @@ class _PatientsState extends State<Patients> {
     _filteredPatients.addAll(_allPatients);
     super.initState();
     _loaderPacientes();
+    print(widget.usuario_id);
   }
 
   Future<void> _loaderPacientes() async {
@@ -61,6 +62,10 @@ class _PatientsState extends State<Patients> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text("Pacientes"),
+        automaticallyImplyLeading: false,
+      ),
       body: Column(
         children: [
           Container(
@@ -146,7 +151,7 @@ class _PatientsState extends State<Patients> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => Patients(),
+                builder: (context) => Patients(usuario_id: widget.usuario_id),
               ),
             );
           }
@@ -192,11 +197,11 @@ class _PatientsState extends State<Patients> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => Add(
-                        isCitaInmediata: false,
-                        isEvento: false,
-                        isPacient: true,
-                        isCitaPro: false,
-                      ),
+                          isCitaInmediata: false,
+                          isEvento: false,
+                          isPacient: true,
+                          isCitaPro: false,
+                          usuario_id: widget.usuario_id),
                     ),
                   );
                 },

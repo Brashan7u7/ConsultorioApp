@@ -1,3 +1,4 @@
+import 'package:calendario_manik/variab.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:calendario_manik/pages/add_page.dart';
@@ -24,6 +25,7 @@ class _CalendarState extends State<Calendar> {
     super.initState();
     _loadConsultorios();
     //_loadSelectedConsultorio();
+    print('variable gloabl en calendar ${variableglobal}');
   }
 
   final CalendarController _calendarController = CalendarController();
@@ -235,6 +237,7 @@ class _CalendarState extends State<Calendar> {
           children: [
             Expanded(
               child: DropdownButton<Consultorio>(
+                isExpanded: true,
                 items: consultorios.map((consultorio) {
                   return DropdownMenuItem<Consultorio>(
                     value: consultorio,
@@ -258,7 +261,6 @@ class _CalendarState extends State<Calendar> {
                     }
                   }
                 },
-                hint: Text("Selecciona un consultorio"),
               ),
             ),
           ],

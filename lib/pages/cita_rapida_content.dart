@@ -163,6 +163,7 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
                   children: [
                     Expanded(
                       child: DropdownButtonFormField<String>(
+                        isExpanded: true,
                         items: const [
                           DropdownMenuItem<String>(
                             value: 'Consulta',

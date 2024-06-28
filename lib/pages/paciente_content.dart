@@ -8,6 +8,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class PacienteContent extends StatefulWidget {
+  final int? usuario_id;
+  PacienteContent({Key? key, this.usuario_id}) : super(key: key);
   @override
   _PacienteContentState createState() => _PacienteContentState();
 }
@@ -93,14 +95,14 @@ class _PacienteContentState extends State<PacienteContent> {
               TextFormField(
                 controller: fechaNacimientoController,
                 readOnly: true,
-                decoration: InputDecoration(
-                    labelText: 'Fecha de nacimiento (YYYY-MM-DD)'),
+                decoration: InputDecoration(labelText: 'Fecha de nacimiento'),
                 onTap: () async {
                   DateTime? pickedDate = await showDatePicker(
                     context: context,
                     initialDate: DateTime.now(),
                     firstDate: DateTime(1900),
                     lastDate: DateTime(2101),
+                    //locale: Locale('es', 'ES'),
                   );
                   if (pickedDate != null) {
                     String formattedDate =
@@ -141,6 +143,17 @@ class _PacienteContentState extends State<PacienteContent> {
               //   controller: coloniaIdController,
               //   decoration: InputDecoration(labelText: 'ColoniaId'),
               // ),
+              TextFormField(
+                controller: curpController,
+                decoration: InputDecoration(labelText: 'CURP'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'El CURP es obligatorio';
+                  }
+
+                  return null;
+                },
+              ),
               TextFormField(
                 controller: telefonoMovilController,
                 decoration: InputDecoration(labelText: 'Teléfono Móvil'),
@@ -198,21 +211,10 @@ class _PacienteContentState extends State<PacienteContent> {
                 controller: direccionController,
                 decoration: InputDecoration(labelText: 'Dirección'),
               ),
-              TextFormField(
-                controller: identificadorController,
-                decoration: InputDecoration(labelText: 'Identificador'),
-              ),
-              TextFormField(
-                controller: curpController,
-                decoration: InputDecoration(labelText: 'CURP'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'El CURP es obligatorio';
-                  }
-
-                  return null;
-                },
-              ),
+              // TextFormField(
+              //   controller: identificadorController,
+              //   decoration: InputDecoration(labelText: 'Identificador'),
+              // ),
               TextFormField(
                 controller: codigoPostalController,
                 decoration: InputDecoration(labelText: 'Código Postal'),
@@ -267,10 +269,10 @@ class _PacienteContentState extends State<PacienteContent> {
                           telefonoFijo: telefonoFijoController.text,
                           correo: correoController.text,
                           // avatar: avatarController.text,
-                          // fechaRegistro:
-                          //     DateTime.parse(fechaRegistroController.text),
+                          fechaRegistro:
+                              DateTime.parse(fechaRegistroController.text),
                           direccion: direccionController.text,
-                          identificador: identificadorController.text,
+                          //identificador: identificadorController.text,
                           curp: curpController.text,
                           codigoPostal: int.parse(codigoPostalController.text),
                           // municipioId: int.parse(municipioIdController.text),
@@ -289,7 +291,9 @@ class _PacienteContentState extends State<PacienteContent> {
 
                       Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(builder: (context) => Patients()),
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                Patients(usuario_id: widget.usuario_id)),
                       );
                     } catch (e) {
                       print('Error al insertar el paciente: $e');

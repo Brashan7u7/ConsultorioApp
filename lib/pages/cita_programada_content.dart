@@ -247,6 +247,7 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                 children: [
                   Expanded(
                     child: DropdownButtonFormField<String>(
+                      isExpanded: true,
                       items: const [
                         DropdownMenuItem<String>(
                           value: 'Consulta',

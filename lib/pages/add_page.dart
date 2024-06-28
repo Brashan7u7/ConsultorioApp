@@ -58,7 +58,7 @@ class Add extends StatelessWidget {
                   ? EventoContent(
                       consultorioId: consultorioId, usuario_id: usuario_id)
                   : isPacient
-                      ? PacienteContent()
+                      ? PacienteContent(usuario_id: usuario_id)
                       : isCitaPro
                           ? CitaProgramadaContent(
                               usuario_id: usuario_id,

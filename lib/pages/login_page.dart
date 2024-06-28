@@ -1,3 +1,4 @@
+import 'package:calendario_manik/variab.dart';
 import 'package:flutter/material.dart';
 import 'package:calendario_manik/pages/calendar_page.dart';
 import 'package:calendario_manik/pages/createAccount_page.dart';
@@ -55,9 +56,10 @@ class _LoginState extends State<Login> {
         (u) => u['correo'] == email && u['contrasena'] == password,
         orElse: () => {});
 
-    usuario_id = user['id'];
-
     if (user.isNotEmpty) {
+      usuario_id = user['id'];
+      print('Valor de la variable global: ${variableglobal}');
+      print('Ajustando variable global: ${variableglobal=false}');
       _loadConsultorios();
     } else {
       showDialog(

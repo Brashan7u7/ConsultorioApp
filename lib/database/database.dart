@@ -10,11 +10,11 @@ class DatabaseManager {
     return await Connection.open(
       Endpoint(
         //host: '192.168.1.71',
-        host: '192.168.1.181',
+        host: 'localhost',
         port: 5432,
         database: 'medicalmanik',
         username: 'postgres',
-        password: '123',
+        password: 'DJE20ben',
       ),
       settings: ConnectionSettings(sslMode: SslMode.disable),
     );
@@ -568,7 +568,7 @@ class DatabaseManager {
           hora_disponible
       FROM 
           horas_libres
-      LIMIT 1;
+      LIMIT 100;
     """);
       for (var row in result) {
         recomeDiaria.add({
@@ -681,7 +681,7 @@ class DatabaseManager {
           hora_disponible
       FROM 
           horas_libres
-      LIMIT 1;
+      LIMIT 100;
     """);
       for (var row in result) {
         recomeSema.add({
@@ -794,7 +794,7 @@ class DatabaseManager {
           hora_disponible
       FROM 
           horas_libres
-      LIMIT 1;
+      LIMIT 100;
     """);
       for (var row in result) {
         recomeMen.add({

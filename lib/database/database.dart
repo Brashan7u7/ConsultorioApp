@@ -9,8 +9,8 @@ class DatabaseManager {
   static Future<Connection> _connect() async {
     return await Connection.open(
       Endpoint(
-        //host: '192.168.1.71',
-        host: '192.168.1.181',
+        host: '192.168.1.71',
+        //host: '192.168.1.181',
         port: 5432,
         database: 'medicalmanik',
         username: 'postgres',
@@ -44,8 +44,9 @@ class DatabaseManager {
       // print(evento.hora);
       // Calcular la fecha de inicio y fin basándose en la duración
       DateTime startDate = DateTime.parse(evento.fecha + " " + evento.hora);
-      int duration = int.parse(evento.duracion);
+      int duration = int.parse(evento.duracion) - 1;
       DateTime endDate = startDate.add(Duration(minutes: duration));
+      print(endDate);
 
       await conn.execute(
         Sql.named(
@@ -346,7 +347,7 @@ class DatabaseManager {
 
       await conn.execute(
         Sql.named(
-            "INSERT INTO paciente(id, nombre, ap_paterno, ap_materno, fecha_nacimiento, sexo, telefono_movil, telefono_fijo, correo, direccion, identificador, curp, codigo_postal) VALUES (@id, @nombre, @ap_paterno, @ap_materno, @fechaNacimiento, @sexo, @telefonoMovil, @telefonoFijo, @correo, @direccion, @identificador, @curp, @codigoPostal)"),
+            "INSERT INTO paciente(id, nombre, ap_paterno, ap_materno, fecha_nacimiento, sexo, telefono_movil, telefono_fijo, correo, fecha_registro, direccion, curp, codigo_postal) VALUES (@id, @nombre, @ap_paterno, @ap_materno, @fechaNacimiento, @sexo, @telefonoMovil, @telefonoFijo, @correo, @fechaRegistro, @direccion, @curp, @codigoPostal)"),
         parameters: {
           "id": newId,
           "nombre": paciente.nombre,
@@ -358,11 +359,9 @@ class DatabaseManager {
           "telefonoFijo": paciente.telefonoFijo,
           "correo": paciente.correo,
           //"avatar": paciente.avatar,
-          //"fechaRegistro": paciente.fechaRegistro.toIso8601String(),
-          //"avatar": paciente.avatar,
-          //"fechaRegistro": paciente.fechaRegistro.toIso8601String(),
+          "fechaRegistro": paciente.fechaRegistro.toIso8601String(),
           "direccion": paciente.direccion,
-          "identificador": paciente.identificador,
+          //"identificador": paciente.identificador,
           "curp": paciente.curp,
           "codigoPostal": paciente.codigoPostal,
           // "municipioId": paciente.municipioId,
@@ -568,7 +567,7 @@ class DatabaseManager {
           hora_disponible
       FROM 
           horas_libres
-      LIMIT 1;
+      LIMIT 5;
     """);
       for (var row in result) {
         recomeDiaria.add({

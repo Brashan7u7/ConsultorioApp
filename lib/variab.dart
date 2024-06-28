@@ -1,0 +1,1 @@
+bool variableglobal = true;

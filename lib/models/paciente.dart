@@ -11,11 +11,9 @@ class Paciente {
   String telefonoFijo;
   String correo;
   //String avatar;
-  //DateTime fechaRegistro;
-  //String avatar;
-  //DateTime fechaRegistro;
+  DateTime fechaRegistro;
   String direccion;
-  String identificador;
+  //String identificador;
   String curp;
   int codigoPostal;
   // int municipioId;
@@ -38,9 +36,9 @@ class Paciente {
     required this.telefonoFijo,
     required this.correo,
     // required this.avatar,
-    // required this.fechaRegistro,
+    required this.fechaRegistro,
     required this.direccion,
-    required this.identificador,
+    //required this.identificador,
     required this.curp,
     required this.codigoPostal,
     // required this.municipioId,

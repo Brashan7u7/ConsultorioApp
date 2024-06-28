@@ -9,8 +9,8 @@ class DatabaseManager {
   static Future<Connection> _connect() async {
     return await Connection.open(
       Endpoint(
-        host: '192.168.1.71',
-        //host: '192.168.1.181',
+        //host: '192.168.1.71',
+        host: '192.168.1.181',
         port: 5432,
         database: 'medicalmanik',
         username: 'postgres',

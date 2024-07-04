@@ -65,10 +65,12 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
     } else if (option == 'Opción 3') {
       recommendations = await DatabaseManager.getRecomeMen();
     }
-    
+
     setState(() {
       _recommendedAppointments = recommendations;
-      _selectedAppointment = recommendations.isNotEmpty ? recommendations[0]['fecha'] + ' ' + recommendations[0]['hora'] : null;
+      _selectedAppointment = recommendations.isNotEmpty
+          ? recommendations[0]['fecha'] + ' ' + recommendations[0]['hora']
+          : null;
     });
   }
 
@@ -228,8 +230,9 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                   value: _selectedAppointment,
                   hint: Text('Seleccione una cita recomendada'),
                   items: _recommendedAppointments.map((appointment) {
-                    DateTime fecha = DateTime.parse(appointment['fecha']);
-                    String formattedDate = DateFormat('dd/MM/yyyy').format(fecha);
+                    DateTime fecha = DateTime.parse(appointment['fecha'] );
+                    String formattedDate =
+                        DateFormat('dd/MM/yyyy').format(fecha);
                     String hora = appointment['hora'];
                     return DropdownMenuItem<String>(
                       value: appointment['fecha'] + ' ' + hora,

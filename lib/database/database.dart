@@ -10,7 +10,7 @@ class DatabaseManager {
     return await Connection.open(
       Endpoint(
         //host: '192.168.1.71',
-        host: '192.168.1.181',
+        host: 'localhost',
         port: 5432,
         database: 'medicalmanik',
         username: 'postgres',
@@ -44,9 +44,8 @@ class DatabaseManager {
       // print(evento.hora);
       // Calcular la fecha de inicio y fin basándose en la duración
       DateTime startDate = DateTime.parse(evento.fecha + " " + evento.hora);
-      int duration = int.parse(evento.duracion) - 1;
+      int duration = int.parse(evento.duracion);
       DateTime endDate = startDate.add(Duration(minutes: duration));
-      print(endDate);
 
       await conn.execute(
         Sql.named(
@@ -347,7 +346,7 @@ class DatabaseManager {
 
       await conn.execute(
         Sql.named(
-            "INSERT INTO paciente(id, nombre, ap_paterno, ap_materno, fecha_nacimiento, sexo, telefono_movil, telefono_fijo, correo, fecha_registro, direccion, curp, codigo_postal) VALUES (@id, @nombre, @ap_paterno, @ap_materno, @fechaNacimiento, @sexo, @telefonoMovil, @telefonoFijo, @correo, @fechaRegistro, @direccion, @curp, @codigoPostal)"),
+            "INSERT INTO paciente(id, nombre, ap_paterno, ap_materno, fecha_nacimiento, sexo, telefono_movil, telefono_fijo, correo, direccion, identificador, curp, codigo_postal) VALUES (@id, @nombre, @ap_paterno, @ap_materno, @fechaNacimiento, @sexo, @telefonoMovil, @telefonoFijo, @correo, @direccion, @identificador, @curp, @codigoPostal)"),
         parameters: {
           "id": newId,
           "nombre": paciente.nombre,
@@ -359,9 +358,11 @@ class DatabaseManager {
           "telefonoFijo": paciente.telefonoFijo,
           "correo": paciente.correo,
           //"avatar": paciente.avatar,
+          //"fechaRegistro": paciente.fechaRegistro.toIso8601String(),
+          //"avatar": paciente.avatar,
           "fechaRegistro": paciente.fechaRegistro.toIso8601String(),
           "direccion": paciente.direccion,
-          //"identificador": paciente.identificador,
+         // "identificador": paciente.identificador,
           "curp": paciente.curp,
           "codigoPostal": paciente.codigoPostal,
           // "municipioId": paciente.municipioId,
@@ -470,118 +471,26 @@ class DatabaseManager {
     return usuarios;
   }
 
-  static Future<List<Map<String, dynamic>>> getRecomeDiaria() async {
-    List<Map<String, dynamic>> recomeDiaria = [];
-    try {
-      final conn = await _connect();
-      final result = await conn.execute("""
-      WITH fechas AS (
-          SELECT 
-              CURRENT_DATE + i AS recomendacion_semanal,
-              LOWER(translate(TO_CHAR(CURRENT_DATE + i, 'TMDay'), 'ÁÉÍÓÚáéíóú', 'AEIOUaeiou')) AS dia_de_la_semana,
-              TO_CHAR(CURRENT_TIMESTAMP, 'HH24:MI') AS hora_actual
-          FROM 
-              generate_series(0, 6) AS s(i)
-      ),
-      horario AS (
-          SELECT 
-              id,
-              'lunes' AS dia_de_la_semana,
-              UNNEST(string_to_array(lunes, ',')) AS hora
-          FROM horario_consultorio
-          UNION ALL
-          SELECT 
-              id,
-              'martes' AS dia_de_la_semana,
-              UNNEST(string_to_array(martes, ',')) AS hora
-          FROM horario_consultorio
-          UNION ALL
-          SELECT 
-              id,
-              'miercoles' AS dia_de_la_semana,
-              UNNEST(string_to_array(miercoles, ',')) AS hora
-          FROM horario_consultorio
-          UNION ALL
-          SELECT 
-              id,
-              'jueves' AS dia_de_la_semana,
-              UNNEST(string_to_array(jueves, ',')) AS hora
-          FROM horario_consultorio
-          UNION ALL
-          SELECT 
-              id,
-              'viernes' AS dia_de_la_semana,
-              UNNEST(string_to_array(viernes, ',')) AS hora
-          FROM horario_consultorio
-          UNION ALL
-          SELECT 
-              id,
-              'sabado' AS dia_de_la_semana,
-              UNNEST(string_to_array(sabado, ',')) AS hora
-          FROM horario_consultorio
-          UNION ALL
-          SELECT 
-              id,
-              'domingo' AS dia_de_la_semana,
-              UNNEST(string_to_array(domingo, ',')) AS hora
-          FROM horario_consultorio
-      ),
-      eventos AS (
-          SELECT 
-              DATE(fecha_inicio) AS fecha_evento,
-              to_char(fecha_inicio, 'HH24:MI') AS hora_inicio,
-              to_char(fecha_fin, 'HH24:MI') AS hora_fin
-          FROM 
-              evento
-      ),
-      horas_libres AS (
-          SELECT 
-              f.recomendacion_semanal,
-              f.dia_de_la_semana,
-              SUBSTR(h.hora, 1, 5) AS hora_disponible
-          FROM 
-              fechas f
-          JOIN 
-              horario h
-          ON 
-              f.dia_de_la_semana = h.dia_de_la_semana
-          LEFT JOIN 
-              eventos e
-          ON 
-              f.recomendacion_semanal = e.fecha_evento
-              AND (
-                  (split_part(h.hora, '-', 1) BETWEEN e.hora_inicio AND e.hora_fin)
-                  OR (split_part(h.hora, '-', 2) BETWEEN e.hora_inicio AND e.hora_fin)
-                  OR (e.hora_inicio BETWEEN split_part(h.hora, '-', 1) AND split_part(h.hora, '-', 2))
-                  OR (e.hora_fin BETWEEN split_part(h.hora, '-', 1) AND split_part(h.hora, '-', 2))
-              )
-          WHERE 
-              e.fecha_evento IS NULL
-              AND (f.recomendacion_semanal > CURRENT_DATE OR (f.recomendacion_semanal = CURRENT_DATE AND split_part(h.hora, '-', 1) >= f.hora_actual))
-          ORDER BY 
-              f.recomendacion_semanal, h.hora
-      )
-      SELECT 
-          TO_CHAR(recomendacion_semanal, 'YYYY-MM-DD') AS recomendacion_semanal,
-          dia_de_la_semana,
-          hora_disponible
-      FROM 
-          horas_libres
-      LIMIT 100;
-    """);
-      for (var row in result) {
-        recomeDiaria.add({
-          'fecha': row[0],
-          'dia': row[1],
-          'hora': row[2],
-        });
-      }
-      await conn.close();
-    } catch (e) {
-      print('Error: $e');
+ static Future<List<Map<String, dynamic>>> getRecomeDiaria() async {
+  List<Map<String, dynamic>> recomeDiaria = [];
+  try {
+    final conn = await _connect();
+    final result = await conn.execute("SELECT * FROM RecomeDiaria;");
+    
+    for (var row in result) {
+      recomeDiaria.add({
+        'fecha': row[0],
+        'dia': row[1],
+        'hora': row[2],
+      });
     }
-    return recomeDiaria;
+    await conn.close();
+  } catch (e) {
+    print('Error: $e');
   }
+  return recomeDiaria;
+}
+
 
   static Future<List<Map<String, dynamic>>> getRecomeSema() async {
     List<Map<String, dynamic>> recomeSema = [];
@@ -680,7 +589,7 @@ class DatabaseManager {
           hora_disponible
       FROM 
           horas_libres
-      LIMIT 100;
+      LIMIT 20;
     """);
       for (var row in result) {
         recomeSema.add({
@@ -793,7 +702,7 @@ class DatabaseManager {
           hora_disponible
       FROM 
           horas_libres
-      LIMIT 100;
+      LIMIT 20;
     """);
       for (var row in result) {
         recomeMen.add({

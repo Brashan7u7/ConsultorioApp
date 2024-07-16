@@ -2,7 +2,7 @@ import 'package:calendario_manik/widgets/custom_scaffold.dart';
 import 'package:flutter/material.dart';
 
 class ResetP extends StatelessWidget {
-  const ResetP({Key? key}) : super(key: key);
+  const ResetP({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +33,7 @@ class ResetP extends StatelessWidget {
                       keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
                         labelText: 'Correo Electrónico',
-                        prefixIcon: Icon(Icons.email, color: Colors.white),
+                        prefixIcon: const Icon(Icons.email, color: Colors.white),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10.0,),
                         ),
@@ -44,16 +44,16 @@ class ResetP extends StatelessWidget {
                     const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: () {},
-                      child: const Text(
-                        'Enviar Correo de Restablecimiento',
-                        style: TextStyle(color: Colors.black), // Texto negro
-                      ),
                       style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: 15.0),
+                        padding: const EdgeInsets.symmetric(vertical: 15.0),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10.0),
                         ),
                 
+                      ),
+                      child: const Text(
+                        'Enviar Correo de Restablecimiento',
+                        style: TextStyle(color: Colors.black), // Texto negro
                       ),
                     ),
                     const SizedBox(height: 20),

@@ -9,7 +9,7 @@ import 'package:calendario_manik/database/database.dart';
 import 'dart:collection';
 
 class Login extends StatefulWidget {
-  const Login({Key? key}) : super(key: key);
+  const Login({super.key});
 
   @override
   _LoginState createState() => _LoginState();
@@ -32,11 +32,11 @@ class _LoginState extends State<Login> {
     List<Map<String, dynamic>> consultoriosData =
         await DatabaseManager.getConsultoriosData(usuario_id);
 
-    await Future.delayed(Duration(milliseconds: 1500));
+    await Future.delayed(const Duration(milliseconds: 1500));
     if (consultoriosData.isEmpty) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => Consulting()),
+        MaterialPageRoute(builder: (context) => const Consulting()),
       );
     } else {
       Navigator.push(
@@ -58,18 +58,18 @@ class _LoginState extends State<Login> {
 
     if (user.isNotEmpty) {
       usuario_id = user['id'];
-      print('Valor de la variable global: ${variableglobal}');
+      print('Valor de la variable global: $variableglobal');
       print('Ajustando variable global: ${variableglobal=false}');
       _loadConsultorios();
     } else {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text('Error'),
-          content: Text('Correo electrónico o contraseña incorrectos'),
+          title: const Text('Error'),
+          content: const Text('Correo electrónico o contraseña incorrectos'),
           actions: [
             TextButton(
-              child: Text('Aceptar'),
+              child: const Text('Aceptar'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -91,7 +91,7 @@ class _LoginState extends State<Login> {
             children: [
               Container(
                 decoration: BoxDecoration(
-                  color: Color.fromARGB(
+                  color: const Color.fromARGB(
                       128, 0, 0, 0), // Color de fondo del contenedor
                   borderRadius: BorderRadius.circular(20), // Bordes redondeados
                 ),
@@ -116,8 +116,8 @@ class _LoginState extends State<Login> {
                         ),
                       ),
                       keyboardType: TextInputType.emailAddress,
-                      style: TextStyle(
-                        color: const Color.fromARGB(255, 255, 255, 255),
+                      style: const TextStyle(
+                        color: Color.fromARGB(255, 255, 255, 255),
                       ), // Letras negras
                       onChanged: (value) {},
                     ),
@@ -126,8 +126,8 @@ class _LoginState extends State<Login> {
                       controller: passwordController,
                       decoration: InputDecoration(
                         labelText: 'Contraseña',
-                        labelStyle: TextStyle(
-                          color: const Color.fromARGB(255, 255, 255, 255),
+                        labelStyle: const TextStyle(
+                          color: Color.fromARGB(255, 255, 255, 255),
                         ),
                         border: const OutlineInputBorder(),
                         prefixIcon: const Icon(Icons.lock),
@@ -147,8 +147,8 @@ class _LoginState extends State<Login> {
                         ),
                       ),
                       obscureText: _obscureText,
-                      style: TextStyle(
-                        color: const Color.fromARGB(255, 255, 255, 255),
+                      style: const TextStyle(
+                        color: Color.fromARGB(255, 255, 255, 255),
                       ), // Letras negras
                       onChanged: (value) {},
                     ),
@@ -168,7 +168,7 @@ class _LoginState extends State<Login> {
                             checkColor: const Color.fromARGB(
                                 255, 255, 255, 255), // Color del check negro
                           ),
-                          Text(
+                          const Text(
                             'Recordar Contraseña',
                             style: TextStyle(
                                 color: Color.fromRGBO(255, 255, 255, 1)),
@@ -182,7 +182,7 @@ class _LoginState extends State<Login> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => ResetP()),
+                            MaterialPageRoute(builder: (context) => const ResetP()),
                           );
                         },
                         child: const Text(
@@ -198,7 +198,7 @@ class _LoginState extends State<Login> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => CreateP()),
+                            MaterialPageRoute(builder: (context) => const CreateP()),
                           );
                         },
                         child: const Text(
@@ -213,7 +213,7 @@ class _LoginState extends State<Login> {
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 50, vertical: 5),
-                        backgroundColor: (Color.fromARGB(255, 230, 38, 38)),
+                        backgroundColor: (const Color.fromARGB(255, 230, 38, 38)),
                       ),
                       onPressed: _iniciarSesion,
                       child: const Text('Iniciar Sesión',

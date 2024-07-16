@@ -1,10 +1,9 @@
 import 'package:calendario_manik/database/database.dart';
-import 'package:calendario_manik/models/evento.dart';
+import 'package:calendario_manik/models/tarea.dart';
 import 'package:calendario_manik/pages/add_page.dart';
 import 'package:calendario_manik/pages/calendar_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_switch/flutter_switch.dart';
-import 'package:intl/intl.dart';
 
 class CitaSelectContent extends StatefulWidget {
   final TextEditingController fechaController;
@@ -12,8 +11,8 @@ class CitaSelectContent extends StatefulWidget {
   final int? consultorioId;
   final int? usuario_id;
 
-  CitaSelectContent(
-      {required this.fechaController,
+  const CitaSelectContent(
+      {super.key, required this.fechaController,
       required this.horaController,
       this.consultorioId,
       this.usuario_id});
@@ -159,7 +158,7 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
             Expanded(
               child: FlutterSwitch(
                 activeText: "Subsecuente",
-                inactiveText: "Primera ves",
+                inactiveText: "Primera vez",
                 value: status,
                 valueFontSize: 11.0,
                 width: 110,
@@ -193,9 +192,10 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
               String duracion = selectedInterval.toString();
               String servicio = valor; // Usar el valor seleccionado
               String nota = notaController.text;
+              int consultorioId = widget.consultorioId ?? 1; // Asegurar que el consultorioId no sea null
 
               // Crear el objeto Evento
-              Evento evento = Evento(
+              Tarea tarea = Tarea(
                 nombre: nombre,
                 fecha: fecha,
                 hora: hora,
@@ -205,11 +205,11 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
               );
 
               // Insertar el evento en la base de datos
-              await DatabaseManager.insertEvento(widget.consultorioId!, evento);
+              await DatabaseManager.insertTareaSeleccionada(consultorioId, tarea);
 
               // Mostrar mensaje de éxito o redireccionar a otra pantalla si es necesario
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
+                const SnackBar(
                   content: Text('Cita programada agregada correctamente'),
                 ),
               );

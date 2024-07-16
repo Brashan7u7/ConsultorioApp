@@ -2,9 +2,7 @@ import 'package:calendario_manik/pages/createAccount_page.dart';
 import 'package:calendario_manik/pages/login_page.dart';
 import 'package:calendario_manik/widgets/custom_scaffold.dart';
 import 'package:calendario_manik/widgets/welcome_button.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 class StartPage extends StatelessWidget {
   const StartPage({super.key});

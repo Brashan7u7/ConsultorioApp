@@ -5,7 +5,7 @@ import 'package:calendario_manik/pages/add_page.dart';
 
 class BottomNavBar extends StatefulWidget {
   final int? usuario_id;
-  const BottomNavBar({Key? key, this.usuario_id}) : super(key: key);
+  const BottomNavBar({super.key, this.usuario_id});
 
   @override
   State<BottomNavBar> createState() => _BottomNavBarState();
@@ -15,7 +15,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
   int _selectedIndex = 0;
 
   int state = 0;
-  List<String> _buttonNames = ['Calendario', 'Agendar', 'Pacientes'];
+  final List<String> _buttonNames = ['Calendario', 'Agendar', 'Pacientes'];
   late List<Widget> _pages;
 
   void _navigateBottomBar(int index) {

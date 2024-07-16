@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 
 class Consulting extends StatefulWidget {
   final int? usuario_id;
-  const Consulting({Key? key, this.usuario_id}) : super(key: key);
+  const Consulting({super.key, this.usuario_id});
 
   @override
   State<Consulting> createState() => _ConsultingState();
@@ -186,15 +186,15 @@ class _ConsultingState extends State<Consulting> {
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Eliminar consultorio'),
-        content: Text('¿Estás seguro de eliminar este consultorio?'),
+        title: const Text('Eliminar consultorio'),
+        content: const Text('¿Estás seguro de eliminar este consultorio?'),
         actions: [
           TextButton(
-            child: Text('Cancelar'),
+            child: const Text('Cancelar'),
             onPressed: () => Navigator.of(context).pop(false),
           ),
           TextButton(
-            child: Text('Eliminar'),
+            child: const Text('Eliminar'),
             onPressed: () => Navigator.of(context).pop(true),
           ),
         ],
@@ -209,7 +209,7 @@ class _ConsultingState extends State<Consulting> {
         automaticallyImplyLeading: false,
         title: const Text('Mis Consultorios'),
         leading: IconButton(
-          icon: Icon(Icons.close), // Icono de X
+          icon: const Icon(Icons.close), // Icono de X
           onPressed: () {
             Navigator.pushReplacement(
               context,
@@ -228,7 +228,7 @@ class _ConsultingState extends State<Consulting> {
                 if (confirmDelete) {
                   _eliminarConsultorio(selectedConsultorio!.id!);
 
-                  await Future.delayed(Duration(milliseconds: 1500));
+                  await Future.delayed(const Duration(milliseconds: 1500));
 
                   Navigator.pushReplacement(
                     context,
@@ -275,7 +275,7 @@ class _ConsultingState extends State<Consulting> {
                   const Text('No hay consultorios registrados'),
                 if (hasConsultorios)
                   DropdownButtonFormField<Consultorio>(
-                    hint: Text('Seleccione un consultorio para modificar'),
+                    hint: const Text('Seleccione un consultorio para modificar'),
                     items: consultorios.map((consultorio) {
                       return DropdownMenuItem<Consultorio>(
                         value: consultorio,
@@ -398,7 +398,7 @@ class _ConsultingState extends State<Consulting> {
                   ),
                 ),
                 const SizedBox(height: 16.0),
-                Text('Selecciona un día de la semana:'),
+                const Text('Selecciona un día de la semana:'),
                 DropdownButtonFormField<String>(
                   items: daysOfWeek.map((day) {
                     return DropdownMenuItem<String>(
@@ -414,7 +414,7 @@ class _ConsultingState extends State<Consulting> {
                   },
                 ),
                 const SizedBox(height: 16.0),
-                Text('Horarios de atención'),
+                const Text('Horarios de atención'),
                 _buildTimeIntervals(), // Llama al método para generar los intervalos de tiempo
                 if (hasConsultorios) const SizedBox(height: 16.0),
                 ElevatedButton(
@@ -422,7 +422,7 @@ class _ConsultingState extends State<Consulting> {
                     _guardarConsultorio();
 
                     if (camposvacios != true) {
-                      await Future.delayed(Duration(milliseconds: 1500));
+                      await Future.delayed(const Duration(milliseconds: 1500));
 
                       Navigator.pushReplacement(
                         context,
@@ -480,8 +480,8 @@ class _ConsultingState extends State<Consulting> {
                           });
                         },
                   style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.resolveWith<Color?>(
-                      (Set<MaterialState> states) {
+                    backgroundColor: WidgetStateProperty.resolveWith<Color?>(
+                      (Set<WidgetState> states) {
                         if (isOccupied) {
                           return Colors.grey[200];
                         } else if (isSelected) {
@@ -492,11 +492,11 @@ class _ConsultingState extends State<Consulting> {
                       },
                     ),
                     foregroundColor:
-                        MaterialStateProperty.all<Color>(Colors.black),
+                        WidgetStateProperty.all<Color>(Colors.black),
                   ),
                   child: Text(timeInterval),
                 ),
-                SizedBox(width: 8.0), // Espacio entre los botones
+                const SizedBox(width: 8.0), // Espacio entre los botones
               ],
             );
           },

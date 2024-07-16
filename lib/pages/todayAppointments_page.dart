@@ -5,7 +5,7 @@ class CitasController {
 }
 
 class Citas extends StatefulWidget {
-  const Citas({Key? key}) : super(key: key);
+  const Citas({super.key});
 
   @override
   State<Citas> createState() => _CitasState();
@@ -19,9 +19,9 @@ class _CitasState extends State<Citas> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text('Pagina de citas de hoy'),
+        title: const Text('Pagina de citas de hoy'),
       ),
-      body: Center(
+      body: const Center(
         child: Text('Contenido de la pagina '),
       ),
     );

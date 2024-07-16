@@ -32,22 +32,29 @@ dependencies:
     sdk: flutter
   flutter_time_picker_spinner: ^2.0.0
 
+
   flutter_localizations:
     sdk: flutter
 
   url_launcher: ^6.0.12
+  win32: ^5.4.0
   http: ^0.13.3
+  hexcolor: ^3.0.1
+  timezone: ^0.9.2
+  path_provider: ^2.0.7
   syncfusion_flutter_calendar: ^24.2.8
   flutter_switch: ^0.3.2
   dash_chat:
+    
     git:
       url: https://github.com/FlutterFlow/flutterflow_dash_chat.git
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
+  intl: ^0.18.0
   cupertino_icons: ^1.0.6
-  intl: 0.18.1
   postgres: ^3.2.0
   shared_preferences: ^2.2.3
+
 
 dev_dependencies:
   flutter_test:
@@ -106,3 +113,6 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+dependency_overrides:
+  intl: ^0.19.0
+  

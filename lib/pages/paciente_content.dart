@@ -9,7 +9,7 @@ import 'dart:convert';
 
 class PacienteContent extends StatefulWidget {
   final int? usuario_id;
-  PacienteContent({Key? key, this.usuario_id}) : super(key: key);
+  const PacienteContent({super.key, this.usuario_id});
   @override
   _PacienteContentState createState() => _PacienteContentState();
 }
@@ -76,7 +76,7 @@ class _PacienteContentState extends State<PacienteContent> {
             children: [
               TextFormField(
                 controller: nameController,
-                decoration: InputDecoration(labelText: 'Nombre del paciente'),
+                decoration: const InputDecoration(labelText: 'Nombre del paciente'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'El nombre del paciente es obligatorio';
@@ -86,16 +86,16 @@ class _PacienteContentState extends State<PacienteContent> {
               ),
               TextFormField(
                 controller: apPaternoController,
-                decoration: InputDecoration(labelText: 'Apellido Paterno'),
+                decoration: const InputDecoration(labelText: 'Apellido Paterno'),
               ),
               TextFormField(
                 controller: apMaternoController,
-                decoration: InputDecoration(labelText: 'Apellido Materno'),
+                decoration: const InputDecoration(labelText: 'Apellido Materno'),
               ),
               TextFormField(
                 controller: fechaNacimientoController,
                 readOnly: true,
-                decoration: InputDecoration(labelText: 'Fecha de nacimiento'),
+                decoration: const InputDecoration(labelText: 'Fecha de nacimiento'),
                 onTap: () async {
                   DateTime? pickedDate = await showDatePicker(
                     context: context,
@@ -145,7 +145,7 @@ class _PacienteContentState extends State<PacienteContent> {
               // ),
               TextFormField(
                 controller: curpController,
-                decoration: InputDecoration(labelText: 'CURP'),
+                decoration: const InputDecoration(labelText: 'CURP'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'El CURP es obligatorio';
@@ -156,7 +156,7 @@ class _PacienteContentState extends State<PacienteContent> {
               ),
               TextFormField(
                 controller: telefonoMovilController,
-                decoration: InputDecoration(labelText: 'Teléfono Móvil'),
+                decoration: const InputDecoration(labelText: 'Teléfono Móvil'),
                 keyboardType: TextInputType.phone,
                 inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly,
@@ -173,7 +173,7 @@ class _PacienteContentState extends State<PacienteContent> {
               ),
               TextFormField(
                 controller: telefonoFijoController,
-                decoration: InputDecoration(labelText: 'Teléfono Fijo'),
+                decoration: const InputDecoration(labelText: 'Teléfono Fijo'),
                 keyboardType: TextInputType.phone,
                 inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly,
@@ -190,7 +190,7 @@ class _PacienteContentState extends State<PacienteContent> {
               ),
               TextFormField(
                 controller: correoController,
-                decoration: InputDecoration(labelText: 'Correo Electrónico'),
+                decoration: const InputDecoration(labelText: 'Correo Electrónico'),
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -209,7 +209,7 @@ class _PacienteContentState extends State<PacienteContent> {
               // ),
               TextFormField(
                 controller: direccionController,
-                decoration: InputDecoration(labelText: 'Dirección'),
+                decoration: const InputDecoration(labelText: 'Dirección'),
               ),
               // TextFormField(
               //   controller: identificadorController,
@@ -217,7 +217,7 @@ class _PacienteContentState extends State<PacienteContent> {
               // ),
               TextFormField(
                 controller: codigoPostalController,
-                decoration: InputDecoration(labelText: 'Código Postal'),
+                decoration: const InputDecoration(labelText: 'Código Postal'),
                 keyboardType: TextInputType.number,
                 inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly,
@@ -249,7 +249,7 @@ class _PacienteContentState extends State<PacienteContent> {
               //   controller: generoIdController,
               //   decoration: InputDecoration(labelText: 'ID Género'),
               // ),
-              SizedBox(height: 20.0),
+              const SizedBox(height: 20.0),
               ElevatedButton(
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
@@ -285,9 +285,9 @@ class _PacienteContentState extends State<PacienteContent> {
                         ),
                       );
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Paciente guardado con éxito')),
+                        const SnackBar(content: Text('Paciente guardado con éxito')),
                       );
-                      await Future.delayed(Duration(milliseconds: 1500));
+                      await Future.delayed(const Duration(milliseconds: 1500));
 
                       Navigator.pushReplacement(
                         context,
@@ -298,12 +298,12 @@ class _PacienteContentState extends State<PacienteContent> {
                     } catch (e) {
                       print('Error al insertar el paciente: $e');
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Error al guardar el paciente')),
+                        const SnackBar(content: Text('Error al guardar el paciente')),
                       );
                     }
                   }
                 },
-                child: Text('Guardar'),
+                child: const Text('Guardar'),
               ),
             ],
           ),

@@ -1,20 +1,19 @@
-import 'package:calendario_manik/pages/add_page.dart';
 import 'package:calendario_manik/pages/consulting_page.dart';
 import 'package:postgres/postgres.dart';
-import 'package:calendario_manik/pages/evento_content.dart';
 import 'package:calendario_manik/models/evento.dart';
 import 'package:calendario_manik/models/paciente.dart';
+import 'package:calendario_manik/variab.dart';
 
 class DatabaseManager {
   static Future<Connection> _connect() async {
     return await Connection.open(
       Endpoint(
-        //host: '192.168.1.71',
-        host: '192.168.1.181',
+        host: '192.168.1.71',
+        //host: '192.168.1.181',
         port: 5432,
         database: 'medicalmanik',
         username: 'postgres',
-        password: 'DJE20ben',
+        password: '123',
       ),
       settings: ConnectionSettings(sslMode: SslMode.disable),
     );
@@ -46,7 +45,6 @@ class DatabaseManager {
       DateTime startDate = DateTime.parse(evento.fecha + " " + evento.hora);
       int duration = int.parse(evento.duracion) - 1;
       DateTime endDate = startDate.add(Duration(minutes: duration));
-      print(endDate);
 
       await conn.execute(
         Sql.named(
@@ -336,42 +334,66 @@ class DatabaseManager {
     }
   }
 
-  static Future<int> insertPaciente(Paciente paciente) async {
+  static Future<int> insertOrUpdatePaciente(
+      Paciente? paciente, int? pacienteId) async {
     try {
       final conn = await _connect();
+      int newId = 0;
+      if (paciente != null && pacienteId == null) {
+        final result = await conn.execute("SELECT MAX(id) FROM paciente");
+        int lastId = (result.first.first as int?) ?? 0;
 
-      final result = await conn.execute("SELECT MAX(id) FROM paciente");
-      int lastId = (result.first.first as int?) ?? 0;
+        int newId = lastId + 1;
 
-      int newId = lastId + 1;
-
-      await conn.execute(
-        Sql.named(
-            "INSERT INTO paciente(id, nombre, ap_paterno, ap_materno, fecha_nacimiento, sexo, telefono_movil, telefono_fijo, correo, fecha_registro, direccion, curp, codigo_postal) VALUES (@id, @nombre, @ap_paterno, @ap_materno, @fechaNacimiento, @sexo, @telefonoMovil, @telefonoFijo, @correo, @fechaRegistro, @direccion, @curp, @codigoPostal)"),
-        parameters: {
-          "id": newId,
-          "nombre": paciente.nombre,
-          "ap_paterno": paciente.apPaterno,
-          "ap_materno": paciente.apMaterno,
-          "fechaNacimiento": paciente.fechaNacimiento,
-          "sexo": paciente.sexo,
-          "telefonoMovil": paciente.telefonoMovil,
-          "telefonoFijo": paciente.telefonoFijo,
-          "correo": paciente.correo,
-          //"avatar": paciente.avatar,
-          "fechaRegistro": paciente.fechaRegistro.toIso8601String(),
-          "direccion": paciente.direccion,
-          //"identificador": paciente.identificador,
-          "curp": paciente.curp,
-          "codigoPostal": paciente.codigoPostal,
-          // "municipioId": paciente.municipioId,
-          // "estadoId": paciente.estadoId,
-          // "pais": paciente.pais,
-          // "paisId": paciente.paisId,
-          // "entidadNacimientoId": paciente.entidadNacimientoId,
-          // "generoId": paciente.generoId,
-        },
-      );
+        await conn.execute(
+          Sql.named(
+              "INSERT INTO paciente(id, nombre, ap_paterno, ap_materno, fecha_nacimiento, sexo, telefono_movil, telefono_fijo, correo, fecha_registro, direccion, curp, codigo_postal) VALUES (@id, @nombre, @ap_paterno, @ap_materno, @fechaNacimiento, @sexo, @telefonoMovil, @telefonoFijo, @correo, @fechaRegistro, @direccion, @curp, @codigoPostal)"),
+          parameters: {
+            "id": newId,
+            "nombre": paciente.nombre,
+            "ap_paterno": paciente.apPaterno,
+            "ap_materno": paciente.apMaterno,
+            "fechaNacimiento": paciente.fechaNacimiento,
+            "sexo": paciente.sexo,
+            "telefonoMovil": paciente.telefonoMovil,
+            "telefonoFijo": paciente.telefonoFijo,
+            "correo": paciente.correo,
+            //"avatar": paciente.avatar,
+            "fechaRegistro": paciente.fechaRegistro.toIso8601String(),
+            "direccion": paciente.direccion,
+            //"identificador": paciente.identificador,
+            "curp": paciente.curp,
+            "codigoPostal": paciente.codigoPostal,
+            // "municipioId": paciente.municipioId,
+            // "estadoId": paciente.estadoId,
+            // "pais": paciente.pais,
+            // "paisId": paciente.paisId,
+            // "entidadNacimientoId": paciente.entidadNacimientoId,
+            // "generoId": paciente.generoId,
+          },
+        );
+      }
+      if (pacienteId != null && paciente != null) {
+        await conn.execute(
+          Sql.named(
+              "UPDATE paciente SET nombre = @nombre, ap_paterno = @ap_paterno, ap_materno = @ap_materno, fecha_nacimiento = @fechaNacimiento, sexo = @sexo, telefono_movil = @telefonoMovil, telefono_fijo = @telefonoFijo, correo = @correo, fecha_registro = @fechaRegistro, direccion = @direccion, curp = @curp, codigo_postal = @codigoPostal WHERE id = @id"),
+          parameters: {
+            "id": pacienteId,
+            "nombre": paciente.nombre,
+            "ap_paterno": paciente.apPaterno,
+            "ap_materno": paciente.apMaterno,
+            "fechaNacimiento": paciente.fechaNacimiento,
+            "sexo": paciente.sexo,
+            "telefonoMovil": paciente.telefonoMovil,
+            "telefonoFijo": paciente.telefonoFijo,
+            "correo": paciente.correo,
+            "fechaRegistro": paciente.fechaRegistro.toIso8601String(),
+            "direccion": paciente.direccion,
+            "curp": paciente.curp,
+            "codigoPostal": paciente.codigoPostal,
+          },
+        );
+      }
 
       await conn.close();
 
@@ -460,6 +482,10 @@ class DatabaseManager {
           'id': row[0],
           'correo': row[1],
           'contrasena': row[2],
+          'rol': row[3],
+          'nombre': row[4],
+          'apellidos': row[5],
+          'cuenta_id': row[15],
         });
       }
 
@@ -567,7 +593,7 @@ class DatabaseManager {
           hora_disponible
       FROM 
           horas_libres
-      LIMIT 100;
+      LIMIT 5;
     """);
       for (var row in result) {
         recomeDiaria.add({
@@ -809,11 +835,14 @@ class DatabaseManager {
     return recomeMen;
   }
 
-  static Future<List<Map<String, dynamic>>> getPacientes() async {
+  static Future<List<Map<String, dynamic>>> getPacientes(
+      int consultorioId) async {
     List<Map<String, dynamic>> pacientes = [];
     try {
       final conn = await _connect();
-      final result = await conn.execute("SELECT * FROM paciente");
+      final result = await conn.execute(
+          Sql.named("SELECT * FROM paciente where consultorio_id = @id "),
+          parameters: {"id": consultorioId});
       for (var row in result) {
         pacientes.add({
           'id': row[0],
@@ -826,7 +855,8 @@ class DatabaseManager {
           'telefono_fijo': row[8],
           'correo': row[9],
           'direccion': row[12],
-          'identificador': row[13],
+          'curp': row[14],
+          'codigo_postal': row[15],
         });
       }
       await conn.close();
@@ -847,5 +877,110 @@ class DatabaseManager {
     } catch (e) {
       print('Error al eliminar el paciente: $e');
     }
+  }
+
+  static Future<List<Map<String, dynamic>>> getConsultoriosData_id(
+      int userId) async {
+    List<Map<String, dynamic>> consultoriosData = [];
+    try {
+      final conn = await _connect();
+      final query = '''
+      SELECT c.*
+      FROM consultorio c
+      JOIN asistente_consultorio ac ON c.id = ac.consultorio_id
+      WHERE ac.asistente_id = @userId
+    ''';
+      final result =
+          await conn.execute(Sql.named(query), parameters: {"userId": userId});
+
+      for (var row in result) {
+        consultoriosData.add({
+          'id': row[0],
+          'nombre': row[1],
+          'direccion': row[2],
+          'colonia_id': row[3],
+          'telefono': row[5],
+          'intervalo': row[8],
+        });
+      }
+      await conn.close();
+    } catch (e) {
+      print('Error: $e');
+    }
+    return consultoriosData;
+  }
+
+  static Future<void> deleteCita(Object? id) async {
+    try {
+      final conn = await _connect();
+      await conn.execute(
+        Sql.named("DELETE FROM evento WHERE id = @id"),
+        parameters: {"id": id},
+      );
+      await conn.close();
+    } catch (e) {
+      print('Error al eliminar la cita: $e');
+    }
+  }
+
+  static Future<void> setPermissionsByRole(String role) async {
+    try {
+      final conn = await _connect();
+      final query = '''
+      SELECT 
+          rp.captura_signos_vitales,
+          rp.captura_antecedentes_clinicos,
+          rp.agendar_citas_eventos,
+          rp.crear_pacientes,
+          rp.editar_pacientes,
+          rp.eliminar_pacientes
+      FROM roles_permisos rp
+      WHERE rp.rol = @role
+    ''';
+      final result =
+          await conn.execute(Sql.named(query), parameters: {"role": role});
+      if (result.isNotEmpty) {
+        var row = result.first;
+        // Asignar los valores a las variables globales
+        capturaSignosVitales = row[0] as bool;
+        capturaAntecedentesClinicos = row[1] as bool;
+        agendarCitasEventos = row[2] as bool;
+        crearPacientes = row[3] as bool;
+        editarPacientes = row[4] as bool;
+        eliminarPacientes = row[5] as bool;
+      } else {
+        print('No se encontraron permisos para el rol $role');
+      }
+
+      await conn.close();
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> getDoctores(
+      int asistente_id) async {
+    List<Map<String, dynamic>> doctores = [];
+    try {
+      final conn = await _connect();
+      final result = await conn.execute("""
+      SELECT u.id,u.nombre, u.apellidos
+FROM usuario u
+JOIN consultorio c ON u.id = c.usuario_id
+JOIN asistente_consultorio ac ON c.id = ac.consultorio_id
+WHERE ac.asistente_id = ${asistente_id};
+    """);
+      for (var row in result) {
+        doctores.add({
+          'id': row[0],
+          'nombre': row[1],
+          'apellidos': row[2],
+        });
+      }
+      await conn.close();
+    } catch (e) {
+      print('Error: $e');
+    }
+    return doctores;
   }
 }

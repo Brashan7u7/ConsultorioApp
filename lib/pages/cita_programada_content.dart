@@ -5,12 +5,16 @@ import 'package:calendario_manik/pages/add_page.dart';
 import 'package:calendario_manik/pages/calendar_page.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_switch/flutter_switch.dart';
+import 'package:calendario_manik/variab.dart';
 
+// cuenado es usuario-grupo es 3, cuenta-id
+// la asistente hacer arrelgo de médicos
+// agendar cita mostrar para que medico
+// mostrar nombre de medico y paciente en cita
 class CitaProgramadaContent extends StatefulWidget {
-  final int? usuario_id, consultorioId;
+  final int? consultorioId;
 
-  CitaProgramadaContent({Key? key, this.usuario_id, this.consultorioId})
-      : super(key: key);
+  CitaProgramadaContent({Key? key, this.consultorioId}) : super(key: key);
 
   @override
   _CitaProgramadaContentState createState() => _CitaProgramadaContentState();
@@ -65,10 +69,12 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
     } else if (option == 'Opción 3') {
       recommendations = await DatabaseManager.getRecomeMen();
     }
-    
+
     setState(() {
       _recommendedAppointments = recommendations;
-      _selectedAppointment = recommendations.isNotEmpty ? recommendations[0]['fecha'] + ' ' + recommendations[0]['hora'] : null;
+      _selectedAppointment = recommendations.isNotEmpty
+          ? recommendations[0]['fecha'] + ' ' + recommendations[0]['hora']
+          : null;
     });
   }
 
@@ -92,7 +98,6 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
             isEvento: false,
             isPacient: true,
             isCitaPro: false,
-            usuario_id: widget.usuario_id,
             consultorioId: widget.consultorioId,
           ),
         ),
@@ -141,11 +146,12 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                       },
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.add),
-                    onPressed: _openAddPatientPage,
-                    tooltip: 'Agregar paciente',
-                  ),
+                  if (crearPacientes)
+                    IconButton(
+                      icon: const Icon(Icons.add),
+                      onPressed: _openAddPatientPage,
+                      tooltip: 'Agregar paciente',
+                    ),
                 ],
               ),
               // Lista de sugerencias de pacientes
@@ -229,7 +235,8 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                   hint: Text('Seleccione una cita recomendada'),
                   items: _recommendedAppointments.map((appointment) {
                     DateTime fecha = DateTime.parse(appointment['fecha']);
-                    String formattedDate = DateFormat('dd/MM/yyyy').format(fecha);
+                    String formattedDate =
+                        DateFormat('dd/MM/yyyy').format(fecha);
                     String hora = appointment['hora'];
                     return DropdownMenuItem<String>(
                       value: appointment['fecha'] + ' ' + hora,
@@ -243,72 +250,123 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                   },
                 ),
               const SizedBox(height: 20.0),
-              Row(
-                children: [
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      isExpanded: true,
-                      items: const [
-                        DropdownMenuItem<String>(
-                          value: 'Consulta',
-                          child: Text('Consulta'),
+              if (sis) ...[
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        isExpanded: true,
+                        items: const [
+                          DropdownMenuItem<String>(
+                            value: 'Servicio 1',
+                            child: Text('Servicio 1'),
+                          ),
+                          DropdownMenuItem<String>(
+                            value: 'Servicio 2',
+                            child: Text('Servicio 2'),
+                          ),
+                          // Agrega más servicios aquí
+                        ],
+                        // value: tipoServicio,
+                        onChanged: (value) {
+                          setState(() {
+                            //tipoServicio = value!;
+                          });
+                        },
+                        decoration: const InputDecoration(
+                          labelText: 'Tipo de servicio',
                         ),
-                        DropdownMenuItem<String>(
-                          value: 'Valoración',
-                          child: Text('Valoración'),
-                        ),
-                        DropdownMenuItem<String>(
-                          value: 'Estudios',
-                          child: Text('Estudios'),
-                        ),
-                        DropdownMenuItem<String>(
-                          value: 'Vacunas',
-                          child: Text('Vacunas'),
-                        ),
-                        DropdownMenuItem<String>(
-                          value: 'Nota de evolución',
-                          child: Text('Nota de evolución'),
-                        ),
-                        DropdownMenuItem<String>(
-                          value: 'interconsulta',
-                          child: Text('Nota de interconsulta'),
-                        ),
-                        DropdownMenuItem<String>(
-                          value: 'Rehabilitación',
-                          child: Text('Rehabilitación'),
-                        ),
-                      ],
-                      value: valor,
-                      onChanged: (value) {
-                        setState(() {
-                          valor = value!;
-                        });
-                      },
-                      decoration: const InputDecoration(
-                        labelText: 'Motivo de consulta',
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 20.0),
-                  Expanded(
-                    child: FlutterSwitch(
-                      activeText: "Subsecuente",
-                      inactiveText: "Primera vez",
-                      value: status,
-                      valueFontSize: 11.0,
-                      width: 110,
-                      height: 30,
-                      borderRadius: 30.0,
-                      showOnOff: true,
-                      onToggle: (val) {
-                        setState(() {
-                          status = val;
-                        });
-                      },
+                    const SizedBox(width: 20.0),
+                    Expanded(
+                      child: FlutterSwitch(
+                        activeText: "Subsecuente",
+                        inactiveText: "Primera vez",
+                        value: status,
+                        valueFontSize: 11.0,
+                        width: 110,
+                        height: 30,
+                        borderRadius: 30.0,
+                        showOnOff: true,
+                        onToggle: (val) {
+                          setState(() {
+                            status = val;
+                          });
+                        },
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
+              ] else ...[
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        isExpanded: true,
+                        items: const [
+                          DropdownMenuItem<String>(
+                            value: 'Consulta',
+                            child: Text('Consulta'),
+                          ),
+                          DropdownMenuItem<String>(
+                            value: 'Valoración',
+                            child: Text('Valoración'),
+                          ),
+                          DropdownMenuItem<String>(
+                            value: 'Estudios',
+                            child: Text('Estudios'),
+                          ),
+                          DropdownMenuItem<String>(
+                            value: 'Vacunas',
+                            child: Text('Vacunas'),
+                          ),
+                          DropdownMenuItem<String>(
+                            value: 'Nota de evolución',
+                            child: Text('Nota de evolución'),
+                          ),
+                          DropdownMenuItem<String>(
+                            value: 'interconsulta',
+                            child: Text('Nota de interconsulta'),
+                          ),
+                          DropdownMenuItem<String>(
+                            value: 'Rehabilitación',
+                            child: Text('Rehabilitación'),
+                          ),
+                        ],
+                        value: valor,
+                        onChanged: (value) {
+                          setState(() {
+                            valor = value!;
+                          });
+                        },
+                        decoration: const InputDecoration(
+                          labelText: 'Motivo de consulta',
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 20.0),
+                    Expanded(
+                      child: FlutterSwitch(
+                        activeText: "Subsecuente",
+                        inactiveText: "Primera vez",
+                        value: status,
+                        valueFontSize: 11.0,
+                        width: 110,
+                        height: 30,
+                        borderRadius: 30.0,
+                        showOnOff: true,
+                        onToggle: (val) {
+                          setState(() {
+                            status = val;
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              const SizedBox(height: 20.0),
               TextFormField(
                 controller: notaController,
                 decoration: const InputDecoration(labelText: 'Nota para cita'),
@@ -350,10 +408,7 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                     // Opcional: Redirigir a la página de calendario u otra página relevante
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                          builder: (context) => Calendar(
-                                usuario_id: widget.usuario_id,
-                              )),
+                      MaterialPageRoute(builder: (context) => Calendar()),
                     );
                   }
                 },

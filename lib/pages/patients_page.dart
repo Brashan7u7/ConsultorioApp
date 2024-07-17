@@ -1,14 +1,17 @@
+import 'package:calendario_manik/variab.dart';
 import 'package:flutter/material.dart';
 import 'package:calendario_manik/pages/calendar_page.dart';
 import 'package:calendario_manik/pages/add_page.dart';
 import 'package:calendario_manik/database/database.dart';
 import 'package:intl/intl.dart';
 
+import 'package:calendario_manik/models/datapatients.dart';
+
 class Patients extends StatefulWidget {
-  final int? usuario_id;
+  final int consultorioId;
   Patients({
     Key? key,
-    this.usuario_id,
+    required this.consultorioId,
   }) : super(key: key);
 
   @override
@@ -16,7 +19,7 @@ class Patients extends StatefulWidget {
 }
 
 class _PatientsState extends State<Patients> {
-  int currentIndex = 2;
+  int currentIndex = 0;
   final List<DataPatients> _allPatients = [];
 
   List<DataPatients> _filteredPatients = [];
@@ -27,18 +30,23 @@ class _PatientsState extends State<Patients> {
     _filteredPatients.addAll(_allPatients);
     super.initState();
     _loaderPacientes();
-    print(widget.usuario_id);
+    if (crearPacientes) {
+      currentIndex = 2;
+    } else {
+      currentIndex = 1;
+    }
   }
 
   Future<void> _loaderPacientes() async {
     List<Map<String, dynamic>> pacientesData =
-        await DatabaseManager.getPacientes();
+        await DatabaseManager.getPacientes(widget.consultorioId);
 
     List<DataPatients> pacientesList = pacientesData.map((data) {
       return DataPatients(
         id: data['id'],
         name: data['nombre'] ?? '',
         sexo: data['sexo'] ?? '',
+        curp: data['curp'] ?? '',
         primerPat: data['ap_paterno'] ?? '',
         segundPat: data['ap_materno'] ?? '',
         fechaNaci: data['fecha_nacimiento'] != null
@@ -49,13 +57,13 @@ class _PatientsState extends State<Patients> {
         telefonomov: data['telefono_movil'] ?? '',
         telefonofij: data['telefono_fijo'] ?? '',
         direccion: data['direccion'] ?? '',
-        identificador: data['identificador'] ?? '',
+        codigoPostal: data['codigo_postal'] ?? 0,
       );
     }).toList();
 
     setState(() {
       _allPatients.addAll(pacientesList);
-      _filteredPatients = _allPatients;
+      _filteredPatients.addAll(_allPatients);
     });
   }
 
@@ -114,12 +122,13 @@ class _PatientsState extends State<Patients> {
                             _viewPatient(context, _filteredPatients[index]);
                           },
                         ),
-                        IconButton(
-                          icon: Icon(Icons.delete),
-                          onPressed: () {
-                            _deletePatient(_filteredPatients[index]);
-                          },
-                        ),
+                        if (eliminarPacientes)
+                          IconButton(
+                            icon: Icon(Icons.delete),
+                            onPressed: () {
+                              _deletePatient(_filteredPatients[index]);
+                            },
+                          ),
                       ],
                     ),
                   );
@@ -136,14 +145,14 @@ class _PatientsState extends State<Patients> {
             currentIndex = index;
           });
 
-          if (index == 1) {
+          if (index == 1 && crearPacientes) {
             _showRegistrarModal();
           }
           if (index == 0) {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => Calendar(usuario_id: widget.usuario_id),
+                builder: (context) => Calendar(),
               ),
             );
           }
@@ -151,20 +160,22 @@ class _PatientsState extends State<Patients> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => Patients(usuario_id: widget.usuario_id),
+                builder: (context) =>
+                    Patients(consultorioId: widget.consultorioId),
               ),
             );
           }
         },
-        items: <BottomNavigationBarItem>[
+        items: [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Calendario',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.add),
-            label: 'Registrar',
-          ),
+          if (crearPacientes)
+            BottomNavigationBarItem(
+              icon: Icon(Icons.add),
+              label: 'Registrar',
+            ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
             label: 'Pacientes',
@@ -201,7 +212,7 @@ class _PatientsState extends State<Patients> {
                           isEvento: false,
                           isPacient: true,
                           isCitaPro: false,
-                          usuario_id: widget.usuario_id),
+                          consultorioId: widget.consultorioId),
                     ),
                   );
                 },
@@ -241,13 +252,41 @@ class _PatientsState extends State<Patients> {
               Text("Primer apellido: ${patient.primerPat}"),
               Text("Segundo apellido: ${patient.segundPat}"),
               Text("Fecha de nacimiento: ${patient.fechaNaci}"),
+              Text("Curp: ${patient.curp}"),
               Text("Correo: ${patient.correo}"),
               Text("Teléfono Movil: ${patient.telefonomov}"),
               Text("Teléfono Fijo: ${patient.telefonofij}"),
               Text("Direccion: ${patient.direccion}"),
-              Text("Identificador: ${patient.identificador}"),
+              Text("Código Postal: ${patient.codigoPostal}"),
             ],
           ),
+          actions: [
+            if (editarPacientes)
+              TextButton(
+                child: Text('Editar Paciente'),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Add(
+                        isCitaInmediata: false,
+                        isEvento: false,
+                        isPacient: true,
+                        isCitaPro: false,
+                        isEditingPacient: true,
+                        pacient: patient,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            TextButton(
+              child: Text('Cerrar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
         );
       },
     );
@@ -271,45 +310,17 @@ class _PatientsState extends State<Patients> {
                 });
                 Navigator.pop(context);
               },
-              child: const Text('Sí'),
+              child: const Text('Eliminar Paciente'),
             ),
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: const Text('No'),
+              child: const Text('Cancelar'),
             ),
           ],
         );
       },
     );
   }
-}
-
-class DataPatients {
-  int id;
-  String name;
-  String sexo;
-  String primerPat;
-  String segundPat;
-  String fechaNaci;
-  String correo;
-  String telefonomov;
-  String telefonofij;
-  String direccion;
-  String identificador;
-
-  DataPatients({
-    required this.id,
-    required this.name,
-    required this.sexo,
-    required this.primerPat,
-    required this.segundPat,
-    required this.fechaNaci,
-    required this.correo,
-    required this.telefonomov,
-    required this.telefonofij,
-    required this.direccion,
-    required this.identificador,
-  });
 }

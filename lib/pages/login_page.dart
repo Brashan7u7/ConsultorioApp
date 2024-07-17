@@ -26,11 +26,18 @@ class _LoginState extends State<Login> {
     super.initState();
   }
 
-  int usuario_id = 0;
+  List<Map<String, dynamic>> consultoriosData = [];
 
   Future<void> _loadConsultorios() async {
-    List<Map<String, dynamic>> consultoriosData =
-        await DatabaseManager.getConsultoriosData(usuario_id);
+    if (usuario_rol == 'MED') {
+      consultoriosData = await DatabaseManager.getConsultoriosData(usuario_id);
+      await DatabaseManager.setPermissionsByRole(usuario_rol);
+    }
+    if (usuario_rol == 'ASI' || usuario_rol == 'ENF') {
+      consultoriosData =
+          await DatabaseManager.getConsultoriosData_id(usuario_id);
+      await DatabaseManager.setPermissionsByRole(usuario_rol);
+    }
 
     await Future.delayed(Duration(milliseconds: 1500));
     if (consultoriosData.isEmpty) {
@@ -41,15 +48,14 @@ class _LoginState extends State<Login> {
     } else {
       Navigator.push(
         context,
-        MaterialPageRoute(
-            builder: (context) => Calendar(usuario_id: usuario_id)),
+        MaterialPageRoute(builder: (context) => Calendar()),
       );
     }
   }
 
   void _iniciarSesion() async {
-    String email = emailController.text.trim();
-    String password = passwordController.text.trim();
+    String email = emailController.text;
+    String password = passwordController.text;
 
     List<Map<String, dynamic>> usuarios = await DatabaseManager.getUsuario();
     final user = usuarios.firstWhere(
@@ -58,8 +64,9 @@ class _LoginState extends State<Login> {
 
     if (user.isNotEmpty) {
       usuario_id = user['id'];
-      print('Valor de la variable global: ${variableglobal}');
-      print('Ajustando variable global: ${variableglobal=false}');
+      usuario_rol = user['rol'];
+      usuario_nombre = user['nombre'];
+      usuario_cuenta_id = user['cuenta_id'];
       _loadConsultorios();
     } else {
       showDialog(

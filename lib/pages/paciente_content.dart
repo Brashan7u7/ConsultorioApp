@@ -1,3 +1,4 @@
+import 'package:calendario_manik/models/datapatients.dart';
 import 'package:calendario_manik/models/paciente.dart';
 import 'package:flutter/material.dart';
 import 'package:calendario_manik/database/database.dart';
@@ -8,13 +9,43 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class PacienteContent extends StatefulWidget {
-  final int? usuario_id;
-  PacienteContent({Key? key, this.usuario_id}) : super(key: key);
+  final DataPatients? patient;
+  final int consultorioId;
+  PacienteContent({
+    Key? key,
+    this.patient,
+    required this.consultorioId,
+  }) : super(key: key);
   @override
   _PacienteContentState createState() => _PacienteContentState();
 }
 
 class _PacienteContentState extends State<PacienteContent> {
+  @override
+  void initState() {
+    super.initState();
+    if (widget.patient != null) {
+      nameController = TextEditingController(text: widget.patient?.name);
+      apPaternoController =
+          TextEditingController(text: widget.patient?.primerPat);
+      apMaternoController =
+          TextEditingController(text: widget.patient?.segundPat);
+      fechaNacimientoController =
+          TextEditingController(text: widget.patient?.fechaNaci);
+      sexoController = TextEditingController(text: widget.patient?.sexo);
+      curpController = TextEditingController(text: widget.patient?.curp);
+      telefonoMovilController =
+          TextEditingController(text: widget.patient?.telefonomov);
+      telefonoFijoController =
+          TextEditingController(text: widget.patient?.telefonofij);
+      correoController = TextEditingController(text: widget.patient?.correo);
+      direccionController =
+          TextEditingController(text: widget.patient?.direccion);
+      codigoPostalController =
+          TextEditingController(text: widget.patient?.codigoPostal.toString());
+    }
+  }
+
   final _formKey = GlobalKey<FormState>();
 
   TextEditingController nameController = TextEditingController();
@@ -257,33 +288,67 @@ class _PacienteContentState extends State<PacienteContent> {
                       String formattedDate = DateFormat('yyyy-MM-dd HH:mm:ss')
                           .format(DateTime.now());
                       fechaRegistroController.text = formattedDate;
-                      await DatabaseManager.insertPaciente(
-                        Paciente(
-                          nombre: nameController.text,
-                          apPaterno: apPaternoController.text,
-                          apMaterno: apMaternoController.text,
-                          fechaNacimiento: fechaNacimientoController.text,
-                          sexo: selectedSexo,
-                          //coloniaId: int.parse(coloniaIdController.text),
-                          telefonoMovil: telefonoMovilController.text,
-                          telefonoFijo: telefonoFijoController.text,
-                          correo: correoController.text,
-                          // avatar: avatarController.text,
-                          fechaRegistro:
-                              DateTime.parse(fechaRegistroController.text),
-                          direccion: direccionController.text,
-                          //identificador: identificadorController.text,
-                          curp: curpController.text,
-                          codigoPostal: int.parse(codigoPostalController.text),
-                          // municipioId: int.parse(municipioIdController.text),
-                          // estadoId: int.parse(estadoIdController.text),
-                          // pais: paisController.text,
-                          // paisId: int.parse(paisIdController.text),
-                          // entidadNacimientoId:
-                          //     entidadNacimientoIdController.text,
-                          // generoId: int.parse(generoIdController.text),
-                        ),
-                      );
+                      if (widget.patient != null) {
+                        await DatabaseManager.insertOrUpdatePaciente(
+                          Paciente(
+                            nombre: nameController.text,
+                            apPaterno: apPaternoController.text,
+                            apMaterno: apMaternoController.text,
+                            fechaNacimiento: fechaNacimientoController.text,
+                            sexo: selectedSexo,
+                            //coloniaId: int.parse(coloniaIdController.text),
+                            telefonoMovil: telefonoMovilController.text,
+                            telefonoFijo: telefonoFijoController.text,
+                            correo: correoController.text,
+                            // avatar: avatarController.text,
+                            fechaRegistro:
+                                DateTime.parse(fechaRegistroController.text),
+                            direccion: direccionController.text,
+                            //identificador: identificadorController.text,
+                            curp: curpController.text,
+                            codigoPostal:
+                                int.parse(codigoPostalController.text),
+                            // municipioId: int.parse(municipioIdController.text),
+                            // estadoId: int.parse(estadoIdController.text),
+                            // pais: paisController.text,
+                            // paisId: int.parse(paisIdController.text),
+                            // entidadNacimientoId:
+                            //     entidadNacimientoIdController.text,
+                            // generoId: int.parse(generoIdController.text),
+                          ),
+                          widget.patient?.id,
+                        );
+                      } else {
+                        await DatabaseManager.insertOrUpdatePaciente(
+                          Paciente(
+                            nombre: nameController.text,
+                            apPaterno: apPaternoController.text,
+                            apMaterno: apMaternoController.text,
+                            fechaNacimiento: fechaNacimientoController.text,
+                            sexo: selectedSexo,
+                            //coloniaId: int.parse(coloniaIdController.text),
+                            telefonoMovil: telefonoMovilController.text,
+                            telefonoFijo: telefonoFijoController.text,
+                            correo: correoController.text,
+                            // avatar: avatarController.text,
+                            fechaRegistro:
+                                DateTime.parse(fechaRegistroController.text),
+                            direccion: direccionController.text,
+                            //identificador: identificadorController.text,
+                            curp: curpController.text,
+                            codigoPostal:
+                                int.parse(codigoPostalController.text),
+                            // municipioId: int.parse(municipioIdController.text),
+                            // estadoId: int.parse(estadoIdController.text),
+                            // pais: paisController.text,
+                            // paisId: int.parse(paisIdController.text),
+                            // entidadNacimientoId:
+                            //     entidadNacimientoIdController.text,
+                            // generoId: int.parse(generoIdController.text),
+                          ),
+                          null,
+                        );
+                      }
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Paciente guardado con éxito')),
                       );
@@ -292,8 +357,9 @@ class _PacienteContentState extends State<PacienteContent> {
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                            builder: (context) =>
-                                Patients(usuario_id: widget.usuario_id)),
+                            builder: (context) => Patients(
+                                  consultorioId: widget.consultorioId,
+                                )),
                       );
                     } catch (e) {
                       print('Error al insertar el paciente: $e');

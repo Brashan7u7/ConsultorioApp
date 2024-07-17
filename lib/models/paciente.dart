@@ -1,5 +1,4 @@
 class Paciente {
-  //int id;
   String nombre;
   String apPaterno;
   String apMaterno;
@@ -24,7 +23,6 @@ class Paciente {
   // int generoId;
 
   Paciente({
-    //required this.id,
     required this.nombre,
     required this.apPaterno,
     required this.apMaterno,

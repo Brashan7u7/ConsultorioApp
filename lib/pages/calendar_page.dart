@@ -12,8 +12,9 @@ import 'package:calendario_manik/pages/login_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Calendar extends StatefulWidget {
-  final int? usuario_id;
-  Calendar({Key? key, this.usuario_id}) : super(key: key);
+  Calendar({
+    Key? key,
+  }) : super(key: key);
 
   @override
   State<Calendar> createState() => _CalendarState();
@@ -25,7 +26,6 @@ class _CalendarState extends State<Calendar> {
     super.initState();
     _loadConsultorios();
     //_loadSelectedConsultorio();
-    print('variable gloabl en calendar ${variableglobal}');
   }
 
   final CalendarController _calendarController = CalendarController();
@@ -42,11 +42,17 @@ class _CalendarState extends State<Calendar> {
 
   DateTime? _lastTap;
   int _tapInterval = 300;
+  List<Map<String, dynamic>> consultoriosData = [];
 
   Future<void> _loadConsultorios() async {
     List<Consultorio> consultoriosList = [];
-    List<Map<String, dynamic>> consultoriosData =
-        await DatabaseManager.getConsultoriosData(widget.usuario_id);
+    if (usuario_rol == 'MED') {
+      consultoriosData = await DatabaseManager.getConsultoriosData(usuario_id);
+    }
+    if (usuario_rol == 'ASI' || usuario_rol == 'ENF') {
+      consultoriosData =
+          await DatabaseManager.getConsultoriosData_id(usuario_id);
+    }
     consultoriosList = consultoriosData
         .map((data) => Consultorio(
               id: data['id'],
@@ -229,6 +235,26 @@ class _CalendarState extends State<Calendar> {
     prefs.setInt('selectedConsultorioIndex', index);
   }
 
+  _showConfirmationDialog(BuildContext context) async {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Cerrar sesión'),
+        content: Text('¿Estás seguro de cerrar sesión?'),
+        actions: [
+          TextButton(
+            child: Text('Cancelar'),
+            onPressed: () => Navigator.of(context).pop(false),
+          ),
+          TextButton(
+            child: Text('Cerrar Sesión'),
+            onPressed: () => Navigator.of(context).pop(true),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -284,46 +310,51 @@ class _CalendarState extends State<Calendar> {
       drawer: Drawer(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
             DrawerHeader(
               child: Image.asset('lib/images/usuario.png'),
               padding: EdgeInsets.symmetric(horizontal: 80),
             ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 50.0),
-              child: Divider(
-                color: Colors.red,
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 80.0),
+              child: Text(
+                '${(usuario_rol == 'ENF' ? 'Enfermero/a: ' : usuario_rol == 'ASI' ? 'Asistente: ' : usuario_rol == 'MED' ? 'Medico: ' : '')} ${usuario_nombre}',
+                textAlign: TextAlign.center,
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.only(left: 25.0),
-              child: ListTile(
-                leading: Icon(
-                  Icons.announcement,
-                ),
-                title: Text(
-                  'Pacientes esperando',
-                ),
-              ),
+            const Divider(
+              color: Colors.red,
+              thickness: 2,
+              height: 20,
+              indent: 50,
+              endIndent: 50,
             ),
             ListTile(
               contentPadding: EdgeInsets.only(left: 25.0),
-              leading: Icon(
-                Icons.access_alarm,
-              ),
-              title: Text(
-                'Consultorios',
-              ),
+              leading: Icon(Icons.announcement),
+              title: Text('Pacientes esperando'),
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        Consulting(usuario_id: widget.usuario_id),
-                  ),
-                );
+                // Acción cuando se toca el elemento
               },
             ),
+            (usuario_rol != 'ASI' && usuario_rol != 'ENF')
+                ? ListTile(
+                    contentPadding: EdgeInsets.only(left: 25.0),
+                    leading: Icon(
+                      Icons.access_alarm,
+                    ),
+                    title: Text('Consultorios'),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Consulting(),
+                        ),
+                      );
+                    },
+                  )
+                : Container(),
             Spacer(),
             Padding(
               padding: EdgeInsets.only(left: 25.0, bottom: 25),
@@ -334,13 +365,16 @@ class _CalendarState extends State<Calendar> {
                 title: Text(
                   'Cerrar Sesión',
                 ),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => Login(),
-                    ),
-                  );
+                onTap: () async {
+                  bool confirmCerrar = await _showConfirmationDialog(context);
+                  if (confirmCerrar) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Login(),
+                      ),
+                    );
+                  }
                 },
               ),
             ),
@@ -386,47 +420,70 @@ class _CalendarState extends State<Calendar> {
           },
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: currentIndex,
-        onTap: (index) {
-          setState(() {
-            currentIndex = index;
-          });
+      bottomNavigationBar: agendarCitasEventos ||
+              crearPacientes ||
+              editarPacientes ||
+              eliminarPacientes
+          ? buildBottomNavigationBar()
+          : null,
+    );
+  }
 
-          if (index == 1) {
-            _showAgendarModal();
-          } else if (index == 0) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => Calendar(usuario_id: widget.usuario_id),
-              ),
-            );
-          } else if (index == 2) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => Patients(usuario_id: widget.usuario_id),
-              ),
-            );
-          }
-        },
-        items: <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Calendario',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.add),
-            label: 'Agendar',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Pacientes',
-          ),
-        ],
-        selectedItemColor: Colors.green,
+  BottomNavigationBar buildBottomNavigationBar() {
+    List<BottomNavigationBarItem> items = [
+      BottomNavigationBarItem(
+        icon: Icon(Icons.home),
+        label: 'Calendario',
       ),
+    ];
+
+    if (agendarCitasEventos) {
+      items.add(
+        BottomNavigationBarItem(
+          icon: Icon(Icons.add),
+          label: 'Agendar',
+        ),
+      );
+    }
+
+    if (editarPacientes || eliminarPacientes || crearPacientes) {
+      items.add(
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person),
+          label: 'Pacientes',
+        ),
+      );
+    }
+
+    return BottomNavigationBar(
+      currentIndex: currentIndex,
+      onTap: (index) {
+        setState(() {
+          currentIndex = index;
+        });
+
+        if (index == 0) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => Calendar(),
+            ),
+          );
+        } else if (agendarCitasEventos && index == 1) {
+          _showAgendarModal();
+        } else if ((editarPacientes || eliminarPacientes)) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => Patients(
+                consultorioId: globalIdConsultorio,
+              ),
+            ),
+          );
+        }
+      },
+      items: items,
+      selectedItemColor: Colors.green,
     );
   }
 
@@ -456,7 +513,6 @@ class _CalendarState extends State<Calendar> {
                         isEvento: false,
                         isPacient: false,
                         isCitaPro: false,
-                        usuario_id: widget.usuario_id,
                         consultorioId: globalIdConsultorio,
                       ),
                     ),
@@ -476,7 +532,6 @@ class _CalendarState extends State<Calendar> {
                         isEvento: false,
                         isPacient: false,
                         isCitaPro: true,
-                        usuario_id: widget.usuario_id,
                         consultorioId: globalIdConsultorio,
                       ),
                     ),
@@ -492,12 +547,12 @@ class _CalendarState extends State<Calendar> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => Add(
-                          isCitaInmediata: false,
-                          isEvento: true,
-                          isPacient: false,
-                          isCitaPro: false,
-                          consultorioId: globalIdConsultorio,
-                          usuario_id: widget.usuario_id),
+                        isCitaInmediata: false,
+                        isEvento: true,
+                        isPacient: false,
+                        isCitaPro: false,
+                        consultorioId: globalIdConsultorio,
+                      ),
                     ),
                   );
                 },
@@ -507,6 +562,11 @@ class _CalendarState extends State<Calendar> {
         );
       },
     );
+  }
+
+  void deleteAppointment(Object? id) async {
+    await DatabaseManager.deleteCita(id);
+    _loadEventos();
   }
 
   void _showAppointmentDetails(Appointment appointment) {
@@ -524,19 +584,53 @@ class _CalendarState extends State<Calendar> {
                   'Fecha: ${appointment.startTime.day}/${appointment.startTime.month}/${appointment.startTime.year}',
                 ),
                 Text(
-                  'Hora inicio: ${appointment.startTime.hour}:${appointment.startTime.minute}',
+                  'Hora inicio: ${DateFormat.jm().format(appointment.startTime)}',
                 ),
                 Text(
-                  'Hora Fin: ${appointment.endTime.hour}:${appointment.endTime.minute}',
+                  'Hora Fin: ${DateFormat.jm().format(appointment.endTime)}',
                 ),
                 Text(
-                  'Duración: ${appointment.startTime.difference(appointment.endTime).inMinutes} minutos',
+                  'Duración: ${appointment.endTime.difference(appointment.startTime).inMinutes} minutos',
                 ),
                 // Add more details as needed
               ],
             ),
           ),
           actions: [
+            TextButton(
+              onPressed: () async {
+                final result = await showDialog<bool>(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: Text('Eliminar Cita'),
+                      content: Text('¿Estás seguro de eliminar esta cita?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context,
+                                true); // Return true when 'Eliminar' is pressed
+                          },
+                          child: Text('Eliminar'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context,
+                                false); // Return false when 'Cerrar' is pressed
+                          },
+                          child: Text('Cerrar'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+                if (result == true) {
+                  deleteAppointment(appointment.id);
+                }
+                Navigator.pop(context);
+              },
+              child: Text('Eliminar'),
+            ),
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
@@ -588,18 +682,19 @@ class _CalendarState extends State<Calendar> {
       context,
       MaterialPageRoute(
         builder: (context) => Add(
-            isCitaInmediata: false,
-            isCitaselect: true,
-            fechaController: TextEditingController(
-              text: _calendarController.selectedDate.toString().split(' ')[0],
-            ),
-            horaController: TextEditingController(
-              text: _calendarController.selectedDate.toString().split(' ')[1],
-            ),
-            isCitaPro: false,
-            isEvento: false,
-            isPacient: false,
-            usuario_id: widget.usuario_id),
+          isCitaInmediata: false,
+          isCitaselect: true,
+          fechaController: TextEditingController(
+            text: _calendarController.selectedDate.toString().split(' ')[0],
+          ),
+          horaController: TextEditingController(
+            text: _calendarController.selectedDate.toString().split(' ')[1],
+          ),
+          isCitaPro: false,
+          isEvento: false,
+          isPacient: false,
+          consultorioId: globalIdConsultorio,
+        ),
       ),
     );
   }
@@ -626,6 +721,7 @@ List<Appointment> _getCalendarDataSource(
             endTime); // Formato del horario (ejemplo: 9:00 AM - 10:00 AM)
 
     appointments.add(Appointment(
+      id: evento['id'],
       subject:
           '$nombre\n$horario', // Combina nombre y horario en una sola línea
       startTime: startTime,

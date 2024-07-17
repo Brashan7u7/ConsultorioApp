@@ -2,10 +2,12 @@ import 'package:calendario_manik/database/database.dart';
 import 'package:calendario_manik/pages/calendar_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:calendario_manik/variab.dart';
 
 class Consulting extends StatefulWidget {
-  final int? usuario_id;
-  const Consulting({Key? key, this.usuario_id}) : super(key: key);
+  const Consulting({
+    Key? key,
+  }) : super(key: key);
 
   @override
   State<Consulting> createState() => _ConsultingState();
@@ -43,6 +45,8 @@ class _ConsultingState extends State<Consulting> {
   Map<String, List<int>> freeButtonsByDay = {};
 
   bool camposvacios = false;
+
+  List<Map<String, dynamic>> consultoriosData = [];
 
   @override
   void initState() {
@@ -123,8 +127,13 @@ class _ConsultingState extends State<Consulting> {
 
   Future<void> _loadConsultorios() async {
     List<Consultorio> consultoriosList = [];
-    List<Map<String, dynamic>> consultoriosData =
-        await DatabaseManager.getConsultoriosData(widget.usuario_id);
+    if (usuario_rol == 'MED') {
+      consultoriosData = await DatabaseManager.getConsultoriosData(usuario_id);
+    }
+    if (usuario_rol == 'ASI' || usuario_rol == 'ENF') {
+      consultoriosData =
+          await DatabaseManager.getConsultoriosData_id(usuario_id);
+    }
     consultoriosList = consultoriosData
         .map((data) => Consultorio(
               id: data['id'],
@@ -213,9 +222,7 @@ class _ConsultingState extends State<Consulting> {
           onPressed: () {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(
-                  builder: (context) =>
-                      Calendar(usuario_id: widget.usuario_id)),
+              MaterialPageRoute(builder: (context) => Calendar()),
             );
           },
         ),
@@ -232,9 +239,7 @@ class _ConsultingState extends State<Consulting> {
 
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            Calendar(usuario_id: widget.usuario_id)),
+                    MaterialPageRoute(builder: (context) => Calendar()),
                   );
                 }
               },
@@ -426,9 +431,7 @@ class _ConsultingState extends State<Consulting> {
 
                       Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(
-                            builder: (context) =>
-                                Calendar(usuario_id: widget.usuario_id)),
+                        MaterialPageRoute(builder: (context) => Calendar()),
                       );
                     }
                   },
@@ -602,7 +605,7 @@ class _ConsultingState extends State<Consulting> {
 
         if (!existeConsultorio) {
           int consultorioId = await DatabaseManager.insertConsultorio(
-              nuevoConsultorio, widget.usuario_id!);
+              nuevoConsultorio, usuario_id);
 
           Map<String, String> horariosSeleccionados = {};
           for (String day in daysOfWeek) {

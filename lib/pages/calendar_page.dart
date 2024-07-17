@@ -8,13 +8,11 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart';
 import 'package:calendario_manik/database/database.dart';
 import 'package:calendario_manik/pages/login_page.dart';
-
+import 'package:hexcolor/hexcolor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Calendar extends StatefulWidget {
-  Calendar({
-    Key? key,
-  }) : super(key: key);
+  const Calendar({super.key});
 
   @override
   State<Calendar> createState() => _CalendarState();
@@ -41,7 +39,7 @@ class _CalendarState extends State<Calendar> {
   int globalIdConsultorio = 0;
 
   DateTime? _lastTap;
-  int _tapInterval = 300;
+  final int _tapInterval = 300;
   List<Map<String, dynamic>> consultoriosData = [];
 
   Future<void> _loadConsultorios() async {
@@ -98,8 +96,8 @@ class _CalendarState extends State<Calendar> {
     // Genera todas las horas posibles para cada día de la semana en el rango de 8:00 a 19:59.
     for (String dia in diasSemana) {
       for (int hora = 0; hora <= 23; hora++) {
-        String horaInicio = hora.toString().padLeft(2, '0') + ':00';
-        String horaFin = hora.toString().padLeft(2, '0') + ':59';
+        String horaInicio = '${hora.toString().padLeft(2, '0')}:00';
+        String horaFin = '${hora.toString().padLeft(2, '0')}:59';
 
         // Si la hora no está en horariosString para el día actual, agrégala a specialRegionsList.
         if (!horariosString.containsKey(dia) ||
@@ -206,13 +204,28 @@ class _CalendarState extends State<Calendar> {
     }
   }
 
-  void _loadEventos() async {
+  void _loadEventosTareas() async {
+    //*Eventos
     List<Map<String, dynamic>> eventosData =
         await DatabaseManager.getEventosData(globalIdConsultorio);
-    List<Appointment> eventosAppointments = _getCalendarDataSource(eventosData);
+    print('Eventos Data: $eventosData');
+    List<Appointment> eventosAppointments =
+        _getCalendarDataSourceEventos(eventosData);
+
+    //*Tareas
+    List<Map<String, dynamic>> tareasData =
+        await DatabaseManager.getTareaSeleccionadaData(globalIdConsultorio);
+    print(
+        'Tareas Data: $tareasData'); // Añadir esta línea para revisar los datos
+    List<Appointment> tareasAppointments =
+        _getCalendarDataSourceTareas(tareasData);
+
+    print('Eventos Appointments: $eventosAppointments');
+    print('Tareas Appointments: $tareasAppointments');
+
     setState(() {
-      // Actualiza la lista de citas en el dataSource directamente
-      _calendarDataSource = eventosAppointments;
+      _calendarDataSource = [...eventosAppointments, ...tareasAppointments];
+      print('Calendar Data Source Updated: $_calendarDataSource');
     });
   }
 
@@ -225,7 +238,7 @@ class _CalendarState extends State<Calendar> {
         consulIndex = 0;
       }
       globalIdConsultorio = consultorios[consulIndex].id ?? 0;
-      _loadEventos();
+      _loadEventosTareas();
       _loadHorariosConsultorios();
     });
   }
@@ -239,15 +252,15 @@ class _CalendarState extends State<Calendar> {
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Cerrar sesión'),
-        content: Text('¿Estás seguro de cerrar sesión?'),
+        title: const Text('Cerrar sesión'),
+        content: const Text('¿Estás seguro de cerrar sesión?'),
         actions: [
           TextButton(
-            child: Text('Cancelar'),
+            child: const Text('Cancelar'),
             onPressed: () => Navigator.of(context).pop(false),
           ),
           TextButton(
-            child: Text('Cerrar Sesión'),
+            child: const Text('Cerrar Sesión'),
             onPressed: () => Navigator.of(context).pop(true),
           ),
         ],
@@ -281,7 +294,7 @@ class _CalendarState extends State<Calendar> {
                     if (newConsultorioId != globalIdConsultorio) {
                       globalIdConsultorio = newConsultorioId;
                       _saveSelectedConsultorio(consulIndex).then((_) {
-                        _loadEventos();
+                        _loadEventosTareas();
                         _loadHorariosConsultorios();
                       });
                     }
@@ -313,11 +326,11 @@ class _CalendarState extends State<Calendar> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             DrawerHeader(
+              padding: const EdgeInsets.symmetric(horizontal: 80),
               child: Image.asset('lib/images/usuario.png'),
-              padding: EdgeInsets.symmetric(horizontal: 80),
             ),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 80.0),
+              padding: const EdgeInsets.symmetric(horizontal: 80.0),
               child: Text(
                 '${(usuario_rol == 'ENF' ? 'Enfermero/a: ' : usuario_rol == 'ASI' ? 'Asistente: ' : usuario_rol == 'MED' ? 'Medico: ' : '')} ${usuario_nombre}',
                 textAlign: TextAlign.center,
@@ -331,38 +344,38 @@ class _CalendarState extends State<Calendar> {
               endIndent: 50,
             ),
             ListTile(
-              contentPadding: EdgeInsets.only(left: 25.0),
-              leading: Icon(Icons.announcement),
-              title: Text('Pacientes esperando'),
+              contentPadding: const EdgeInsets.only(left: 25.0),
+              leading: const Icon(Icons.announcement),
+              title: const Text('Pacientes esperando'),
               onTap: () {
                 // Acción cuando se toca el elemento
               },
             ),
             (usuario_rol != 'ASI' && usuario_rol != 'ENF')
                 ? ListTile(
-                    contentPadding: EdgeInsets.only(left: 25.0),
-                    leading: Icon(
+                    contentPadding: const EdgeInsets.only(left: 25.0),
+                    leading: const Icon(
                       Icons.access_alarm,
                     ),
-                    title: Text('Consultorios'),
+                    title: const Text('Consultorios'),
                     onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => Consulting(),
+                          builder: (context) => const Consulting(),
                         ),
                       );
                     },
                   )
                 : Container(),
-            Spacer(),
+            const Spacer(),
             Padding(
-              padding: EdgeInsets.only(left: 25.0, bottom: 25),
+              padding: const EdgeInsets.only(left: 25.0, bottom: 25),
               child: ListTile(
-                leading: Icon(
+                leading: const Icon(
                   Icons.logout,
                 ),
-                title: Text(
+                title: const Text(
                   'Cerrar Sesión',
                 ),
                 onTap: () async {
@@ -371,7 +384,7 @@ class _CalendarState extends State<Calendar> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => Login(),
+                        builder: (context) => const Login(),
                       ),
                     );
                   }
@@ -388,7 +401,7 @@ class _CalendarState extends State<Calendar> {
           controller: _calendarController,
           view: CalendarView.day,
           showNavigationArrow: true,
-          headerStyle: CalendarHeaderStyle(textAlign: TextAlign.center),
+          headerStyle: const CalendarHeaderStyle(textAlign: TextAlign.center),
           headerDateFormat: 'd MMMM y',
           showDatePickerButton: true,
           timeSlotViewSettings: TimeSlotViewSettings(
@@ -431,7 +444,7 @@ class _CalendarState extends State<Calendar> {
 
   BottomNavigationBar buildBottomNavigationBar() {
     List<BottomNavigationBarItem> items = [
-      BottomNavigationBarItem(
+      const BottomNavigationBarItem(
         icon: Icon(Icons.home),
         label: 'Calendario',
       ),
@@ -439,7 +452,7 @@ class _CalendarState extends State<Calendar> {
 
     if (agendarCitasEventos) {
       items.add(
-        BottomNavigationBarItem(
+        const BottomNavigationBarItem(
           icon: Icon(Icons.add),
           label: 'Agendar',
         ),
@@ -448,7 +461,7 @@ class _CalendarState extends State<Calendar> {
 
     if (editarPacientes || eliminarPacientes || crearPacientes) {
       items.add(
-        BottomNavigationBarItem(
+        const BottomNavigationBarItem(
           icon: Icon(Icons.person),
           label: 'Pacientes',
         ),
@@ -466,7 +479,7 @@ class _CalendarState extends State<Calendar> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => Calendar(),
+              builder: (context) => const Calendar(),
             ),
           );
         } else if (agendarCitasEventos && index == 1) {
@@ -490,19 +503,19 @@ class _CalendarState extends State<Calendar> {
   void _showAgendarModal() {
     showModalBottomSheet(
       context: context,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
       ),
       builder: (BuildContext builder) {
         return Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
           ),
           child: Wrap(
             children: [
               ListTile(
-                leading: Icon(Icons.access_time),
-                title: Text('Cita Inmediata'),
+                leading: const Icon(Icons.access_time),
+                title: const Text('Cita Inmediata'),
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.push(
@@ -520,8 +533,8 @@ class _CalendarState extends State<Calendar> {
                 },
               ),
               ListTile(
-                leading: Icon(Icons.calendar_today),
-                title: Text('Cita Programada'),
+                leading: const Icon(Icons.calendar_today),
+                title: const Text('Cita Programada'),
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.push(
@@ -539,8 +552,8 @@ class _CalendarState extends State<Calendar> {
                 },
               ),
               ListTile(
-                leading: Icon(Icons.event),
-                title: Text('Evento'),
+                leading: const Icon(Icons.event),
+                title: const Text('Evento'),
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.push(
@@ -566,7 +579,7 @@ class _CalendarState extends State<Calendar> {
 
   void deleteAppointment(Object? id) async {
     await DatabaseManager.deleteCita(id);
-    _loadEventos();
+    _loadEventosTareas();
   }
 
   void _showAppointmentDetails(Appointment appointment) {
@@ -574,23 +587,81 @@ class _CalendarState extends State<Calendar> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(appointment.subject),
+          title: Text(
+            appointment.subject,
+            style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: const Color.fromARGB(255, 34, 34, 37)),
+          ),
           content: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  'Fecha: ${appointment.startTime.day}/${appointment.startTime.month}/${appointment.startTime.year}',
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    children: [
+                      Text(
+                        'Fecha:',
+                        style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        '${appointment.startTime.day}/${appointment.startTime.month}/${appointment.startTime.year}',
+                        style: TextStyle(fontSize: 16, color: Colors.grey[800]),
+                      ),
+                    ],
+                  ),
                 ),
-                Text(
-                  'Hora inicio: ${DateFormat.jm().format(appointment.startTime)}',
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    children: [
+                      Text(
+                        'Hora inicio:',
+                        style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        '${appointment.startTime.hour}:${appointment.startTime.minute.toString().padLeft(2, '0')}',
+                        style: TextStyle(fontSize: 16, color: Colors.grey[800]),
+                      ),
+                    ],
+                  ),
                 ),
-                Text(
-                  'Hora Fin: ${DateFormat.jm().format(appointment.endTime)}',
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    children: [
+                      Text(
+                        'Hora Fin:',
+                        style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        '${appointment.endTime.hour}:${appointment.endTime.minute.toString().padLeft(2, '0')}',
+                        style: TextStyle(fontSize: 16, color: Colors.grey[800]),
+                      ),
+                    ],
+                  ),
                 ),
-                Text(
-                  'Duración: ${appointment.endTime.difference(appointment.startTime).inMinutes} minutos',
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    children: [
+                      Text(
+                        'Duración:',
+                        style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        '${(appointment.endTime.difference(appointment.startTime).inMinutes)} minutos',
+                        style: TextStyle(fontSize: 16, color: Colors.grey[800]),
+                      ),
+                    ],
+                  ),
                 ),
                 // Add more details as needed
               ],
@@ -647,11 +718,11 @@ class _CalendarState extends State<Calendar> {
     showModalBottomSheet(
       context: context,
       builder: (BuildContext builder) {
-        return Container(
+        return SizedBox(
           height: 700,
           child: SfCalendar(
             view: CalendarView.month,
-            headerStyle: CalendarHeaderStyle(textAlign: TextAlign.center),
+            headerStyle: const CalendarHeaderStyle(textAlign: TextAlign.center),
             showNavigationArrow: true,
             showDatePickerButton: true,
             appointmentTimeTextFormat: 'HH:mm',
@@ -693,7 +764,6 @@ class _CalendarState extends State<Calendar> {
           isCitaPro: false,
           isEvento: false,
           isPacient: false,
-          consultorioId: globalIdConsultorio,
         ),
       ),
     );
@@ -706,7 +776,7 @@ class MeetingDataSource extends CalendarDataSource {
   }
 }
 
-List<Appointment> _getCalendarDataSource(
+List<Appointment> _getCalendarDataSourceEventos(
     List<Map<String, dynamic>> eventosData) {
   List<Appointment> appointments = [];
 
@@ -715,18 +785,41 @@ List<Appointment> _getCalendarDataSource(
     DateTime endTime = DateTime.parse(evento['fecha_fin']);
 
     String nombre = evento['nombre'].toString();
-    String horario = DateFormat.jm().format(startTime) +
-        ' - ' +
-        DateFormat.jm().format(
-            endTime); // Formato del horario (ejemplo: 9:00 AM - 10:00 AM)
+    String horario =
+        '${DateFormat.jm().format(startTime)} - ${DateFormat.jm().format(endTime)}'; // Formato del horario (ejemplo: 9:00 AM - 10:00 AM)
 
     appointments.add(Appointment(
-      id: evento['id'],
       subject:
           '$nombre\n$horario', // Combina nombre y horario en una sola línea
       startTime: startTime,
       endTime: endTime,
-      color: Colors.blue,
+      color: const Color.fromARGB(255, 6, 230, 99),
+    ));
+  }
+
+  print('Processed Eventos Appointments: $appointments');
+  return appointments;
+}
+
+List<Appointment> _getCalendarDataSourceTareas(
+    List<Map<String, dynamic>> tareasData) {
+  List<Appointment> appointments = [];
+
+  for (final tarea in tareasData) {
+    print('Processing tarea: $tarea');
+    DateTime startTime = DateTime.parse(tarea['fecha_inicio']);
+    DateTime endTime = DateTime.parse(tarea['fecha_fin']);
+
+    String nombre = tarea['nombre'].toString();
+    String horario =
+        '${DateFormat.jm().format(startTime)} - ${DateFormat.jm().format(endTime)}';
+    String color = tarea['color'].toString();
+
+    appointments.add(Appointment(
+      subject: '$nombre\n$horario',
+      startTime: startTime,
+      endTime: endTime,
+      color: HexColor(color),
     ));
   }
 

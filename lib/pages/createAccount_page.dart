@@ -6,7 +6,7 @@ import 'package:calendario_manik/pages/login_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class CreateP extends StatefulWidget {
-  const CreateP({Key? key});
+  const CreateP({super.key});
 
   @override
   _CreatePState createState() => _CreatePState();
@@ -73,11 +73,11 @@ class _CreatePState extends State<CreateP> {
     String selectedTimeZone = 'America/Mexico_City';
     return CustomScaffold(
       child: Container(
-         margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10), 
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
-          color: Color.fromARGB(173, 28, 27, 27), // Color de fondo del contenedor con opacidad
-          borderRadius: BorderRadius.circular(20), 
-           
+          color: const Color.fromARGB(
+              173, 28, 27, 27), // Color de fondo del contenedor con opacidad
+          borderRadius: BorderRadius.circular(20),
         ),
         child: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -94,8 +94,8 @@ class _CreatePState extends State<CreateP> {
 
                 Row(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.only(
+                    const Padding(
+                      padding: EdgeInsets.only(
                           right:
                               8.0), // Ajusta el espacio entre el texto y el dropdown si es necesario
                       child: Text('Zona horaria',
@@ -122,8 +122,9 @@ class _CreatePState extends State<CreateP> {
                         return DropdownMenuItem<String>(
                           value: value,
                           child: Text(value,
-                              style: TextStyle(
-                                  color: Color.fromARGB(255, 161, 140, 140))), // Cambiado a blanco
+                              style: const TextStyle(
+                                  color: Color.fromARGB(255, 161, 140,
+                                      140))), // Cambiado a blanco
                         );
                       }).toList(),
                     ),
@@ -148,7 +149,7 @@ class _CreatePState extends State<CreateP> {
                             });
                           },
                         ),
-                        Text('Mujer',
+                        const Text('Mujer',
                             style: TextStyle(
                                 color: Colors.white)), // Cambiado a blanco
                         Radio(
@@ -160,7 +161,7 @@ class _CreatePState extends State<CreateP> {
                             });
                           },
                         ),
-                        Text('Hombre',
+                        const Text('Hombre',
                             style: TextStyle(
                                 color: Colors.white)), // Cambiado a blanco
                         Radio(
@@ -184,10 +185,10 @@ class _CreatePState extends State<CreateP> {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text('Especialidades',
+                    const Text('Especialidades',
                         style: TextStyle(
                             color: Colors.white)), // Cambiado a blanco
-                    SizedBox(width: 20),
+                    const SizedBox(width: 20),
                     SizedBox(
                       height: 40, // Ajusta la altura según sea necesario
                       child: DropdownButton<String>(
@@ -209,8 +210,9 @@ class _CreatePState extends State<CreateP> {
                           return DropdownMenuItem<String>(
                             value: value,
                             child: Text(value,
-                                style: TextStyle(
-                                    color: const Color.fromARGB(255, 161, 140, 140))), // Cambiado a blanco
+                                style: const TextStyle(
+                                    color: Color.fromARGB(255, 161, 140,
+                                        140))), // Cambiado a blanco
                           );
                         }).toList(),
                       ),
@@ -220,7 +222,7 @@ class _CreatePState extends State<CreateP> {
 
                 // Cédula Profesional
                 TextField(
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Cédula Profesional',
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.credit_card),
@@ -237,7 +239,7 @@ class _CreatePState extends State<CreateP> {
 
                 // Teléfono
                 TextField(
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Teléfono Personal',
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.phone),
@@ -255,7 +257,7 @@ class _CreatePState extends State<CreateP> {
 
                 // Confirmación de correo electrónico
                 TextField(
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Email',
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.email),
@@ -273,7 +275,7 @@ class _CreatePState extends State<CreateP> {
 
                 // Confirmación de correo electrónico
                 TextField(
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Confirmar Email',
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.email),
@@ -291,7 +293,7 @@ class _CreatePState extends State<CreateP> {
 
                 // Confirmación de contraseña
                 TextField(
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Contraseña',
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.lock),
@@ -309,7 +311,7 @@ class _CreatePState extends State<CreateP> {
 
                 // Confirmación de contraseña
                 TextField(
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Confirmar Contraseña',
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.lock),
@@ -325,7 +327,7 @@ class _CreatePState extends State<CreateP> {
                 ),
 
                 const SizedBox(height: 20),
-                Column(
+                const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Fecha de Nacimiento',
@@ -378,48 +380,51 @@ class _CreatePState extends State<CreateP> {
 
                 // Acepto términos y condiciones
                 Row(
-  children: [
-    Checkbox(
-      value: acceptTerms,
-      onChanged: (value) {
-        setState(() {
-          acceptTerms = value!;
-        });
-      },
-    ),
-    Expanded(
-      child: Container(
-        margin: EdgeInsets.symmetric(horizontal: 20), // Margen a los lados
-        child: RichText(
-          text: TextSpan(
-            style: TextStyle(fontSize: 10, color: Colors.white),
-            children: <TextSpan>[
-              TextSpan(text: 'He leído y acepto las '),
-              TextSpan(
-                text: 'condiciones de servicio',
-                style: TextStyle(color: Colors.blue),
-                recognizer: TapGestureRecognizer()
-                  ..onTap = () {
-                    launchURL("https://app.medicalmanik.com/MedicalManik/condicionesServicio.html");
-                  },
-              ),
-              TextSpan(text: ' y '),
-              TextSpan(
-                text: 'aviso de privacidad',
-                style: TextStyle(color: Colors.blue),
-                recognizer: TapGestureRecognizer()
-                  ..onTap = () {
-                    launchURL("https://app.medicalmanik.com/MedicalManik/Privacidad.html");
-                  },
-              ),
-            ],
-          ),
-        ),
-      ),
-    ),
-  ],
-),
-
+                  children: [
+                    Checkbox(
+                      value: acceptTerms,
+                      onChanged: (value) {
+                        setState(() {
+                          acceptTerms = value!;
+                        });
+                      },
+                    ),
+                    Expanded(
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: 20), // Margen a los lados
+                        child: RichText(
+                          text: TextSpan(
+                            style: const TextStyle(
+                                fontSize: 10, color: Colors.white),
+                            children: <TextSpan>[
+                              const TextSpan(text: 'He leído y acepto las '),
+                              TextSpan(
+                                text: 'condiciones de servicio',
+                                style: const TextStyle(color: Colors.blue),
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap = () {
+                                    launchURL(
+                                        "https://app.medicalmanik.com/MedicalManik/condicionesServicio.html");
+                                  },
+                              ),
+                              const TextSpan(text: ' y '),
+                              TextSpan(
+                                text: 'aviso de privacidad',
+                                style: const TextStyle(color: Colors.blue),
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap = () {
+                                    launchURL(
+                                        "https://app.medicalmanik.com/MedicalManik/Privacidad.html");
+                                  },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
 
                 const SizedBox(height: 20),
 
@@ -430,7 +435,7 @@ class _CreatePState extends State<CreateP> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => Login()),
+                        MaterialPageRoute(builder: (context) => const Login()),
                       );
                     },
                     child: const Text('Volver al Inicio de sesion',
@@ -448,7 +453,7 @@ class _CreatePState extends State<CreateP> {
                     if (_validateFields()) {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => Login()),
+                        MaterialPageRoute(builder: (context) => const Login()),
                       );
                     }
                   },

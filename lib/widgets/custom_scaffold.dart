@@ -10,7 +10,7 @@ class CustomScaffold extends StatelessWidget {
         backgroundColor: Colors.transparent,
       ),
       extendBodyBehindAppBar: true,
-      backgroundColor: Color.fromARGB(255, 11, 66, 105),
+      backgroundColor: const Color.fromARGB(255, 11, 66, 105),
       body: Stack(
         children: [
           Image.asset(

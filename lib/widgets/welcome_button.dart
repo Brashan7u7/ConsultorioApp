@@ -1,4 +1,3 @@
-import 'package:calendario_manik/pages/login_page.dart';
 import 'package:flutter/material.dart';
 
 class WelcomeButton extends StatelessWidget {

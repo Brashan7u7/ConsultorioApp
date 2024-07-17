@@ -1,5 +1,5 @@
 import 'package:calendario_manik/database/database.dart';
-import 'package:calendario_manik/models/evento.dart';
+import 'package:calendario_manik/models/tarea.dart';
 import 'package:calendario_manik/pages/add_page.dart';
 import 'package:calendario_manik/pages/calendar_page.dart';
 import 'package:flutter/material.dart';
@@ -213,7 +213,7 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                           String nota = notaController.text;
 
                           // Crear el objeto Evento
-                          Evento evento = Evento(
+                          Tarea tarea = Tarea(
                             nombre: nombre,
                             fecha: fecha,
                             hora: hora,
@@ -223,12 +223,12 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                           );
 
                           // Insertar el evento en la base de datos
-                          await DatabaseManager.insertEvento(
-                              widget.consultorioId!, evento);
+                          await DatabaseManager.insertTareaSeleccionada(
+                              widget.consultorioId!, tarea);
 
                           // Mostrar mensaje de éxito o redireccionar a otra pantalla si es necesario
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
+                            const SnackBar(
                               content: Text(
                                   'Cita programada agregada correctamente'),
                             ),

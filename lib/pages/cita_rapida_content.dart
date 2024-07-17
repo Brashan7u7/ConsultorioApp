@@ -1,5 +1,6 @@
 import 'package:calendario_manik/database/database.dart';
 import 'package:calendario_manik/models/evento.dart';
+import 'package:calendario_manik/models/tarea.dart';
 import 'package:calendario_manik/models/doctor.dart';
 import 'package:calendario_manik/pages/add_page.dart';
 import 'package:calendario_manik/pages/calendar_page.dart';
@@ -9,9 +10,9 @@ import 'package:flutter_switch/flutter_switch.dart';
 import 'package:calendario_manik/variab.dart';
 
 class CitaRapidaContent extends StatefulWidget {
-  CitaRapidaContent({
-    Key? key,
-  }) : super(key: key);
+  const CitaRapidaContent({
+    super.key,
+  });
   @override
   _CitaRapidaContentState createState() => _CitaRapidaContentState();
 }
@@ -42,42 +43,50 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
       // Obtener la fecha y hora actual
       DateTime now = DateTime.now();
       String fechaActual = DateFormat('yyyy-MM-dd').format(now);
-      String horaActual = DateFormat('HH:mm').format(now);
+      // Redondear la hora actual a la hora cerrada más cercana
+      int minute = now.minute;
+      int roundedHour = now.hour;
+      if (minute >= 30) {
+        roundedHour = now.hour + 1;
+      }
+      DateTime roundedTime = now.copyWith(hour: roundedHour, minute: 0);
+
+      String horaActual = DateFormat('HH:mm').format(roundedTime);
 
       // Crear el objeto evento con la fecha y hora actuales
-      Evento evento = Evento(
+      Tarea tarea = Tarea(
         nombre: nombre,
         fecha: fechaActual,
-        hora: horaActual,
+        hora: DateFormat('HH:mm').format(roundedTime),
         duracion: "", // Puedes ajustar la duración si es necesario
         servicio: "", // Ajusta el servicio si es necesario
         nota: nota,
       );
-
+      print('Hora redondeada: ${DateFormat('HH:mm').format(roundedTime)}');
       // Insertar la cita inmediata en la base de datos
-      int citaId = await DatabaseManager.insertCitaInmediata(
+      int citaId = await DatabaseManager.insertarTareaInmediata(
         consultorioId,
-        evento,
+        tarea,
         nota,
       );
 
       if (citaId != -1) {
         // Éxito al guardar la cita
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Cita guardada correctamente')),
+          const SnackBar(content: Text('Cita guardada correctamente')),
         );
 
         // Navegar a la página del calendario
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => Calendar(),
+            builder: (context) => const Calendar(),
           ),
         );
       } else {
         // Error al guardar la cita
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al guardar la cita')),
+          const SnackBar(content: Text('Error al guardar la cita')),
         );
       }
     }
@@ -180,7 +189,7 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
                         );
                       },
                     ),
-                  SizedBox(height: 20.0),
+                  const SizedBox(height: 20.0),
                   if (usuario_cuenta_id == 3)
                     Container(
                       child: Column(
@@ -190,7 +199,7 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
                               Expanded(
                                 child: DropdownButton<Doctor>(
                                   isExpanded: true,
-                                  hint: Text(
+                                  hint: const Text(
                                       'Seleccione el médico que atenderá la cita'),
                                   items: doctores.map((doctor) {
                                     return DropdownMenuItem<Doctor>(
@@ -217,12 +226,12 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
                       ),
                     ),
 
-                  SizedBox(height: 20.0),
-                  Text(
+                  const SizedBox(height: 20.0),
+                  const Text(
                     'Fecha y hora por registrar:',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 10.0),
+                  const SizedBox(height: 10.0),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -349,16 +358,17 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
                       ],
                     ),
                   ],
-                  SizedBox(height: 20.0),
+                  const SizedBox(height: 20.0),
                   TextFormField(
                     controller: notaController,
-                    decoration: InputDecoration(labelText: 'Nota para la cita'),
+                    decoration:
+                        const InputDecoration(labelText: 'Nota para la cita'),
                     maxLines: 3,
                   ),
                   const SizedBox(height: 50.0),
                   ElevatedButton(
                     onPressed: () => _saveCitaInmediata(context),
-                    child: Text('Guardar Cita Inmediata'),
+                    child: const Text('Guardar Cita Inmediata'),
                   ),
                 ],
               ),

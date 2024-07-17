@@ -9,7 +9,7 @@ import 'package:calendario_manik/models/datapatients.dart';
 
 class Patients extends StatefulWidget {
   final int consultorioId;
-  Patients({
+  const Patients({
     Key? key,
     required this.consultorioId,
   }) : super(key: key);
@@ -71,7 +71,7 @@ class _PatientsState extends State<Patients> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Pacientes"),
+        title: const Text("Pacientes"),
         automaticallyImplyLeading: false,
       ),
       body: Column(
@@ -117,14 +117,14 @@ class _PatientsState extends State<Patients> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: Icon(Icons.arrow_forward_ios),
+                          icon: const Icon(Icons.arrow_forward_ios),
                           onPressed: () {
                             _viewPatient(context, _filteredPatients[index]);
                           },
                         ),
                         if (eliminarPacientes)
                           IconButton(
-                            icon: Icon(Icons.delete),
+                            icon: const Icon(Icons.delete),
                             onPressed: () {
                               _deletePatient(_filteredPatients[index]);
                             },
@@ -152,7 +152,7 @@ class _PatientsState extends State<Patients> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => Calendar(),
+                builder: (context) => const Calendar(),
               ),
             );
           }
@@ -167,16 +167,16 @@ class _PatientsState extends State<Patients> {
           }
         },
         items: [
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Calendario',
           ),
           if (crearPacientes)
-            BottomNavigationBarItem(
+            const BottomNavigationBarItem(
               icon: Icon(Icons.add),
               label: 'Registrar',
             ),
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: Icon(Icons.person),
             label: 'Pacientes',
           ),
@@ -189,19 +189,19 @@ class _PatientsState extends State<Patients> {
   void _showRegistrarModal() {
     showModalBottomSheet(
       context: context,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
       ),
       builder: (BuildContext builder) {
         return Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
           ),
           child: Wrap(
             children: [
               ListTile(
-                leading: Icon(Icons.person_add),
-                title: Text('Registrar Paciente'),
+                leading: const Icon(Icons.person_add),
+                title: const Text('Registrar Paciente'),
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.push(
@@ -263,7 +263,7 @@ class _PatientsState extends State<Patients> {
           actions: [
             if (editarPacientes)
               TextButton(
-                child: Text('Editar Paciente'),
+                child: const Text('Editar Paciente'),
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -281,7 +281,7 @@ class _PatientsState extends State<Patients> {
                 },
               ),
             TextButton(
-              child: Text('Cerrar'),
+              child: const Text('Cerrar'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -297,7 +297,7 @@ class _PatientsState extends State<Patients> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Eliminar Paciente"),
+          title: const Text("Eliminar Paciente"),
           content: Text(
               "¿Estás seguro de que quieres eliminar a ${patient.name} ${patient.primerPat}?"),
           actions: [

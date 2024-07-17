@@ -5,7 +5,6 @@ import 'package:calendario_manik/pages/cita_select_content.dart';
 import 'package:calendario_manik/pages/evento_content.dart';
 import 'package:calendario_manik/pages/paciente_content.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:calendario_manik/pages/calendar_page.dart';
 import 'package:calendario_manik/models/datapatients.dart';
 
@@ -22,7 +21,7 @@ class Add extends StatelessWidget {
   TextEditingController? fechaController, horaController, duracionController;
 
   Add({
-    Key? key,
+    super.key,
     required this.isCitaInmediata,
     this.isEvento = false,
     this.isPacient = false,
@@ -34,7 +33,7 @@ class Add extends StatelessWidget {
     this.duracionController,
     this.consultorioId,
     this.pacient,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -1,5 +1,6 @@
 import 'package:calendario_manik/database/database.dart';
 import 'package:calendario_manik/models/evento.dart';
+import 'package:calendario_manik/widgets/AddPatientForm.dart';
 import 'package:flutter/material.dart';
 import 'package:calendario_manik/pages/add_page.dart';
 import 'package:calendario_manik/pages/calendar_page.dart';
@@ -82,14 +83,14 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
 
   @override
   Widget build(BuildContext context) {
-    DateTime _selectedDateTime = DateTime.now();
+    DateTime selectedDateTime = DateTime.now();
     TextEditingController fechaController = TextEditingController(text: "");
     TextEditingController horaController = TextEditingController(text: "");
     TextEditingController duracionController = TextEditingController(text: "");
     TextEditingController servicioController = TextEditingController(text: "");
     TextEditingController notaController = TextEditingController(text: "");
 
-    void _openAddPatientPage() {
+    void openAddPatientPage() {
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -126,54 +127,28 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
       child: Form(
         key: _formKey,
         child: Padding(
-          padding: const EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(10.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Escriba el nombre del paciente',
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'El nombre del paciente es obligatorio';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  if (crearPacientes)
-                    IconButton(
-                      icon: const Icon(Icons.add),
-                      onPressed: _openAddPatientPage,
-                      tooltip: 'Agregar paciente',
-                    ),
-                ],
+              AddPatientForm(
+                onPatientAdded: (String patientName) {
+                  setState(() {
+                    nameController.text = patientName;
+                  });
+                },
               ),
-              // Lista de sugerencias de pacientes
-              if (suggestedPatients.isNotEmpty)
-                ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: suggestedPatients.length,
-                  itemBuilder: (context, index) {
-                    return ListTile(
-                      title: Text(suggestedPatients[index]),
-                      onTap: () {
-                        // Actualizar el campo de texto con el paciente seleccionado
-                        nameController.text = suggestedPatients[index];
-                        // Limpiar la lista de sugerencias
-                        setState(() {
-                          suggestedPatients = [];
-                        });
-                      },
-                    );
-                  },
+              const SizedBox(height: 30.0),
+              Padding(
+                padding: const EdgeInsets.all(5.0),
+                child: Text(
+                  'Intervalo de Atención (minutos)',
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.normal,
+                      color: Colors.grey[800]),
                 ),
-              const SizedBox(height: 20.0),
+              ),
               DropdownButtonFormField<String>(
                 items: const [
                   DropdownMenuItem<String>(
@@ -199,16 +174,30 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                     selectedInterval = int.parse(value!);
                   });
                 },
-                decoration: const InputDecoration(
-                  labelText: 'Intervalo de Atención (minutos)',
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(width: 1, color: Colors.grey),
+                  ),
+                  filled: true,
+                  fillColor: Colors.transparent,
                 ),
               ),
-              const SizedBox(height: 10.0),
+              const SizedBox(height: 20.0),
+              Padding(
+                padding: const EdgeInsets.all(5.0),
+                child: Text(
+                  'Recomendación de la próxima cita',
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.normal,
+                      color: Colors.grey[800]),
+                ),
+              ),
               DropdownButtonFormField<String>(
                 value: servicioController.text.isEmpty
                     ? null
                     : servicioController.text,
-                hint: const Text('Recomendación de la próxima cita'),
                 items: const <DropdownMenuItem<String>>[
                   DropdownMenuItem<String>(
                     value: 'Opción 1',
@@ -227,12 +216,20 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                   servicioController.text = value!;
                   await _getRecommendedDateTime(value);
                 },
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(width: 1, color: Colors.grey),
+                  ),
+                  filled: true,
+                  fillColor: Colors.transparent,
+                ),
               ),
-              SizedBox(height: 20.0),
+              const SizedBox(height: 20.0),
               if (_recommendedAppointments.isNotEmpty)
                 DropdownButtonFormField<String>(
                   value: _selectedAppointment,
-                  hint: Text('Seleccione una cita recomendada'),
+                  hint: const Text('Seleccione una cita recomendada'),
                   items: _recommendedAppointments.map((appointment) {
                     DateTime fecha = DateTime.parse(appointment['fecha']);
                     String formattedDate =
@@ -249,6 +246,17 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                     });
                   },
                 ),
+              const SizedBox(height: 5.0),
+              Padding(
+                padding: const EdgeInsets.all(5.0),
+                child: Text(
+                  'Motivo de consulta',
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.normal,
+                      color: Colors.grey[800]),
+                ),
+              ),
               const SizedBox(height: 20.0),
               if (sis) ...[
                 Row(
@@ -273,8 +281,14 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                             //tipoServicio = value!;
                           });
                         },
-                        decoration: const InputDecoration(
-                          labelText: 'Tipo de servicio',
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide:
+                                BorderSide(width: 1, color: Colors.grey),
+                          ),
+                          filled: true,
+                          fillColor: Colors.transparent,
                         ),
                       ),
                     ),
@@ -284,10 +298,10 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                         activeText: "Subsecuente",
                         inactiveText: "Primera vez",
                         value: status,
-                        valueFontSize: 11.0,
-                        width: 110,
-                        height: 30,
-                        borderRadius: 30.0,
+                        valueFontSize: 15.0,
+                        width: 180,
+                        height: 52,
+                        borderRadius: 5.0,
                         showOnOff: true,
                         onToggle: (val) {
                           setState(() {
@@ -340,8 +354,14 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                             valor = value!;
                           });
                         },
-                        decoration: const InputDecoration(
-                          labelText: 'Motivo de consulta',
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide:
+                                BorderSide(width: 1, color: Colors.grey),
+                          ),
+                          filled: true,
+                          fillColor: Colors.transparent,
                         ),
                       ),
                     ),
@@ -351,10 +371,10 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                         activeText: "Subsecuente",
                         inactiveText: "Primera vez",
                         value: status,
-                        valueFontSize: 11.0,
-                        width: 110,
-                        height: 30,
-                        borderRadius: 30.0,
+                        valueFontSize: 15.0,
+                        width: 180,
+                        height: 52,
+                        borderRadius: 5.0,
                         showOnOff: true,
                         onToggle: (val) {
                           setState(() {
@@ -366,14 +386,41 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                   ],
                 ),
               ],
-              const SizedBox(height: 20.0),
+              const SizedBox(height: 25.0),
+              Padding(
+                padding: const EdgeInsets.all(5.0),
+                child: Text(
+                  'Nota para la cita',
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.normal,
+                      color: Colors.grey[800]),
+                ),
+              ),
               TextFormField(
                 controller: notaController,
-                decoration: const InputDecoration(labelText: 'Nota para cita'),
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(width: 1, color: Colors.grey),
+                  ),
+                  filled: true,
+                  fillColor: Colors.transparent,
+                ),
                 maxLines: 3,
               ),
-              const SizedBox(height: 50.0),
+              const SizedBox(height: 70.0),
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue, // Color de fondo del botón
+                  foregroundColor: Colors.white, // Color del texto del botón
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(
+                        10), // Radio de esquinas redondeadas
+                    side: BorderSide(
+                        width: 1, color: Colors.grey), // Borde del botón
+                  ),
+                ),
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     // Recolectar datos del formulario
@@ -400,7 +447,7 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
 
                     // Mostrar mensaje de éxito o redireccionar a otra pantalla si es necesario
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
+                      const SnackBar(
                           content:
                               Text('Cita programada agregada correctamente')),
                     );

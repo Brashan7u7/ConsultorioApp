@@ -18,6 +18,8 @@ class CitaRapidaContent extends StatefulWidget {
 class _CitaRapidaContentState extends State<CitaRapidaContent> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController notaController = TextEditingController();
+  final TextEditingController tipoCitaController = TextEditingController();
+
   bool status = false;
   String valor = "Consulta";
   final _formKey = GlobalKey<FormState>();
@@ -28,6 +30,10 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
       // Aquí se realiza la lógica para guardar la cita inmediata
       String nombre = nameController.text;
       String nota = notaController.text;
+      TextEditingController motivoConsultaController =
+          TextEditingController(text: "");
+      TextEditingController tipoCitaController =
+          TextEditingController(text: "");
 
       // Suponiendo que tienes el consultorioId y el paciente adecuados
       int consultorioId = 1; // Ajusta el consultorioId según tu lógica
@@ -48,6 +54,8 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
       String horaActual = DateFormat('HH:mm').format(roundedTime);
 
       // Crear el objeto evento con la fecha y hora actuales
+      String motivoConsulta = valor; // Assign the value from the DropdownButton
+      String tipoCita = status ? "Subsecuente" : "Primera vez";
       Tarea tarea = Tarea(
         nombre: nombre,
         fecha: fechaActual,
@@ -55,6 +63,8 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
         duracion: "", // Puedes ajustar la duración si es necesario
         servicio: "", // Ajusta el servicio si es necesario
         nota: nota,
+        motivoConsulta: motivoConsulta,
+        tipoCita: tipoCita,
       );
       print('Hora redondeada: ${DateFormat('HH:mm').format(roundedTime)}');
       // Insertar la cita inmediata en la base de datos
@@ -62,7 +72,6 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
         consultorioId,
         tarea,
         nota,
-        
       );
 
       if (citaId != -1) {
@@ -103,157 +112,178 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Form(
-          key: _formKey,
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: nameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Escriba el nombre del paciente',
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Form(
+            key: _formKey,
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: nameController,
+                          decoration: const InputDecoration(
+                            labelText: 'Escriba el nombre del paciente',
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'El nombre del paciente es obligatorio';
+                            }
+                            return null;
+                          },
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'El nombre del paciente es obligatorio';
-                          }
-                          return null;
-                        },
                       ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.add),
-                      onPressed: _openAddPatientPage,
-                      tooltip: 'Agregar paciente',
-                    ),
-                  ],
-                ),
-                // Lista de sugerencias de pacientes
-                if (suggestedPatients.isNotEmpty)
-                  ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: suggestedPatients.length,
-                    itemBuilder: (context, index) {
-                      return ListTile(
-                        title: Text(suggestedPatients[index]),
-                        onTap: () {
-                          // Actualizar el campo de texto con el paciente seleccionado
-                          nameController.text = suggestedPatients[index];
-                          // Limpiar la lista de sugerencias
-                          setState(() {
-                            suggestedPatients = [];
-                          });
-                        },
-                      );
-                    },
+                      IconButton(
+                        icon: const Icon(Icons.add),
+                        onPressed: _openAddPatientPage,
+                        tooltip: 'Agregar paciente',
+                      ),
+                    ],
                   ),
-                const SizedBox(height: 20.0),
-                const Text(
-                  'Fecha y hora por registrar:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 10.0),
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                        'Fecha: ${DateFormat('dd/MM/yyyy').format(DateTime.now())}'),
-                    Text('Hora: ${DateFormat('HH:mm').format(DateTime.now())}'),
-                  ],
-                ),
-                const SizedBox(height: 20.0),
-                Row(
-                  children: [
-                    Expanded(
-                      child: DropdownButtonFormField<String>(
-                        isExpanded: true,
-                        items: const [
-                          DropdownMenuItem<String>(
-                            value: 'Consulta',
-                            child: Text('Consulta'),
+                  // Lista de sugerencias de pacientes
+                  if (suggestedPatients.isNotEmpty)
+                    ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: suggestedPatients.length,
+                      itemBuilder: (context, index) {
+                        return ListTile(
+                          title: Text(suggestedPatients[index]),
+                          onTap: () {
+                            // Actualizar el campo de texto con el paciente seleccionado
+                            nameController.text = suggestedPatients[index];
+                            // Limpiar la lista de sugerencias
+                            setState(() {
+                              suggestedPatients = [];
+                            });
+                          },
+                        );
+                      },
+                    ),
+                  const SizedBox(height: 20.0),
+                  const Text(
+                    'Fecha y hora por registrar:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10.0),
+      
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                          'Fecha: ${DateFormat('dd/MM/yyyy').format(DateTime.now())}'),
+                      Text('Hora: ${DateFormat('HH:mm').format(DateTime.now())}'),
+                    ],
+                  ),
+                  const SizedBox(height: 20.0),
+      
+                  Padding(
+                    padding: const EdgeInsets.all(5.0),
+                    child: Text(
+                      'Motivo de consulta',
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.normal,
+                          color: Colors.grey[800]),
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          isExpanded: true,
+                          items: const [
+                            DropdownMenuItem<String>(
+                              value: 'Consulta',
+                              child: Text('Consulta'),
+                            ),
+                            DropdownMenuItem<String>(
+                              value: 'Valoración',
+                              child: Text('Valoración'),
+                            ),
+                            DropdownMenuItem<String>(
+                              value: 'Estudios',
+                              child: Text('Estudios'),
+                            ),
+                            DropdownMenuItem<String>(
+                              value: 'Vacunas',
+                              child: Text('Vacunas'),
+                            ),
+                            DropdownMenuItem<String>(
+                              value: 'Nota de evolución',
+                              child: Text('Nota de evolución'),
+                            ),
+                            DropdownMenuItem<String>(
+                              value: 'interconsulta',
+                              child: Text('Nota de interconsulta'),
+                            ),
+                            DropdownMenuItem<String>(
+                              value: 'Rehabilitación',
+                              child: Text('Rehabilitación'),
+                            ),
+                          ],
+                          value: valor,
+                          onChanged: (value) {
+                            setState(() {
+                              valor = value!;
+                            });
+                          },
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide:
+                                  BorderSide(width: 1, color: Colors.grey),
+                            ),
+                            filled: true,
+                            fillColor: Colors.transparent,
                           ),
-                          DropdownMenuItem<String>(
-                            value: 'Valoración',
-                            child: Text('Valoración'),
-                          ),
-                          DropdownMenuItem<String>(
-                            value: 'Estudios',
-                            child: Text('Estudios'),
-                          ),
-                          DropdownMenuItem<String>(
-                            value: 'Vacunas',
-                            child: Text('Vacunas'),
-                          ),
-                          DropdownMenuItem<String>(
-                            value: 'Nota de evolución',
-                            child: Text('Nota de evolución'),
-                          ),
-                          DropdownMenuItem<String>(
-                            value: 'interconsulta',
-                            child: Text('Nota de interconsulta'),
-                          ),
-                          DropdownMenuItem<String>(
-                            value: 'Rehabilitación',
-                            child: Text('Rehabilitación'),
-                          ),
-                        ],
-                        value: valor,
-                        onChanged: (value) {
-                          setState(() {
-                            valor = value!;
-                          });
-                        },
-                        decoration: const InputDecoration(
-                          labelText: 'Motivo de consulta',
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 20.0),
-                    Expanded(
-                      child: FlutterSwitch(
-                        activeText: "Subsecuente",
-                        inactiveText: "Primera vez",
-                        value: status,
-                        valueFontSize: 11.0,
-                        width: 110,
-                        height: 30,
-                        borderRadius: 30.0,
-                        showOnOff: true,
-                        onToggle: (val) {
-                          setState(() {
-                            status = val;
-                          });
-                        },
+                      const SizedBox(width: 20.0),
+                      Expanded(
+                        child: FlutterSwitch(
+                          activeText: "Subsecuente",
+                          inactiveText: "Primera vez",
+                          value: status,
+                          valueFontSize: 15.0,
+                          width: 180,
+                          height: 52,
+                          borderRadius: 5.0,
+                          showOnOff: true,
+                          onToggle: (val) {
+                            setState(() {
+                              status = val;
+                              tipoCitaController.text =
+                                  val ? "Subsecuente" : "Primera vez";
+                            });
+                          },
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20.0),
-                TextFormField(
-                  controller: notaController,
-                  decoration:
-                      const InputDecoration(labelText: 'Nota para la cita'),
-                  maxLines: 3,
-                ),
-                const SizedBox(height: 20.0),
-                ElevatedButton(
-                  onPressed: () => _saveCitaInmediata(context),
-                  child: const Text('Guardar Cita Inmediata'),
-                ),
-              ],
+                    ],
+                  ),
+                  const SizedBox(height: 20.0),
+                  TextFormField(
+                    controller: notaController,
+                    decoration:
+                        const InputDecoration(labelText: 'Nota para la cita'),
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 20.0),
+                  ElevatedButton(
+                    onPressed: () => _saveCitaInmediata(context),
+                    child: const Text('Guardar Cita Inmediata'),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

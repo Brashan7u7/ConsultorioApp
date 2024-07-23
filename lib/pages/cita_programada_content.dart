@@ -1,5 +1,5 @@
 import 'package:calendario_manik/database/database.dart';
-import 'package:calendario_manik/models/evento.dart';
+import 'package:calendario_manik/models/tarea.dart';
 import 'package:calendario_manik/widgets/AddPatientForm.dart';
 import 'package:flutter/material.dart';
 import 'package:calendario_manik/pages/add_page.dart';
@@ -20,7 +20,7 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
   final _formKey = GlobalKey<FormState>();
   int selectedInterval = 60;
   String valor = "Consulta";
-  TextEditingController nameController = TextEditingController(text: "");
+  final nameController = TextEditingController();
   List<String> suggestedPatients = [];
   bool isPatientRegistered =
       true; // Variable para controlar si el paciente está registrado
@@ -84,6 +84,9 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
     TextEditingController duracionController = TextEditingController(text: "");
     TextEditingController servicioController = TextEditingController(text: "");
     TextEditingController notaController = TextEditingController(text: "");
+    TextEditingController motivoConsultaController =
+        TextEditingController(text: "");
+    TextEditingController tipoCitaController = TextEditingController(text: "");
 
     void openAddPatientPage() {
       Navigator.push(
@@ -108,7 +111,7 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
         appointmentTime =
             DateTime.parse('${fechaController.text} ${horaController.text}');
       }
-      print(fechaController);
+      //print(fechaController);
     });
 
     horaController.addListener(() {
@@ -116,7 +119,7 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
         appointmentTime =
             DateTime.parse('${fechaController.text} ${horaController.text}');
       }
-      print(horaController);
+      //print(horaController);
     });
 
     return SingleChildScrollView(
@@ -128,6 +131,7 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               AddPatientForm(
+                patientController: nameController, // Add this line
                 onPatientAdded: (String patientName) {
                   setState(() {
                     nameController.text = patientName;
@@ -153,7 +157,7 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                   ),
                   DropdownMenuItem<String>(
                     value: '30',
-                    child: Text('30 minutos'),
+                    child: Text('30 minutos'),  
                   ),
                   DropdownMenuItem<String>(
                     value: '20',
@@ -318,6 +322,8 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                       onToggle: (val) {
                         setState(() {
                           status = val;
+                          tipoCitaController.text =
+                              val ? "Subsecuente" : "Primera vez";
                         });
                       },
                     ),
@@ -368,20 +374,26 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                     String duracion = selectedInterval.toString();
                     String servicio = servicioController.text;
                     String nota = notaController.text;
+                    String motivoConsulta =
+                        valor; // Assign the value from the DropdownButton
+                    String tipoCita = status ? "Subsecuente" : "Primera vez";
 
-                    // Crear el objeto Evento
-                    Evento evento = Evento(
-                      nombre: nombre,
-                      fecha: fecha!,
-                      hora: hora!,
-                      duracion: duracion,
-                      servicio: servicio,
-                      nota: nota,
-                    );
-
-                    // Insertar el evento en la base de datos
-                    await DatabaseManager.insertEvento(
-                        widget.consultorioId!, evento);
+                    print('Nombre del paciente: ${nameController.text}');
+                    Tarea tarea = Tarea(
+                        nombre: nombre,
+                        fecha: fecha!,
+                        hora: hora!,
+                        duracion: duracion,
+                        servicio: servicio,
+                        nota: nota,
+                        motivoConsulta: motivoConsulta,
+                        tipoCita: tipoCita);
+                    print('Tarea creada con nombre: ${tarea.nombre}');
+                    print('Tarea creada con motivo: ${tarea.motivoConsulta}');
+                    print('Tarea creada con motivo: ${tarea.nota}');
+                    print('Tarea creada con tipo: ${tarea.tipoCita}');
+                    await DatabaseManager.insertarTareaProgramada(
+                        widget.consultorioId!, tarea);
 
                     // Mostrar mensaje de éxito o redireccionar a otra pantalla si es necesario
                     ScaffoldMessenger.of(context).showSnackBar(

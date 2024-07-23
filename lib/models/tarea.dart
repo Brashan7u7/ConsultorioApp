@@ -1,10 +1,12 @@
-class Tarea{
+class Tarea {
   final String nombre;
   final String fecha;
   final String hora;
   final String duracion;
   final String servicio;
   final String nota;
+  final String motivoConsulta;
+  final String tipoCita;
 
   Tarea({
     required this.nombre,
@@ -13,5 +15,7 @@ class Tarea{
     required this.duracion,
     required this.servicio,
     required this.nota,
+    required this.motivoConsulta,
+    required this.tipoCita,
   });
 }

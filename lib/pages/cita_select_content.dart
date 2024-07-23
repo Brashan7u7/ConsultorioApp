@@ -12,7 +12,8 @@ class CitaSelectContent extends StatefulWidget {
   final int? usuario_id;
 
   const CitaSelectContent(
-      {super.key, required this.fechaController,
+      {super.key,
+      required this.fechaController,
       required this.horaController,
       this.consultorioId,
       this.usuario_id});
@@ -27,6 +28,9 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
   String valor = "Consulta";
   TextEditingController notaController = TextEditingController(text: "");
   bool status = false;
+  TextEditingController motivoConsultaController =
+      TextEditingController(text: "");
+  TextEditingController tipoCitaController = TextEditingController(text: "");
 
   void _openAddPatientPage() {
     Navigator.push(
@@ -44,188 +48,215 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: TextFormField(
-                controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Escriba el nombre del paciente',
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: TextFormField(
+                  controller: nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Escriba el nombre del paciente',
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'El nombre del paciente es obligatorio';
+                    }
+                    return null;
+                  },
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'El nombre del paciente es obligatorio';
-                  }
-                  return null;
-                },
               ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.add),
-              onPressed: _openAddPatientPage,
-              tooltip: 'Agregar paciente',
-            ),
-          ],
-        ),
-        TextFormField(
-          controller: widget.fechaController,
-          readOnly: true,
-          decoration: const InputDecoration(labelText: 'Fecha'),
-        ),
-        TextFormField(
-          controller: widget.horaController,
-          readOnly: true,
-          decoration: const InputDecoration(labelText: 'Hora'),
-        ),
-        DropdownButtonFormField<String>(
-          items: const [
-            DropdownMenuItem<String>(
-              value: '60',
-              child: Text('60 minutos'),
-            ),
-            DropdownMenuItem<String>(
-              value: '30',
-              child: Text('30 minutos'),
-            ),
-            DropdownMenuItem<String>(
-              value: '20',
-              child: Text('20 minutos'),
-            ),
-            DropdownMenuItem<String>(
-              value: '15',
-              child: Text('15 minutos'),
-            ),
-          ],
-          value: selectedInterval.toString(),
-          onChanged: (value) {
-            setState(() {
-              selectedInterval = int.parse(value!);
-            });
-          },
-          decoration: const InputDecoration(
-            labelText: 'Intervalo de Atención (minutos)',
+              IconButton(
+                icon: const Icon(Icons.add),
+                onPressed: _openAddPatientPage,
+                tooltip: 'Agregar paciente',
+              ),
+            ],
           ),
-        ),
-        const SizedBox(height: 20.0),
-        Row(
-          children: [
-            Expanded(
-              child: DropdownButtonFormField<String>(
-                items: const [
-                  DropdownMenuItem<String>(
-                    value: 'Consulta',
-                    child: Text('Consulta'),
+          TextFormField(
+            controller: widget.fechaController,
+            readOnly: true,
+            decoration: const InputDecoration(labelText: 'Fecha'),
+          ),
+          TextFormField(
+            controller: widget.horaController,
+            readOnly: true,
+            decoration: const InputDecoration(labelText: 'Hora'),
+          ),
+          DropdownButtonFormField<String>(
+            items: const [
+              DropdownMenuItem<String>(
+                value: '60',
+                child: Text('60 minutos'),
+              ),
+              DropdownMenuItem<String>(
+                value: '30',
+                child: Text('30 minutos'),
+              ),
+              DropdownMenuItem<String>(
+                value: '20',
+                child: Text('20 minutos'),
+              ),
+              DropdownMenuItem<String>(
+                value: '15',
+                child: Text('15 minutos'),
+              ),
+            ],
+            value: selectedInterval.toString(),
+            onChanged: (value) {
+              setState(() {
+                selectedInterval = int.parse(value!);
+              });
+            },
+            decoration: const InputDecoration(
+              labelText: 'Intervalo de Atención (minutos)',
+            ),
+          ),
+          const SizedBox(height: 20.0),
+          Padding(
+            padding: const EdgeInsets.all(5.0),
+            child: Text(
+              'Motivo de consulta',
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.normal,
+                  color: Colors.grey[800]),
+            ),
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: DropdownButtonFormField<String>(
+                  isExpanded: true,
+                  items: const [
+                    DropdownMenuItem<String>(
+                      value: 'Consulta',
+                      child: Text('Consulta'),
+                    ),
+                    DropdownMenuItem<String>(
+                      value: 'Valoración',
+                      child: Text('Valoración'),
+                    ),
+                    DropdownMenuItem<String>(
+                      value: 'Estudios',
+                      child: Text('Estudios'),
+                    ),
+                    DropdownMenuItem<String>(
+                      value: 'Vacunas',
+                      child: Text('Vacunas'),
+                    ),
+                    DropdownMenuItem<String>(
+                      value: 'Nota de evolución',
+                      child: Text('Nota de evolución'),
+                    ),
+                    DropdownMenuItem<String>(
+                      value: 'interconsulta',
+                      child: Text('Nota de interconsulta'),
+                    ),
+                    DropdownMenuItem<String>(
+                      value: 'Rehabilitación',
+                      child: Text('Rehabilitación'),
+                    ),
+                  ],
+                  value: valor,
+                  onChanged: (value) {
+                    setState(() {
+                      valor = value!;
+                    });
+                  },
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(width: 1, color: Colors.grey),
+                    ),
+                    filled: true,
+                    fillColor: Colors.transparent,
                   ),
-                  DropdownMenuItem<String>(
-                    value: 'Valoración',
-                    child: Text('Valoración'),
-                  ),
-                  DropdownMenuItem<String>(
-                    value: 'Estudios',
-                    child: Text('Estudios'),
-                  ),
-                  DropdownMenuItem<String>(
-                    value: 'Vacunas',
-                    child: Text('Vacunas'),
-                  ),
-                  DropdownMenuItem<String>(
-                    value: 'Nota de evolución',
-                    child: Text('Nota de evolución'),
-                  ),
-                  DropdownMenuItem<String>(
-                    value: 'interconsulta',
-                    child: Text('Nota de interconsulta'),
-                  ),
-                  DropdownMenuItem<String>(
-                    value: 'Rehabilitación',
-                    child: Text('Rehabilitación'),
-                  ),
-                ],
-                value: valor,
-                onChanged: (value) {
-                  setState(() {
-                    valor = value!;
-                  });
-                },
-                decoration: const InputDecoration(
-                  labelText: 'Motivo de consulta',
                 ),
               ),
-            ),
-            const SizedBox(width: 20.0),
-            Expanded(
-              child: FlutterSwitch(
-                activeText: "Subsecuente",
-                inactiveText: "Primera vez",
-                value: status,
-                valueFontSize: 11.0,
-                width: 110,
-                height: 30,
-                borderRadius: 30.0,
-                showOnOff: true,
-                onToggle: (val) {
-                  setState(() {
-                    status = val;
-                  });
-                },
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 20.0),
-        TextFormField(
-          controller: notaController,
-          decoration: const InputDecoration(labelText: 'Nota para cita'),
-          maxLines: 3,
-        ),
-        const SizedBox(height: 20.0),
-        ElevatedButton(
-          onPressed: () async {
-            if (widget.fechaController.text.isNotEmpty &&
-                widget.horaController.text.isNotEmpty) {
-              // Recolectar datos del formulario
-              String nombre = nameController.text;
-              String fecha = widget.fechaController.text;
-              String hora = widget.horaController.text;
-              String duracion = selectedInterval.toString();
-              String servicio = valor; // Usar el valor seleccionado
-              String nota = notaController.text;
-              int consultorioId = widget.consultorioId ?? 1; // Asegurar que el consultorioId no sea null
-
-              // Crear el objeto Evento
-              Tarea tarea = Tarea(
-                nombre: nombre,
-                fecha: fecha,
-                hora: hora,
-                duracion: duracion,
-                servicio: servicio,
-                nota: nota,
-              );
-
-              // Insertar el evento en la base de datos
-              await DatabaseManager.insertTareaSeleccionada(consultorioId, tarea);
-
-              // Mostrar mensaje de éxito o redireccionar a otra pantalla si es necesario
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Cita programada agregada correctamente'),
+              const SizedBox(width: 20.0),
+              Expanded(
+                child: FlutterSwitch(
+                  activeText: "Subsecuente",
+                  inactiveText: "Primera vez",
+                  value: status,
+                  valueFontSize: 15.0,
+                  width: 180,
+                  height: 52,
+                  borderRadius: 5.0,
+                  showOnOff: true,
+                  onToggle: (val) {
+                    setState(() {
+                      status = val;
+                      tipoCitaController.text =
+                          val ? "Subsecuente" : "Primera vez";
+                    });
+                  },
                 ),
-              );
-
-              // Opcional: Redirigir a la página de calendario u otra página relevante
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) =>
-                        Calendar(usuario_id: widget.usuario_id)),
-              );
-            }
-          },
-          child: const Text('Guardar Cita Seleccionada'),
-        ),
-      ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 20.0),
+          TextFormField(
+            controller: notaController,
+            decoration: const InputDecoration(labelText: 'Nota para cita'),
+            maxLines: 3,
+          ),
+          const SizedBox(height: 20.0),
+          ElevatedButton(
+            onPressed: () async {
+              if (widget.fechaController.text.isNotEmpty &&
+                  widget.horaController.text.isNotEmpty) {
+                // Recolectar datos del formulario
+                String nombre = nameController.text;
+                String fecha = widget.fechaController.text;
+                String hora = widget.horaController.text;
+                String duracion = selectedInterval.toString();
+                String servicio = valor; // Usar el valor seleccionado
+                String nota = notaController.text;
+                int consultorioId = widget.consultorioId ??
+                    1; // Asegurar que el consultorioId no sea null
+                String motivoConsulta =
+                    valor; // Assign the value from the DropdownButton
+                String tipoCita = status ? "Subsecuente" : "Primera vez";
+      
+                // Crear el objeto Evento
+                Tarea tarea = Tarea(
+                  nombre: nombre,
+                  fecha: fecha,
+                  hora: hora,
+                  duracion: duracion,
+                  servicio: servicio,
+                  nota: nota,
+                  motivoConsulta: motivoConsulta,
+                  tipoCita: tipoCita,
+                );
+      
+                // Insertar el evento en la base de datos
+                await DatabaseManager.insertTareaSeleccionada(
+                    consultorioId, tarea);
+      
+                // Mostrar mensaje de éxito o redireccionar a otra pantalla si es necesario
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Cita programada agregada correctamente'),
+                  ),
+                );
+      
+                // Opcional: Redirigir a la página de calendario u otra página relevante
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          Calendar(usuario_id: widget.usuario_id)),
+                );
+              }
+            },
+            child: const Text('Guardar Cita Seleccionada'),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -8,7 +8,8 @@ import 'package:intl/intl.dart';
 
 class DatabaseManager {
   static Future<Connection> _connect() async {
-tz.setLocalLocation(tz.getLocation('America/Mexico_City'));    return await Connection.open(
+    tz.setLocalLocation(tz.getLocation('America/Mexico_City'));
+    return await Connection.open(
       Endpoint(
         //host: '192.168.1.71',
         host: '192.168.1.182',
@@ -47,7 +48,7 @@ tz.setLocalLocation(tz.getLocation('America/Mexico_City'));    return await Conn
 
       await conn.execute(
         Sql.named(
-            "INSERT INTO tarea(id, token, nombre, descripcion, fecha_inicio, fecha_fin, calendario_id, asignado_id, color) VALUES (@id, @token, @nombre,@descripcion, @fecha_inicio, @fecha_fin, @calendario_id, @asignado_id, @color)"),
+            "INSERT INTO tarea(id, token, nombre, descripcion, fecha_inicio, fecha_fin, calendario_id, asignado_id, color, motivo_consulta, tipo_cita) VALUES (@id, @token, @nombre,@descripcion, @fecha_inicio, @fecha_fin, @calendario_id, @asignado_id, @color, @motivo_consulta, @tipo_cita)"),
         parameters: {
           "id": newId,
           "token": 2,
@@ -57,7 +58,9 @@ tz.setLocalLocation(tz.getLocation('America/Mexico_City'));    return await Conn
           "fecha_fin": endDate.toIso8601String(),
           "calendario_id": consultorioId,
           "asignado_id": 1,
-          "color": "#9A2EE5"
+          "color": "#9A2EE5",
+          "motivo_consulta": tarea.motivoConsulta,
+          "tipo_cita": tarea.tipoCita,
         },
       );
 
@@ -117,7 +120,7 @@ tz.setLocalLocation(tz.getLocation('America/Mexico_City'));    return await Conn
       // Calcula la fecha fin sumando 1 hora a la fecha inicio
       DateTime fechaFin = roundedTime.add(Duration(hours: 1));
       String fechaFinString =
-          DateFormat('yyyy-MM-dd HH:mm:ss+00').format(fechaFin);
+          DateFormat('yyyy-MM-dd HH:mm:00+00').format(fechaFin);
 
       final result = await conn.execute("SELECT MAX(id) FROM tarea");
       int lastId = (result.first.first as int?) ?? 0;
@@ -126,7 +129,7 @@ tz.setLocalLocation(tz.getLocation('America/Mexico_City'));    return await Conn
 
       await conn.execute(
         Sql.named(
-          "INSERT INTO tarea(id, token, nombre, descripcion, fecha_inicio, fecha_fin,  calendario_id,asignado_id, color) VALUES (@id, @token, @nombre, @descripcion, @fecha_inicio, @fecha_fin,  @calendario_id, @asignado_id, @color)",
+          "INSERT INTO tarea(id, token, nombre, descripcion, fecha_inicio, fecha_fin,  calendario_id,asignado_id, color, motivo_consulta, tipo_cita) VALUES (@id, @token, @nombre, @descripcion, @fecha_inicio, @fecha_fin,  @calendario_id, @asignado_id, @color, @motivo_consulta, @tipo_cita)",
         ),
         parameters: {
           "id": newId,
@@ -138,7 +141,9 @@ tz.setLocalLocation(tz.getLocation('America/Mexico_City'));    return await Conn
 
           "calendario_id": consultorioId,
           "asignado_id": 1,
-          "color": "#EB8015"
+          "color": "#EB8015",
+          "motivo_consulta": tarea.motivoConsulta,
+          "tipo_cita": tarea.tipoCita,
         },
       );
 
@@ -152,14 +157,148 @@ tz.setLocalLocation(tz.getLocation('America/Mexico_City'));    return await Conn
   }
 
   //! Cita Programada
+  static Future<void> insertarTareaProgramada(
+      int consultorioId, Tarea tarea) async {
+    try {
+      final conn = await _connect();
+
+      final result = await conn.execute("SELECT MAX(id) FROM tarea");
+      int lastId = (result.first.first as int?) ?? 0;
+
+      int newId = lastId + 1;
+
+      DateTime startDate = DateTime.parse("${tarea.fecha} ${tarea.hora}");
+      int duration = int.parse(tarea.duracion);
+      DateTime endDate = startDate.add(Duration(minutes: duration));
+
+      await conn.execute(
+        Sql.named(
+            "INSERT INTO tarea(id, token, nombre, descripcion, fecha_inicio, fecha_fin,calendario_id, color, asignado_id, motivo_consulta, tipo_cita) VALUES (@id, @token, @nombre,@descripcion, @fecha_inicio, @fecha_fin, @calendario_id, @color, @asignado_id, @motivo_consulta, @tipo_cita)"),
+        parameters: {
+          "id": newId,
+          "token": 2,
+          "nombre": tarea.nombre,
+          "descripcion": tarea.nota,
+          "fecha_inicio": startDate.toIso8601String(),
+          "fecha_fin": endDate.toIso8601String(),
+          "calendario_id": consultorioId,
+          "color": '#0EEED6',
+          "asignado_id": 1,
+          "motivo_consulta": tarea.motivoConsulta,
+          "tipo_cita": tarea.tipoCita,
+        },
+      );
+
+      await conn.close();
+    } catch (e) {
+      print('Error al insertar la cita programada: $e');
+    }
+  }
+
   static Future<List<Map<String, dynamic>>> getRecomeDiaria() async {
     List<Map<String, dynamic>> recomeDiaria = [];
     try {
       final conn = await _connect();
       print('Zona horaria actual: ${await conn.execute('SHOW timezone;')}');
-      await conn.execute('SET TIME ZONE \'America/Mexico_City\'');
+      print(
+          'Fecha y hor actual: ${await conn.execute('SELECT CURRENT_TIMESTAMP;')}');
       print('Zona horaria actual: ${await conn.execute('SHOW timezone;')}');
-      final result = await conn.execute("SELECT * FROM RecomeDiaria;");
+      final result = await conn.execute("""
+ 
+
+
+WITH fechas AS (
+    SELECT CURRENT_DATE + s.i AS recomendacion_semanal,
+        lower(translate(to_char((CURRENT_DATE + s.i)::timestamp with time zone, 'TMDay'::text), 'ÁÉÍÓÚáéíóú'::text, 'AEIOUaeiou'::text)) AS dia_de_la_semana,
+        to_char(CURRENT_TIMESTAMP AT TIME ZONE 'America/Mexico_City', 'HH24:MI'::text) AS hora_actual,
+        to_char(CURRENT_TIMESTAMP AT TIME ZONE 'America/Mexico_City', 'YYYY-MM-DD HH24:MI:SS TZ') AS fecha_hora_zona,
+        'America/Mexico_City' AS zona_horaria
+    FROM generate_series(0, 6) s(i)
+), horario AS (
+    SELECT horario_consultorio.id,
+        'lunes'::text AS dia_de_la_semana,
+        unnest(string_to_array(horario_consultorio.lunes::text, ','::text)) AS hora
+    FROM horario_consultorio
+    UNION ALL
+    SELECT horario_consultorio.id,
+        'martes'::text AS dia_de_la_semana,
+        unnest(string_to_array(horario_consultorio.martes::text, ','::text)) AS hora
+    FROM horario_consultorio
+    UNION ALL
+    SELECT horario_consultorio.id,
+        'miercoles'::text AS dia_de_la_semana,
+        unnest(string_to_array(horario_consultorio.miercoles::text, ','::text)) AS hora
+    FROM horario_consultorio
+    UNION ALL
+    SELECT horario_consultorio.id,
+        'jueves'::text AS dia_de_la_semana,
+        unnest(string_to_array(horario_consultorio.jueves::text, ','::text)) AS hora
+    FROM horario_consultorio
+    UNION ALL
+    SELECT horario_consultorio.id,
+        'viernes'::text AS dia_de_la_semana,
+        unnest(string_to_array(horario_consultorio.viernes::text, ','::text)) AS hora
+    FROM horario_consultorio
+    UNION ALL
+    SELECT horario_consultorio.id,
+        'sabado'::text AS dia_de_la_semana,
+        unnest(string_to_array(horario_consultorio.sabado::text, ','::text)) AS hora
+    FROM horario_consultorio
+    UNION ALL
+    SELECT horario_consultorio.id,
+        'domingo'::text AS dia_de_la_semana,
+        unnest(string_to_array(horario_consultorio.domingo::text, ','::text)) AS hora
+    FROM horario_consultorio
+), eventos AS (
+    SELECT date(evento.fecha_inicio) AS fecha_evento,
+        to_char(evento.fecha_inicio, 'HH24:MI'::text) AS hora_inicio,
+        to_char(evento.fecha_fin, 'HH24:MI'::text) AS hora_fin
+    FROM evento
+), tareas AS (
+    SELECT
+        date(tarea.fecha_inicio) AS fecha_tarea,
+        to_char(tarea.fecha_inicio, 'HH24:MI'::text) AS hora_inicio_tarea,
+        to_char(tarea.fecha_fin, 'HH24:MI'::text) AS hora_fin_tarea
+    FROM tarea
+), horas_libres AS (
+    SELECT f.recomendacion_semanal,
+        f.dia_de_la_semana,
+        substr(h.hora, 1, 5) AS hora_disponible,
+        f.fecha_hora_zona,
+        f.zona_horaria
+    FROM fechas f
+    JOIN horario h ON f.dia_de_la_semana = h.dia_de_la_semana
+    WHERE NOT EXISTS (
+        SELECT 1
+        FROM eventos e
+        WHERE f.recomendacion_semanal = e.fecha_evento
+        AND to_char(f.recomendacion_semanal + (split_part(h.hora, '-'::text, 1)::interval), 'HH24:MI'::text) >= e.hora_inicio
+        AND to_char(f.recomendacion_semanal + (split_part(h.hora, '-'::text, 2)::interval), 'HH24:MI'::text) <= e.hora_fin
+    )
+    AND NOT EXISTS (
+        SELECT 1
+        FROM tareas t
+        WHERE f.recomendacion_semanal = t.fecha_tarea
+        AND to_char(f.recomendacion_semanal + (split_part(h.hora, '-'::text, 1)::interval), 'HH24:MI'::text) >= t.hora_inicio_tarea
+        AND to_char(f.recomendacion_semanal + (split_part(h.hora, '-'::text, 2)::interval), 'HH24:MI'::text) <= t.hora_fin_tarea
+    )
+    AND (
+        f.recomendacion_semanal > CURRENT_DATE OR
+        f.recomendacion_semanal = CURRENT_DATE AND to_char(f.recomendacion_semanal + (split_part(h.hora, '-'::text, 1)::interval), 'HH24:MI'::text) >= f.hora_actual
+    )
+    ORDER BY f.recomendacion_semanal, h.hora
+)
+SELECT to_char(recomendacion_semanal::timestamp with time zone, 'YYYY-MM-DD'::text) AS recomendacion_semanal,
+    dia_de_la_semana,
+    hora_disponible,
+    fecha_hora_zona
+FROM horas_libres
+LIMIT 100;
+
+
+
+
+    """);
 
       for (var row in result) {
         recomeDiaria.add({
@@ -181,99 +320,87 @@ tz.setLocalLocation(tz.getLocation('America/Mexico_City'));    return await Conn
     try {
       final conn = await _connect();
       final result = await conn.execute("""
-      WITH fechas AS (
-          SELECT 
-              CURRENT_DATE + i AS recomendacion_semanal,
-              LOWER(translate(TO_CHAR(CURRENT_DATE + i, 'TMDay'), 'ÁÉÍÓÚáéíóú', 'AEIOUaeiou')) AS dia_de_la_semana,
-              TO_CHAR(CURRENT_TIMESTAMP, 'HH24:MI') AS hora_actual
-          FROM 
-              generate_series(7, 30) AS s(i)
-      ),
-      horario AS (
-          SELECT 
-              id,
-              'lunes' AS dia_de_la_semana,
-              UNNEST(string_to_array(lunes, ',')) AS hora
-          FROM horario_consultorio
-          UNION ALL
-          SELECT 
-              id,
-              'martes' AS dia_de_la_semana,
-              UNNEST(string_to_array(martes, ',')) AS hora
-          FROM horario_consultorio
-          UNION ALL
-          SELECT 
-              id,
-              'miercoles' AS dia_de_la_semana,
-              UNNEST(string_to_array(miercoles, ',')) AS hora
-          FROM horario_consultorio
-          UNION ALL
-          SELECT 
-              id,
-              'jueves' AS dia_de_la_semana,
-              UNNEST(string_to_array(jueves, ',')) AS hora
-          FROM horario_consultorio
-          UNION ALL
-          SELECT 
-              id,
-              'viernes' AS dia_de_la_semana,
-              UNNEST(string_to_array(viernes, ',')) AS hora
-          FROM horario_consultorio
-          UNION ALL
-          SELECT 
-              id,
-              'sabado' AS dia_de_la_semana,
-              UNNEST(string_to_array(sabado, ',')) AS hora
-          FROM horario_consultorio
-          UNION ALL
-          SELECT 
-              id,
-              'domingo' AS dia_de_la_semana,
-              UNNEST(string_to_array(domingo, ',')) AS hora
-          FROM horario_consultorio
-      ),
-      eventos AS (
-          SELECT 
-              DATE(fecha_inicio) AS fecha_evento,
-              to_char(fecha_inicio, 'HH24:MI') AS hora_inicio,
-              to_char(fecha_fin, 'HH24:MI') AS hora_fin
-          FROM 
-              evento
-      ),
-      horas_libres AS (
-          SELECT 
-              f.recomendacion_semanal,
-              f.dia_de_la_semana,
-              SUBSTR(h.hora, 1, 5) AS hora_disponible
-          FROM 
-              fechas f
-          JOIN 
-              horario h
-          ON 
-              f.dia_de_la_semana = h.dia_de_la_semana
-          LEFT JOIN 
-              eventos e
-          ON 
-              f.recomendacion_semanal = e.fecha_evento
-              AND (
-                  (split_part(h.hora, '-', 1) BETWEEN e.hora_inicio AND e.hora_fin)
-                  OR (split_part(h.hora, '-', 2) BETWEEN e.hora_inicio AND e.hora_fin)
-                  OR (e.hora_inicio BETWEEN split_part(h.hora, '-', 1) AND split_part(h.hora, '-', 2))
-                  OR (e.hora_fin BETWEEN split_part(h.hora, '-', 1) AND split_part(h.hora, '-', 2))
-              )
-          WHERE 
-              e.fecha_evento IS NULL
-              AND (f.recomendacion_semanal > CURRENT_DATE OR (f.recomendacion_semanal = CURRENT_DATE AND split_part(h.hora, '-', 1) >= f.hora_actual))
-          ORDER BY 
-              f.recomendacion_semanal, h.hora
-      )
-      SELECT 
-          TO_CHAR(recomendacion_semanal, 'YYYY-MM-DD') AS recomendacion_semanal,
-          dia_de_la_semana,
-          hora_disponible
-      FROM 
-          horas_libres
-      LIMIT 20;
+     
+WITH fechas AS (
+    SELECT 
+        CURRENT_DATE + i AS recomendacion_semanal,
+        LOWER(translate(TO_CHAR(CURRENT_DATE + i, 'TMDay'), 'ÁÉÍÓÚáéíóú', 'AEIOUaeiou')) AS dia_de_la_semana,
+        TO_CHAR(CURRENT_TIMESTAMP, 'HH24:MI') AS hora_actual
+    FROM 
+        generate_series(7, 30) AS s(i)
+), 
+horario AS (
+    SELECT id, 'lunes' AS dia_de_la_semana, UNNEST(string_to_array(lunes, ',')) AS hora FROM horario_consultorio
+    UNION ALL
+    SELECT id, 'martes' AS dia_de_la_semana, UNNEST(string_to_array(martes, ',')) AS hora FROM horario_consultorio
+    UNION ALL
+    SELECT id, 'miercoles' AS dia_de_la_semana, UNNEST(string_to_array(miercoles, ',')) AS hora FROM horario_consultorio
+    UNION ALL
+    SELECT id, 'jueves' AS dia_de_la_semana, UNNEST(string_to_array(jueves, ',')) AS hora FROM horario_consultorio
+    UNION ALL
+    SELECT id, 'viernes' AS dia_de_la_semana, UNNEST(string_to_array(viernes, ',')) AS hora FROM horario_consultorio
+    UNION ALL
+    SELECT id, 'sabado' AS dia_de_la_semana, UNNEST(string_to_array(sabado, ',')) AS hora FROM horario_consultorio
+    UNION ALL
+    SELECT id, 'domingo' AS dia_de_la_semana, UNNEST(string_to_array(domingo, ',')) AS hora FROM horario_consultorio
+), 
+eventos AS (
+    SELECT 
+        DATE(fecha_inicio) AS fecha_evento,
+        TO_CHAR(fecha_inicio, 'HH24:MI') AS hora_inicio,
+        TO_CHAR(fecha_fin, 'HH24:MI') AS hora_fin
+    FROM 
+        evento
+), 
+tareas AS (
+    SELECT 
+        DATE(fecha_inicio) AS fecha_tarea,
+        TO_CHAR(fecha_inicio, 'HH24:MI') AS hora_inicio,
+        TO_CHAR(fecha_fin, 'HH24:MI') AS hora_fin
+    FROM 
+        tarea
+), 
+horas_libres AS (
+    SELECT 
+        f.recomendacion_semanal,
+        f.dia_de_la_semana,
+        SUBSTR(h.hora, 1, 5) AS hora_disponible
+    FROM 
+        fechas f
+    JOIN 
+        horario h ON f.dia_de_la_semana = h.dia_de_la_semana
+    LEFT JOIN 
+        eventos e ON f.recomendacion_semanal = e.fecha_evento 
+        AND (
+            (split_part(h.hora, '-', 1) >= e.hora_inicio AND split_part(h.hora, '-', 1) < e.hora_fin) 
+            OR (split_part(h.hora, '-', 2) > e.hora_inicio AND split_part(h.hora, '-', 2) <= e.hora_fin) 
+            OR (e.hora_inicio >= split_part(h.hora, '-', 1) AND e.hora_inicio < split_part(h.hora, '-', 2)) 
+            OR (e.hora_fin > split_part(h.hora, '-', 1) AND e.hora_fin <= split_part(h.hora, '-', 2))
+        )
+    LEFT JOIN 
+        tareas t ON f.recomendacion_semanal = t.fecha_tarea 
+        AND (
+            (split_part(h.hora, '-', 1) >= t.hora_inicio AND split_part(h.hora, '-', 1) < t.hora_fin) 
+            OR (split_part(h.hora, '-', 2) > t.hora_inicio AND split_part(h.hora, '-', 2) <= t.hora_fin) 
+            OR (t.hora_inicio >= split_part(h.hora, '-', 1) AND t.hora_inicio < split_part(h.hora, '-', 2)) 
+            OR (t.hora_fin > split_part(h.hora, '-', 1) AND t.hora_fin <= split_part(h.hora, '-', 2))
+        )
+    WHERE 
+        e.fecha_evento IS NULL 
+        AND t.fecha_tarea IS NULL 
+        AND (f.recomendacion_semanal > CURRENT_DATE OR (f.recomendacion_semanal = CURRENT_DATE AND split_part(h.hora, '-', 1) >= f.hora_actual))
+    ORDER BY 
+        f.recomendacion_semanal, h.hora
+)
+SELECT 
+    TO_CHAR(recomendacion_semanal, 'YYYY-MM-DD') AS recomendacion_semanal,
+    dia_de_la_semana,
+    hora_disponible
+FROM 
+    horas_libres
+LIMIT 20;
+
+
     """);
       for (var row in result) {
         recomeSema.add({
@@ -295,98 +422,84 @@ tz.setLocalLocation(tz.getLocation('America/Mexico_City'));    return await Conn
       final conn = await _connect();
       final result = await conn.execute("""
       WITH fechas AS (
-          SELECT 
-              CURRENT_DATE + i AS recomendacion_semanal,
-              LOWER(translate(TO_CHAR(CURRENT_DATE + i, 'TMDay'), 'ÁÉÍÓÚáéíóú', 'AEIOUaeiou')) AS dia_de_la_semana,
-              TO_CHAR(CURRENT_TIMESTAMP, 'HH24:MI') AS hora_actual
-          FROM 
-              generate_series(31, 90) AS s(i)
-      ),
-      horario AS (
-          SELECT 
-              id,
-              'lunes' AS dia_de_la_semana,
-              UNNEST(string_to_array(lunes, ',')) AS hora
-          FROM horario_consultorio
-          UNION ALL
-          SELECT 
-              id,
-              'martes' AS dia_de_la_semana,
-              UNNEST(string_to_array(martes, ',')) AS hora
-          FROM horario_consultorio
-          UNION ALL
-          SELECT 
-              id,
-              'miercoles' AS dia_de_la_semana,
-              UNNEST(string_to_array(miercoles, ',')) AS hora
-          FROM horario_consultorio
-          UNION ALL
-          SELECT 
-              id,
-              'jueves' AS dia_de_la_semana,
-              UNNEST(string_to_array(jueves, ',')) AS hora
-          FROM horario_consultorio
-          UNION ALL
-          SELECT 
-              id,
-              'viernes' AS dia_de_la_semana,
-              UNNEST(string_to_array(viernes, ',')) AS hora
-          FROM horario_consultorio
-          UNION ALL
-          SELECT 
-              id,
-              'sabado' AS dia_de_la_semana,
-              UNNEST(string_to_array(sabado, ',')) AS hora
-          FROM horario_consultorio
-          UNION ALL
-          SELECT 
-              id,
-              'domingo' AS dia_de_la_semana,
-              UNNEST(string_to_array(domingo, ',')) AS hora
-          FROM horario_consultorio
-      ),
-      eventos AS (
-          SELECT 
-              DATE(fecha_inicio) AS fecha_evento,
-              to_char(fecha_inicio, 'HH24:MI') AS hora_inicio,
-              to_char(fecha_fin, 'HH24:MI') AS hora_fin
-          FROM 
-              evento
-      ),
-      horas_libres AS (
-          SELECT 
-              f.recomendacion_semanal,
-              f.dia_de_la_semana,
-              SUBSTR(h.hora, 1, 5) AS hora_disponible
-          FROM 
-              fechas f
-          JOIN 
-              horario h
-          ON 
-              f.dia_de_la_semana = h.dia_de_la_semana
-          LEFT JOIN 
-              eventos e
-          ON 
-              f.recomendacion_semanal = e.fecha_evento
-              AND (
-                  (split_part(h.hora, '-', 1) BETWEEN e.hora_inicio AND e.hora_fin)
-                  OR (split_part(h.hora, '-', 2) BETWEEN e.hora_inicio AND e.hora_fin)
-                  OR (e.hora_inicio BETWEEN split_part(h.hora, '-', 1) AND split_part(h.hora, '-', 2))
-                  OR (e.hora_fin BETWEEN split_part(h.hora, '-', 1) AND split_part(h.hora, '-', 2))
-              )
-          WHERE 
-              e.fecha_evento IS NULL
-              AND (f.recomendacion_semanal > CURRENT_DATE OR (f.recomendacion_semanal = CURRENT_DATE AND split_part(h.hora, '-', 1) >= f.hora_actual))
-          ORDER BY 
-              f.recomendacion_semanal, h.hora
-      )
-      SELECT 
-          TO_CHAR(recomendacion_semanal, 'YYYY-MM-DD') AS recomendacion_semanal,
-          dia_de_la_semana,
-          hora_disponible
-      FROM 
-          horas_libres
-      LIMIT 20;
+    SELECT 
+        CURRENT_DATE + i AS recomendacion_semanal,
+        LOWER(translate(TO_CHAR(CURRENT_DATE + i, 'TMDay'), 'ÁÉÍÓÚáéíóú', 'AEIOUaeiou')) AS dia_de_la_semana,
+        TO_CHAR(CURRENT_TIMESTAMP, 'HH24:MI') AS hora_actual
+    FROM 
+        generate_series(31, 90) AS s(i)
+), 
+horario AS (
+    SELECT id, 'lunes' AS dia_de_la_semana, UNNEST(string_to_array(lunes, ',')) AS hora FROM horario_consultorio
+    UNION ALL
+    SELECT id, 'martes' AS dia_de_la_semana, UNNEST(string_to_array(martes, ',')) AS hora FROM horario_consultorio
+    UNION ALL
+    SELECT id, 'miercoles' AS dia_de_la_semana, UNNEST(string_to_array(miercoles, ',')) AS hora FROM horario_consultorio
+    UNION ALL
+    SELECT id, 'jueves' AS dia_de_la_semana, UNNEST(string_to_array(jueves, ',')) AS hora FROM horario_consultorio
+    UNION ALL
+    SELECT id, 'viernes' AS dia_de_la_semana, UNNEST(string_to_array(viernes, ',')) AS hora FROM horario_consultorio
+    UNION ALL
+    SELECT id, 'sabado' AS dia_de_la_semana, UNNEST(string_to_array(sabado, ',')) AS hora FROM horario_consultorio
+    UNION ALL
+    SELECT id, 'domingo' AS dia_de_la_semana, UNNEST(string_to_array(domingo, ',')) AS hora FROM horario_consultorio
+), 
+eventos AS (
+    SELECT 
+        DATE(fecha_inicio) AS fecha_evento,
+        TO_CHAR(fecha_inicio, 'HH24:MI') AS hora_inicio,
+        TO_CHAR(fecha_fin, 'HH24:MI') AS hora_fin
+    FROM 
+        evento
+), 
+tareas AS (
+    SELECT 
+        DATE(fecha_inicio) AS fecha_tarea,
+        TO_CHAR(fecha_inicio, 'HH24:MI') AS hora_inicio,
+        TO_CHAR(fecha_fin, 'HH24:MI') AS hora_fin
+    FROM 
+        tarea
+), 
+horas_libres AS (
+    SELECT 
+        f.recomendacion_semanal,
+        f.dia_de_la_semana,
+        SUBSTR(h.hora, 1, 5) AS hora_disponible
+    FROM 
+        fechas f
+    JOIN 
+        horario h ON f.dia_de_la_semana = h.dia_de_la_semana
+    LEFT JOIN 
+        eventos e ON f.recomendacion_semanal = e.fecha_evento 
+        AND (
+            (split_part(h.hora, '-', 1) >= e.hora_inicio AND split_part(h.hora, '-', 1) < e.hora_fin) 
+            OR (split_part(h.hora, '-', 2) > e.hora_inicio AND split_part(h.hora, '-', 2) <= e.hora_fin) 
+            OR (e.hora_inicio >= split_part(h.hora, '-', 1) AND e.hora_inicio < split_part(h.hora, '-', 2)) 
+            OR (e.hora_fin > split_part(h.hora, '-', 1) AND e.hora_fin <= split_part(h.hora, '-', 2))
+        )
+    LEFT JOIN 
+        tareas t ON f.recomendacion_semanal = t.fecha_tarea 
+        AND (
+            (split_part(h.hora, '-', 1) >= t.hora_inicio AND split_part(h.hora, '-', 1) < t.hora_fin) 
+            OR (split_part(h.hora, '-', 2) > t.hora_inicio AND split_part(h.hora, '-', 2) <= t.hora_fin) 
+            OR (t.hora_inicio >= split_part(h.hora, '-', 1) AND t.hora_inicio < split_part(h.hora, '-', 2)) 
+            OR (t.hora_fin > split_part(h.hora, '-', 1) AND t.hora_fin <= split_part(h.hora, '-', 2))
+        )
+    WHERE 
+        e.fecha_evento IS NULL 
+        AND t.fecha_tarea IS NULL 
+        AND (f.recomendacion_semanal > CURRENT_DATE OR (f.recomendacion_semanal = CURRENT_DATE AND split_part(h.hora, '-', 1) >= f.hora_actual))
+    ORDER BY 
+        f.recomendacion_semanal, h.hora
+)
+SELECT 
+    TO_CHAR(recomendacion_semanal, 'YYYY-MM-DD') AS recomendacion_semanal,
+    dia_de_la_semana,
+    hora_disponible
+FROM 
+    horas_libres
+LIMIT 20;
+
     """);
       for (var row in result) {
         recomeMen.add({
@@ -419,7 +532,7 @@ tz.setLocalLocation(tz.getLocation('America/Mexico_City'));    return await Conn
 
       print('Query executed. Processing results...');
       for (final row in result) {
-        print('Row: $row'); // Imprimir cada fila para verificar los datos
+        // print('Row: $row'); // Imprimir cada fila para verificar los datos
         tareas.add({
           'id': row[0],
           'nombre': row[1],
@@ -430,11 +543,11 @@ tz.setLocalLocation(tz.getLocation('America/Mexico_City'));    return await Conn
       }
 
       await conn.close();
-      print('Connection closed.');
+      // print('Connection closed.');
     } catch (e) {
       print('Error: $e');
     }
-    print('Tareas: $tareas'); // Imprimir el resultado final
+    // print('Tareas: $tareas'); // Imprimir el resultado final
     return tareas;
   }
 

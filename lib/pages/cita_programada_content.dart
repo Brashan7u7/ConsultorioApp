@@ -1,5 +1,5 @@
 import 'package:calendario_manik/database/database.dart';
-import 'package:calendario_manik/models/evento.dart';
+import 'package:calendario_manik/models/tarea.dart';
 import 'package:calendario_manik/widgets/AddPatientForm.dart';
 import 'package:flutter/material.dart';
 import 'package:calendario_manik/pages/add_page.dart';
@@ -121,6 +121,9 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
     TextEditingController duracionController = TextEditingController(text: "");
     TextEditingController servicioController = TextEditingController(text: "");
     TextEditingController notaController = TextEditingController(text: "");
+    TextEditingController motivoConsultaController =
+        TextEditingController(text: "");
+    TextEditingController tipoCitaController = TextEditingController(text: "");
 
     void openAddPatientPage() {
       Navigator.push(
@@ -144,7 +147,7 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
         appointmentTime =
             DateTime.parse('${fechaController.text} ${horaController.text}');
       }
-      print(fechaController);
+      //print(fechaController);
     });
 
     horaController.addListener(() {
@@ -152,7 +155,7 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
         appointmentTime =
             DateTime.parse('${fechaController.text} ${horaController.text}');
       }
-      print(horaController);
+      //print(horaController);
     });
 
     return SingleChildScrollView(
@@ -374,6 +377,8 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                         onToggle: (val) {
                           setState(() {
                             status = val;
+                            tipoCitaController.text =
+                                val ? "Subsecuente" : "Primera vez";
                           });
                         },
                       ),
@@ -463,6 +468,8 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                         onToggle: (val) {
                           setState(() {
                             status = val;
+                            tipoCitaController.text =
+                                val ? "Subsecuente" : "Primera vez";
                           });
                         },
                       ),
@@ -532,16 +539,20 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                     String duracion = selectedInterval.toString();
                     String servicio = servicioController.text;
                     String nota = notaController.text;
+                    String motivoConsulta =
+                        valor; // Assign the value from the DropdownButton
+                    String tipoCita = status ? "Subsecuente" : "Primera vez";
 
                     // Crear el objeto Evento
-                    Evento evento = Evento(
-                      nombre: nombre,
-                      fecha: fecha!,
-                      hora: hora!,
-                      duracion: duracion,
-                      servicio: servicio,
-                      nota: nota,
-                    );
+                    Tarea tarea = Tarea(
+                        nombre: nombre,
+                        fecha: fecha!,
+                        hora: hora!,
+                        duracion: duracion,
+                        servicio: servicio,
+                        nota: nota,
+                        motivoConsulta: motivoConsulta,
+                        tipoCita: tipoCita);
 
                     if (espera) {
                       // Redirige a la página de lista de espera si la opción está activada
@@ -553,8 +564,8 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                       // );
                     } else {
                       // Guarda el evento en la base de datos
-                      await DatabaseManager.insertEvento(
-                          widget.consultorioId!, evento);
+                      await DatabaseManager.insertarTareaProgramada(
+                          widget.consultorioId!, tarea);
 
                       // Redirige a la página de calendario después de guardar el evento
                       Navigator.push(

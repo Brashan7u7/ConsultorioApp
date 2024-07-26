@@ -105,10 +105,23 @@ class _PacienteContentState extends State<PacienteContent> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              Padding(
+                padding: const EdgeInsets.all(5.0),
+                child: Text(
+                  'Ingrese el nombre del paciente',
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.normal,
+                      color: Colors.grey[800]),
+                ),
+              ),
               TextFormField(
                 controller: nameController,
-                decoration:
-                    const InputDecoration(labelText: 'Nombre del paciente'),
+                decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(width: 1, color: Colors.grey),
+                )),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'El nombre del paciente es obligatorio';
@@ -116,21 +129,43 @@ class _PacienteContentState extends State<PacienteContent> {
                   return null;
                 },
               ),
+
+              Padding(
+                padding: const EdgeInsets.all(5.0),
+                child: Text(
+                  'Ingrese el apellido paterno',
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.normal,
+                      color: Colors.grey[800]),
+                ),
+              ),
               TextFormField(
                 controller: apPaternoController,
-                decoration:
-                    const InputDecoration(labelText: 'Apellido Paterno'),
+                decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(width: 1, color: Colors.grey),
+                )),
               ),
               TextFormField(
                 controller: apMaternoController,
-                decoration:
-                    const InputDecoration(labelText: 'Apellido Materno'),
+                decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(width: 1, color: Colors.grey),
+                )),
               ),
               TextFormField(
                 controller: fechaNacimientoController,
                 readOnly: true,
-                decoration:
-                    const InputDecoration(labelText: 'Fecha de nacimiento'),
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(width: 1, color: Colors.grey),
+                  ),
+                  suffixIcon: Icon(Icons.arrow_drop_down),
+                ),
                 onTap: () async {
                   DateTime? pickedDate = await showDatePicker(
                     context: context,
@@ -154,33 +189,62 @@ class _PacienteContentState extends State<PacienteContent> {
                   return null;
                 },
               ),
+              Padding(
+                padding: const EdgeInsets.all(5.0),
+                child: Text(
+                  'Seleccione su sexo',
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.normal,
+                      color: Colors.grey[800]),
+                ),
+              ),
               DropdownButtonFormField<String>(
-                  items: const [
-                    DropdownMenuItem<String>(
-                      value: 'M',
-                      child: Text('Masculino'),
-                    ),
-                    DropdownMenuItem<String>(
-                      value: 'F',
-                      child: Text('Femenino'),
-                    ),
-                  ],
-                  value: selectedSexo,
-                  onChanged: (value) {
-                    setState(() {
-                      selectedSexo = value!;
-                    });
-                  },
-                  decoration: const InputDecoration(
-                    labelText: 'Sexo',
-                  )),
+                items: const [
+                  DropdownMenuItem<String>(
+                    value: 'M',
+                    child: Text('Masculino'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: 'F',
+                    child: Text('Femenino'),
+                  ),
+                ],
+                value: selectedSexo,
+                onChanged: (value) {
+                  setState(() {
+                    selectedSexo = value!;
+                  });
+                },
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(width: 1, color: Colors.grey),
+                  ),
+                ),
+              ),
               // TextFormField(
               //   controller: coloniaIdController,
               //   decoration: InputDecoration(labelText: 'ColoniaId'),
               // ),
+
+              Padding(
+                padding: const EdgeInsets.all(5.0),
+                child: Text(
+                  'Ingrese su curp',
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.normal,
+                      color: Colors.grey[800]),
+                ),
+              ),
               TextFormField(
                 controller: curpController,
-                decoration: const InputDecoration(labelText: 'CURP'),
+                decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(width: 1, color: Colors.grey),
+                )),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'El CURP es obligatorio';
@@ -189,9 +253,23 @@ class _PacienteContentState extends State<PacienteContent> {
                   return null;
                 },
               ),
+              Padding(
+                padding: const EdgeInsets.all(5.0),
+                child: Text(
+                  'Ingrese su telefono movil',
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.normal,
+                      color: Colors.grey[800]),
+                ),
+              ),
               TextFormField(
                 controller: telefonoMovilController,
-                decoration: const InputDecoration(labelText: 'Teléfono Móvil'),
+                decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(width: 1, color: Colors.grey),
+                )),
                 keyboardType: TextInputType.phone,
                 inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly,
@@ -205,10 +283,24 @@ class _PacienteContentState extends State<PacienteContent> {
                   }
                   return null;
                 },
+              ),
+              Padding(
+                padding: const EdgeInsets.all(5.0),
+                child: Text(
+                  'Ingrese su Telefono fijo',
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.normal,
+                      color: Colors.grey[800]),
+                ),
               ),
               TextFormField(
                 controller: telefonoFijoController,
-                decoration: const InputDecoration(labelText: 'Teléfono Fijo'),
+                decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(width: 1, color: Colors.grey),
+                )),
                 keyboardType: TextInputType.phone,
                 inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly,
@@ -223,10 +315,23 @@ class _PacienteContentState extends State<PacienteContent> {
                   return null;
                 },
               ),
+              Padding(
+                padding: const EdgeInsets.all(5.0),
+                child: Text(
+                  'Ingrese su Correo eléctronico',
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.normal,
+                      color: Colors.grey[800]),
+                ),
+              ),
               TextFormField(
                 controller: correoController,
-                decoration:
-                    const InputDecoration(labelText: 'Correo Electrónico'),
+                decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(width: 1, color: Colors.grey),
+                )),
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -243,17 +348,45 @@ class _PacienteContentState extends State<PacienteContent> {
               //   controller: avatarController,
               //   decoration: InputDecoration(labelText: 'Avatar'),
               // ),
+              Padding(
+                padding: const EdgeInsets.all(5.0),
+                child: Text(
+                  'Ingrese su Direccion',
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.normal,
+                      color: Colors.grey[800]),
+                ),
+              ),
               TextFormField(
                 controller: direccionController,
-                decoration: const InputDecoration(labelText: 'Dirección'),
+                decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(width: 1, color: Colors.grey),
+                )),
               ),
               // TextFormField(
               //   controller: identificadorController,
               //   decoration: InputDecoration(labelText: 'Identificador'),
               // ),
+              Padding(
+                padding: const EdgeInsets.all(5.0),
+                child: Text(
+                  'Ingrese su codigo postal',
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.normal,
+                      color: Colors.grey[800]),
+                ),
+              ),
               TextFormField(
                 controller: codigoPostalController,
-                decoration: const InputDecoration(labelText: 'Código Postal'),
+                decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(width: 1, color: Colors.grey),
+                )),
                 keyboardType: TextInputType.number,
                 inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly,

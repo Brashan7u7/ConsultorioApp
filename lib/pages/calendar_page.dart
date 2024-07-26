@@ -25,8 +25,8 @@ class _CalendarState extends State<Calendar> {
     super.initState();
     _loadConsultorios();
     //_loadSelectedConsultorio();
+    //print('variable gloabl en calendar $variableglobal');
   }
-
   //tabla muchos a muchos cada relacion
   //medicos de grupo no pueden crear consultorio
   //un medico no pertenece a otros grupos
@@ -225,24 +225,23 @@ class _CalendarState extends State<Calendar> {
     //*Eventos
     List<Map<String, dynamic>> eventosData =
         await DatabaseManager.getEventosData(globalIdConsultorio);
-    print('Eventos Data: $eventosData');
+    //print('Eventos Data: $eventosData');
     List<Appointment> eventosAppointments =
         _getCalendarDataSourceEventos(eventosData);
 
     //*Tareas
     List<Map<String, dynamic>> tareasData =
         await DatabaseManager.getTareaSeleccionadaData(globalIdConsultorio);
-    print(
-        'Tareas Data: $tareasData'); // Añadir esta línea para revisar los datos
+    //print('Tareas Data: $tareasData'); // Añadir esta línea para revisar los datos
     List<Appointment> tareasAppointments =
         _getCalendarDataSourceTareas(tareasData);
 
-    print('Eventos Appointments: $eventosAppointments');
-    print('Tareas Appointments: $tareasAppointments');
+    // print('Eventos Appointments: $eventosAppointments');
+    // print('Tareas Appointments: $tareasAppointments');
 
     setState(() {
       _calendarDataSource = [...eventosAppointments, ...tareasAppointments];
-      print('Calendar Data Source Updated: $_calendarDataSource');
+      //print('Calendar Data Source Updated: $_calendarDataSource');
     });
   }
 
@@ -841,7 +840,7 @@ List<Appointment> _getCalendarDataSourceEventos(
     ));
   }
 
-  print('Processed Eventos Appointments: $appointments');
+  // print('Processed Eventos Appointments: $appointments');
   return appointments;
 }
 
@@ -850,7 +849,7 @@ List<Appointment> _getCalendarDataSourceTareas(
   List<Appointment> appointments = [];
 
   for (final tarea in tareasData) {
-    print('Processing tarea: $tarea');
+    //  print('Processing tarea: $tarea');
     DateTime startTime = DateTime.parse(tarea['fecha_inicio']);
     DateTime endTime = DateTime.parse(tarea['fecha_fin']);
 

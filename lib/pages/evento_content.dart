@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_switch/flutter_switch.dart';
 import 'package:intl/intl.dart';
 import 'package:calendario_manik/models/evento.dart';
 import 'package:calendario_manik/database/database.dart';
 import 'package:calendario_manik/pages/calendar_page.dart';
+import 'package:flutter_switch/flutter_switch.dart';
 
 class EventoContent extends StatefulWidget {
   final int? consultorioId;
@@ -22,6 +24,8 @@ class _EventoContentState extends State<EventoContent> {
   TextEditingController duracionController = TextEditingController(text: "");
   TextEditingController servicioController = TextEditingController(text: "");
   TextEditingController notaController = TextEditingController(text: "");
+
+  bool isAllDay = false;
 
   int selectedInterval = 60;
 
@@ -68,7 +72,7 @@ class _EventoContentState extends State<EventoContent> {
               TextFormField(
                 controller: nameController,
                 decoration: const InputDecoration(
-                  labelText: 'Escriba el nombre del paciente',
+                  labelText: 'Escriba el nombre del evento',
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -151,6 +155,37 @@ class _EventoContentState extends State<EventoContent> {
                 }),
               ),
               const SizedBox(height: 10.0),
+              Padding(
+                padding: const EdgeInsets.all(5.0),
+                child: Text(
+                  'Día completo',
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.normal,
+                      color: Colors.grey[800]),
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: FlutterSwitch(
+                      value: isAllDay,
+                      onToggle: (value) {
+                        setState(() {
+                          isAllDay = value;
+                          if (isAllDay) {
+                            horaController.text = '';
+                            fechaController.text = '';
+                          }
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10.0),
               TextFormField(
                 controller: notaController,
                 decoration: const InputDecoration(labelText: 'Nota para cita'),
@@ -178,7 +213,7 @@ class _EventoContentState extends State<EventoContent> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const Calendar(),
+                          builder: (context) => Calendar(),
                         ),
                       );
                     }).catchError((error) {

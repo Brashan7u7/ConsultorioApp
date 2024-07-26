@@ -16,11 +16,11 @@ class CitaSelectContent extends StatefulWidget {
   final TextEditingController horaController;
   final int? consultorioId;
 
-  CitaSelectContent({
-    required this.fechaController,
-    required this.horaController,
-    this.consultorioId,
-  });
+  const CitaSelectContent(
+      {super.key,
+      required this.fechaController,
+      required this.horaController,
+      this.consultorioId});
 
   @override
   _CitaSelectContentState createState() => _CitaSelectContentState();
@@ -32,6 +32,7 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
   String valor = "Consulta";
   TextEditingController notaController = TextEditingController(text: "");
   bool status = false;
+
   bool espera = false;
 
   final _formKey = GlobalKey<FormState>();
@@ -67,6 +68,10 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
       print('Error fetching doctores: $e');
     }
   }
+
+  TextEditingController motivoConsultaController =
+      TextEditingController(text: "");
+  TextEditingController tipoCitaController = TextEditingController(text: "");
 
   void _openAddPatientPage() {
     Navigator.push(
@@ -369,6 +374,10 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                           String duracion = selectedInterval.toString();
                           String servicio = valor; // Usar el valor seleccionado
                           String nota = notaController.text;
+                          String motivoConsulta =
+                              valor; // Assign the value from the DropdownButton
+                          String tipoCita =
+                              status ? "Subsecuente" : "Primera vez";
 
                           // Crear el objeto Evento
                           Tarea tarea = Tarea(
@@ -380,6 +389,8 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                             nota: nota,
                             asignado_id: doctorId,
                             paciente_id: 1,
+                            motivoConsulta: motivoConsulta,
+                            tipoCita: tipoCita,
                           );
 
                           if (espera) {

@@ -24,6 +24,7 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController notaController = TextEditingController();
   final TextEditingController doctorController = TextEditingController();
+  final TextEditingController tipoCitaController = TextEditingController();
   bool status = false;
   bool espera = false;
   String valor = "Consulta";
@@ -40,6 +41,10 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
       // Aquí se realiza la lógica para guardar la cita inmediata
       String nombre = nameController.text;
       String nota = notaController.text;
+      TextEditingController motivoConsultaController =
+          TextEditingController(text: "");
+      TextEditingController tipoCitaController =
+          TextEditingController(text: "");
 
       // Suponiendo que tienes el consultorioId y el paciente adecuados
       // Obtener la fecha y hora actual
@@ -56,6 +61,8 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
       String horaActual = DateFormat('HH:mm').format(roundedTime);
 
       // Crear el objeto evento con la fecha y hora actuales
+      String motivoConsulta = valor; // Assign the value from the DropdownButton
+      String tipoCita = status ? "Subsecuente" : "Primera vez";
       Tarea tarea = Tarea(
         nombre: nombre,
         fecha: fechaActual,
@@ -65,6 +72,8 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
         nota: nota,
         asignado_id: doctorId,
         paciente_id: 1,
+        motivoConsulta: motivoConsulta,
+        tipoCita: tipoCita,
       );
       print('Hora redondeada: ${DateFormat('HH:mm').format(roundedTime)}');
 
@@ -177,6 +186,7 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
                       },
                     ),
                   const SizedBox(height: 20.0),
+                  const SizedBox(height: 20.0),
                   if (usuario_cuenta_id == 3 && usuario_rol != 'MED')
                     Container(
                       child: Column(
@@ -211,13 +221,12 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
                         ],
                       ),
                     ),
-
-                  const SizedBox(height: 20.0),
                   const Text(
                     'Fecha y hora por registrar:',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10.0),
+
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -227,7 +236,7 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
                           'Hora: ${DateFormat('HH:mm').format(DateTime.now())}'),
                     ],
                   ),
-                  SizedBox(height: 20.0),
+                  const SizedBox(height: 20.0),
                   if (sis) ...[
                     Row(
                       children: [
@@ -270,6 +279,8 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
                             onToggle: (val) {
                               setState(() {
                                 status = val;
+                                tipoCitaController.text =
+                                    val ? "Subsecuente" : "Primera vez";
                               });
                             },
                           ),
@@ -318,8 +329,15 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
                                 valor = value!;
                               });
                             },
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               labelText: 'Motivo de consulta',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide:
+                                    BorderSide(width: 1, color: Colors.grey),
+                              ),
+                              filled: true,
+                              fillColor: Colors.transparent,
                             ),
                           ),
                         ),
@@ -337,6 +355,8 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
                             onToggle: (val) {
                               setState(() {
                                 status = val;
+                                tipoCitaController.text =
+                                    val ? "Subsecuente" : "Primera vez";
                               });
                             },
                           ),
@@ -361,6 +381,7 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
                       ],
                     ),
                   ],
+
                   const SizedBox(height: 20.0),
                   TextFormField(
                     controller: notaController,
@@ -368,7 +389,7 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
                         const InputDecoration(labelText: 'Nota para la cita'),
                     maxLines: 3,
                   ),
-                  const SizedBox(height: 50.0),
+                  const SizedBox(height: 20.0),
                   ElevatedButton(
                     onPressed: () => _saveCitaInmediata(context),
                     child: const Text('Guardar Cita Inmediata'),

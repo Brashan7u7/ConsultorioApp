@@ -7,6 +7,8 @@ class Tarea {
   final String nota;
   final int? asignado_id;
   final int? paciente_id;
+  final String motivoConsulta;
+  final String tipoCita;
 
   Tarea({
     required this.nombre,
@@ -17,5 +19,7 @@ class Tarea {
     required this.nota,
     this.asignado_id,
     this.paciente_id,
+    required this.motivoConsulta,
+    required this.tipoCita,
   });
 }

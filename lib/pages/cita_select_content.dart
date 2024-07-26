@@ -5,8 +5,11 @@ import 'package:calendario_manik/pages/calendar_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_switch/flutter_switch.dart';
 import 'package:intl/intl.dart';
-
 import 'package:calendario_manik/variab.dart';
+import 'package:calendario_manik/widgets/AddPatientForm.dart';
+import 'package:calendario_manik/models/doctor.dart';
+import 'package:calendario_manik/pages/lista_espera.dart';
+import 'package:calendario_manik/models/paciente.dart';
 
 class CitaSelectContent extends StatefulWidget {
   final TextEditingController fechaController;
@@ -29,12 +32,40 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
   String valor = "Consulta";
   TextEditingController notaController = TextEditingController(text: "");
   bool status = false;
+  bool espera = false;
 
   final _formKey = GlobalKey<FormState>();
+
+  List<Doctor> doctores = [];
+  int doctorId = 0;
+  Doctor? selectedDoctor;
+  Paciente? selectedPaciente;
 
   @override
   void initState() {
     super.initState();
+    if (usuario_cuenta_id == 3 && usuario_rol != 'MED') _fetchDoctores();
+  }
+
+  Future<void> _fetchDoctores() async {
+    try {
+      List<Map<String, dynamic>> doctoresData =
+          await DatabaseManager.getDoctores(usuario_id);
+
+      List<Doctor> doctoresList = doctoresData.map((data) {
+        return Doctor(
+          id: data['id'],
+          nombre: data['nombre'],
+          apellidos: data['apellidos'],
+        );
+      }).toList();
+
+      setState(() {
+        doctores = doctoresList;
+      });
+    } catch (e) {
+      print('Error fetching doctores: $e');
+    }
   }
 
   void _openAddPatientPage() {
@@ -46,6 +77,7 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
           isEvento: false,
           isPacient: true,
           isCitaPro: false,
+          consultorioId: widget.consultorioId,
         ),
       ),
     );
@@ -61,30 +93,48 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            controller: nameController,
-                            decoration: const InputDecoration(
-                              labelText: 'Escriba el nombre del paciente',
-                            ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'El nombre del paciente es obligatorio';
-                              }
-                              return null;
-                            },
-                          ),
-                        ),
-                        if (crearPacientes)
-                          IconButton(
-                            icon: const Icon(Icons.add),
-                            onPressed: _openAddPatientPage,
-                            tooltip: 'Agregar paciente',
-                          ),
-                      ],
+                    AddPatientForm(
+                      onPatientAdded: (String patientName) {
+                        setState(() {
+                          nameController.text = patientName;
+                        });
+                      },
+                      consultorioId: widget.consultorioId!,
                     ),
+                    if (usuario_cuenta_id == 3 && usuario_rol != 'MED')
+                      Container(
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: DropdownButton<Doctor>(
+                                    isExpanded: true,
+                                    hint: const Text(
+                                        'Seleccione el médico que atenderá la cita'),
+                                    items: doctores.map((doctor) {
+                                      return DropdownMenuItem<Doctor>(
+                                        value: doctor,
+                                        child: Text(
+                                            '${doctor.nombre} ${doctor.apellidos}'),
+                                      );
+                                    }).toList(),
+                                    value: selectedDoctor,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        selectedDoctor = value;
+                                        if (selectedDoctor != null) {
+                                          doctorId = selectedDoctor!.id!;
+                                        }
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
                     TextFormField(
                       controller: widget.fechaController,
                       readOnly: true,
@@ -124,73 +174,181 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                         labelText: 'Intervalo de Atención (minutos)',
                       ),
                     ),
+                    const SizedBox(height: 5.0),
+                    Padding(
+                      padding: const EdgeInsets.all(5.0),
+                      child: Text(
+                        'Motivo de consulta',
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.normal,
+                            color: Colors.grey[800]),
+                      ),
+                    ),
                     const SizedBox(height: 20.0),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: DropdownButtonFormField<String>(
-                            isExpanded: true,
-                            items: const [
-                              DropdownMenuItem<String>(
-                                value: 'Consulta',
-                                child: Text('Consulta'),
+                    if (sis) ...[
+                      Row(
+                        children: [
+                          Expanded(
+                            child: DropdownButtonFormField<String>(
+                              isExpanded: true,
+                              items: const [
+                                DropdownMenuItem<String>(
+                                  value: 'Servicio 1',
+                                  child: Text('Servicio 1'),
+                                ),
+                                DropdownMenuItem<String>(
+                                  value: 'Servicio 2',
+                                  child: Text('Servicio 2'),
+                                ),
+                                // Agrega más servicios aquí
+                              ],
+                              // value: tipoServicio,
+                              onChanged: (value) {
+                                setState(() {
+                                  //tipoServicio = value!;
+                                });
+                              },
+                              decoration: InputDecoration(
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide:
+                                      BorderSide(width: 1, color: Colors.grey),
+                                ),
+                                filled: true,
+                                fillColor: Colors.transparent,
                               ),
-                              DropdownMenuItem<String>(
-                                value: 'Valoración',
-                                child: Text('Valoración'),
-                              ),
-                              DropdownMenuItem<String>(
-                                value: 'Estudios',
-                                child: Text('Estudios'),
-                              ),
-                              DropdownMenuItem<String>(
-                                value: 'Vacunas',
-                                child: Text('Vacunas'),
-                              ),
-                              DropdownMenuItem<String>(
-                                value: 'Nota de evolución',
-                                child: Text('Nota de evolución'),
-                              ),
-                              DropdownMenuItem<String>(
-                                value: 'interconsulta',
-                                child: Text('Nota de interconsulta'),
-                              ),
-                              DropdownMenuItem<String>(
-                                value: 'Rehabilitación',
-                                child: Text('Rehabilitación'),
-                              ),
-                            ],
-                            value: valor,
-                            onChanged: (value) {
-                              setState(() {
-                                valor = value!;
-                              });
-                            },
-                            decoration: const InputDecoration(
-                              labelText: 'Motivo de consulta',
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 20.0),
-                        Expanded(
-                          child: FlutterSwitch(
-                            activeText: "Subsecuente",
-                            inactiveText: "Primera ves",
-                            value: status,
-                            valueFontSize: 11.0,
-                            width: 110,
-                            height: 30,
-                            borderRadius: 30.0,
-                            showOnOff: true,
-                            onToggle: (val) {
-                              setState(() {
-                                status = val;
-                              });
-                            },
+                          const SizedBox(width: 20.0),
+                          Expanded(
+                            child: FlutterSwitch(
+                              activeText: "Subsecuente",
+                              inactiveText: "Primera vez",
+                              value: status,
+                              valueFontSize: 11.0,
+                              width: 150,
+                              height: 52,
+                              borderRadius: 5.0,
+                              showOnOff: true,
+                              onToggle: (val) {
+                                setState(() {
+                                  status = val;
+                                });
+                              },
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
+                          const SizedBox(width: 20.0),
+                          Expanded(
+                            child: FlutterSwitch(
+                              activeText: "En espera",
+                              inactiveText: "Sin espera",
+                              value: espera,
+                              valueFontSize: 11.0,
+                              width: 150,
+                              height: 52,
+                              borderRadius: 5.0,
+                              showOnOff: true,
+                              onToggle: (val) {
+                                setState(() {
+                                  espera = val;
+                                });
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ] else ...[
+                      Row(
+                        children: [
+                          Expanded(
+                            child: DropdownButtonFormField<String>(
+                              isExpanded: true,
+                              items: const [
+                                DropdownMenuItem<String>(
+                                    value: 'Consulta', child: Text('Consulta')),
+                                DropdownMenuItem<String>(
+                                  value: 'Valoración',
+                                  child: Text('Valoración'),
+                                ),
+                                DropdownMenuItem<String>(
+                                  value: 'Estudios',
+                                  child: Text('Estudios'),
+                                ),
+                                DropdownMenuItem<String>(
+                                  value: 'Vacunas',
+                                  child: Text('Vacunas'),
+                                ),
+                                DropdownMenuItem<String>(
+                                  value: 'Nota de evolución',
+                                  child: Text('Nota de evolución'),
+                                ),
+                                DropdownMenuItem<String>(
+                                  value: 'interconsulta',
+                                  child: Text('Nota de interconsulta'),
+                                ),
+                                DropdownMenuItem<String>(
+                                  value: 'Rehabilitación',
+                                  child: Text('Rehabilitación'),
+                                ),
+                              ],
+                              value: valor,
+                              onChanged: (value) {
+                                setState(() {
+                                  valor = value!;
+                                });
+                              },
+                              decoration: InputDecoration(
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide:
+                                      BorderSide(width: 1, color: Colors.grey),
+                                ),
+                                filled: true,
+                                fillColor: Colors.transparent,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10.0),
+                          Expanded(
+                            child: FlutterSwitch(
+                              activeText: "Subsecuente",
+                              inactiveText: "Primera vez",
+                              value: status,
+                              valueFontSize: 11.0,
+                              width: 150,
+                              height: 52,
+                              borderRadius: 5.0,
+                              showOnOff: true,
+                              onToggle: (val) {
+                                setState(() {
+                                  status = val;
+                                });
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 20.0),
+                          Expanded(
+                            child: FlutterSwitch(
+                              activeText: "En espera",
+                              inactiveText: "Sin espera",
+                              value: espera,
+                              valueFontSize: 11.0,
+                              width: 150,
+                              height: 52,
+                              borderRadius: 5.0,
+                              showOnOff: true,
+                              onToggle: (val) {
+                                setState(() {
+                                  espera = val;
+                                  print(espera);
+                                });
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                     //const SizedBox(height: 20.0),
                     TextFormField(
                       controller: notaController,
@@ -220,11 +378,33 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                             duracion: duracion,
                             servicio: servicio,
                             nota: nota,
+                            asignado_id: doctorId,
+                            paciente_id: 1,
                           );
 
-                          // Insertar el evento en la base de datos
-                          await DatabaseManager.insertTareaSeleccionada(
-                              widget.consultorioId!, tarea);
+                          if (espera) {
+                            // Redirige a la página de lista de espera si la opción está activada
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ListaEspera(tarea: tarea),
+                              ),
+                            );
+                          } else {
+                            // Insertar el evento en la base de datos
+                            await DatabaseManager.insertTareaSeleccionada(
+                                widget.consultorioId!, tarea);
+
+                            await Future.delayed(
+                                const Duration(milliseconds: 1500));
+                            // Redirige a la página de calendario después de guardar el evento
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => Calendar(),
+                              ),
+                            );
+                          }
 
                           // Mostrar mensaje de éxito o redireccionar a otra pantalla si es necesario
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -232,12 +412,6 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                               content: Text(
                                   'Cita programada agregada correctamente'),
                             ),
-                          );
-
-                          // Opcional: Redirigir a la página de calendario u otra página relevante
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => Calendar()),
                           );
                         }
                       },

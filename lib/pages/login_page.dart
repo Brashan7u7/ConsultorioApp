@@ -30,7 +30,9 @@ class _LoginState extends State<Login> {
 
   Future<void> _loadConsultorios() async {
     if (usuario_rol == 'MED') {
-      consultoriosData = await DatabaseManager.getConsultoriosData(usuario_id);
+      consultoriosData = await DatabaseManager.getConsultoriosData(
+        usuario_id,
+      );
       await DatabaseManager.setPermissionsByRole(usuario_rol);
     }
     if (usuario_rol == 'ASI' || usuario_rol == 'ENF') {
@@ -67,6 +69,7 @@ class _LoginState extends State<Login> {
       usuario_rol = user['rol'];
       usuario_nombre = user['nombre'];
       usuario_cuenta_id = user['cuenta_id'];
+
       _loadConsultorios();
     } else {
       showDialog(

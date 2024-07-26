@@ -5,6 +5,8 @@ class Tarea {
   final String duracion;
   final String servicio;
   final String nota;
+  final int? asignado_id;
+  final int? paciente_id;
 
   Tarea({
     required this.nombre,
@@ -13,5 +15,7 @@ class Tarea {
     required this.duracion,
     required this.servicio,
     required this.nota,
+    this.asignado_id,
+    this.paciente_id,
   });
 }

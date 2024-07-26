@@ -275,6 +275,7 @@ class _PatientsState extends State<Patients> {
                         isCitaPro: false,
                         isEditingPacient: true,
                         pacient: patient,
+                        consultorioId: widget.consultorioId,
                       ),
                     ),
                   );

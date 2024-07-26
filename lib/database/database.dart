@@ -12,8 +12,8 @@ class DatabaseManager {
     tz.setLocalLocation(tz.getLocation('America/Mexico_City'));
     return await Connection.open(
       Endpoint(
-        host: '192.168.1.71',
-        //host: '192.168.1.181',
+        //host: '192.168.1.71',
+        host: '192.168.1.181',
         port: 5432,
         database: 'medicalmanik',
         username: 'postgres',
@@ -71,7 +71,7 @@ class DatabaseManager {
 
   //! Cita Inmediata
   static Future<int> insertarTareaInmediata(
-      int consultorioId, Tarea tarea, String nota) async {
+      int consultorioId, Tarea tarea, String nota, int doctorId) async {
     try {
       final conn = await _connect();
       DateTime now = DateTime.now();
@@ -104,12 +104,12 @@ class DatabaseManager {
           "id": newId,
           "token": 2, // Asegúrate de obtener el token correcto
           "nombre": tarea.nombre, // Puedes cambiar esto según tus requisitos
-          "descripcion": nota,
+          "descripcion": tarea.nota,
           "fecha_inicio": fechaInicioString,
           "fecha_fin": fechaFinString, // Utiliza la fecha y hora fin calculadas
 
           "calendario_id": consultorioId,
-          "asignado_id": 1,
+          "asignado_id": doctorId,
           "color": "#EB8015"
         },
       );
@@ -397,7 +397,9 @@ class DatabaseManager {
           'nombre': row[1],
           'fecha_inicio': row[2],
           'fecha_fin': row[3],
-          'color': row[4]
+          'color': row[4],
+          'asignado_id': row[10],
+          'paciente_id': row[11],
         });
       }
 
@@ -478,14 +480,15 @@ class DatabaseManager {
   }
 
   //*Paciente
-  static Future<List<String>> searchPatients(String query) async {
+  static Future<List<String>> searchPatients(
+      String query, int consultorioId) async {
     List<String> patients = [];
     try {
       final conn = await _connect();
-
       final result = await conn.execute(
-        Sql.named("SELECT nombre FROM paciente WHERE nombre LIKE @query"),
-        parameters: {"query": '%$query%'},
+        Sql.named(
+            "SELECT nombre FROM paciente WHERE nombre LIKE @query AND consultorio_id = @consultorioId"),
+        parameters: {"query": '%$query%', "consultorioId": consultorioId},
       );
 
       for (var row in result) {
@@ -512,7 +515,7 @@ class DatabaseManager {
 
         await conn.execute(
           Sql.named(
-              "INSERT INTO paciente(id, nombre, ap_paterno, ap_materno, fecha_nacimiento, sexo, telefono_movil, telefono_fijo, correo, fecha_registro, direccion, curp, codigo_postal) VALUES (@id, @nombre, @ap_paterno, @ap_materno, @fechaNacimiento, @sexo, @telefonoMovil, @telefonoFijo, @correo, @fechaRegistro, @direccion, @curp, @codigoPostal)"),
+              "INSERT INTO paciente(id, nombre, ap_paterno, ap_materno, fecha_nacimiento, sexo, telefono_movil, telefono_fijo, correo, fecha_registro, direccion, curp, codigo_postal, consultorio_id) VALUES (@id, @nombre, @ap_paterno, @ap_materno, @fechaNacimiento, @sexo, @telefonoMovil, @telefonoFijo, @correo, @fechaRegistro, @direccion, @curp, @codigoPostal, @consultorioId)"),
           parameters: {
             "id": newId,
             "nombre": paciente.nombre,
@@ -535,6 +538,7 @@ class DatabaseManager {
             // "paisId": paciente.paisId,
             // "entidadNacimientoId": paciente.entidadNacimientoId,
             // "generoId": paciente.generoId,
+            "consultorioId": paciente.consultorioId,
           },
         );
       }
@@ -617,19 +621,46 @@ class DatabaseManager {
     List<Map<String, dynamic>> consultoriosData = [];
     try {
       final conn = await _connect();
-      final result = await conn.execute(
-          Sql.named("SELECT * FROM consultorio WHERE usuario_id=@id"),
-          parameters: {"id": id});
-      //final result = await conn.execute("SELECT * FROM consultorio");
-      for (var row in result) {
-        consultoriosData.add({
-          'id': row[0],
-          'nombre': row[1],
-          'direccion': row[2],
-          'colonia_id': row[3],
-          'telefono': row[5],
-          'intervalo': row[8],
-        });
+      if (usuario_cuenta_id == 3) {
+        final result = await conn.execute(Sql.named("""
+SELECT
+    u.id AS usuario_id,
+    u.nombre AS usuario_nombre,
+    g.nombre AS grupo_nombre,
+    c.id AS consultorio_id,
+    c.nombre AS nombre
+FROM
+    usuario u
+JOIN
+    grupo g ON u.id = g.medico_id OR u.id = g.asistente_id
+JOIN
+    consultorio c ON c.id = g.consultorio_id
+WHERE
+    u.id = $id
+    AND u.cuenta_id = 3;
+"""));
+        for (var row in result) {
+          consultoriosData.add({
+            'grupo_nombre': row[2],
+            'id': row[3],
+            'nombre': row[4],
+          });
+        }
+      } else {
+        final result = await conn.execute(
+            Sql.named("SELECT * FROM consultorio WHERE usuario_id=@id"),
+            parameters: {"id": id});
+        //final result = await conn.execute("SELECT * FROM consultorio");
+        for (var row in result) {
+          consultoriosData.add({
+            'id': row[0],
+            'nombre': row[1],
+            'direccion': row[2],
+            'colonia_id': row[3],
+            'telefono': row[5],
+            'intervalo': row[8],
+          });
+        }
       }
       await conn.close();
     } catch (e) {

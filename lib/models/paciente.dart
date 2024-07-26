@@ -21,6 +21,7 @@ class Paciente {
   // int paisId;
   // String entidadNacimientoId;
   // int generoId;
+  int consultorioId;
 
   Paciente({
     required this.nombre,
@@ -45,5 +46,6 @@ class Paciente {
     // required this.paisId,
     // required this.entidadNacimientoId,
     // required this.generoId,
+    required this.consultorioId,
   });
 }

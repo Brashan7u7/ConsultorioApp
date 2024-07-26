@@ -7,6 +7,8 @@ import 'package:calendario_manik/pages/calendar_page.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_switch/flutter_switch.dart';
 import 'package:calendario_manik/variab.dart';
+import 'package:calendario_manik/models/doctor.dart';
+import 'package:calendario_manik/pages/lista_espera.dart';
 
 // cuenado es usuario-grupo es 3, cuenta-id
 // la asistente hacer arrelgo de médicos
@@ -26,16 +28,23 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
   int selectedInterval = 60;
   String valor = "Consulta";
   TextEditingController nameController = TextEditingController(text: "");
+  final TextEditingController doctorController = TextEditingController();
+
   List<String> suggestedPatients = [];
   bool isPatientRegistered =
       true; // Variable para controlar si el paciente está registrado
   List<Map<String, dynamic>> _recommendedAppointments = [];
   String? _selectedAppointment;
 
+  List<Doctor> doctores = [];
+  int doctorId = 0;
+  Doctor? selectedDoctor;
+
   @override
   void initState() {
     super.initState();
     nameController.addListener(searchPatients);
+    if (usuario_cuenta_id == 3 && usuario_rol != 'MED') _fetchDoctores();
   }
 
   @override
@@ -47,7 +56,8 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
   void searchPatients() async {
     String query = nameController.text.trim();
     if (query.isNotEmpty) {
-      List<String> patients = await DatabaseManager.searchPatients(query);
+      List<String> patients =
+          await DatabaseManager.searchPatients(query, widget.consultorioId!);
       setState(() {
         suggestedPatients = patients;
         // Verificar si el paciente está registrado
@@ -79,7 +89,29 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
     });
   }
 
+  Future<void> _fetchDoctores() async {
+    try {
+      List<Map<String, dynamic>> doctoresData =
+          await DatabaseManager.getDoctores(usuario_id);
+
+      List<Doctor> doctoresList = doctoresData.map((data) {
+        return Doctor(
+          id: data['id'],
+          nombre: data['nombre'],
+          apellidos: data['apellidos'],
+        );
+      }).toList();
+
+      setState(() {
+        doctores = doctoresList;
+      });
+    } catch (e) {
+      print('Error fetching doctores: $e');
+    }
+  }
+
   bool status = false;
+  bool espera = false;
 
   @override
   Widget build(BuildContext context) {
@@ -137,8 +169,44 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                     nameController.text = patientName;
                   });
                 },
+                consultorioId: widget.consultorioId!,
               ),
-              const SizedBox(height: 30.0),
+              const SizedBox(height: 20.0),
+              if (usuario_cuenta_id == 3 && usuario_rol != 'MED')
+                Container(
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: DropdownButton<Doctor>(
+                              isExpanded: true,
+                              hint: const Text(
+                                  'Seleccione el médico que atenderá la cita'),
+                              items: doctores.map((doctor) {
+                                return DropdownMenuItem<Doctor>(
+                                  value: doctor,
+                                  child: Text(
+                                      '${doctor.nombre} ${doctor.apellidos}'),
+                                );
+                              }).toList(),
+                              value: selectedDoctor,
+                              onChanged: (value) {
+                                setState(() {
+                                  selectedDoctor = value;
+                                  if (selectedDoctor != null) {
+                                    doctorId = selectedDoctor!.id!;
+                                  }
+                                });
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              const SizedBox(height: 20.0),
               Padding(
                 padding: const EdgeInsets.all(5.0),
                 child: Text(
@@ -298,14 +366,32 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                         activeText: "Subsecuente",
                         inactiveText: "Primera vez",
                         value: status,
-                        valueFontSize: 15.0,
-                        width: 180,
+                        valueFontSize: 11.0,
+                        width: 150,
                         height: 52,
                         borderRadius: 5.0,
                         showOnOff: true,
                         onToggle: (val) {
                           setState(() {
                             status = val;
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 20.0),
+                    Expanded(
+                      child: FlutterSwitch(
+                        activeText: "En espera",
+                        inactiveText: "Sin espera",
+                        value: espera,
+                        valueFontSize: 11.0,
+                        width: 150,
+                        height: 52,
+                        borderRadius: 5.0,
+                        showOnOff: true,
+                        onToggle: (val) {
+                          setState(() {
+                            espera = val;
                           });
                         },
                       ),
@@ -320,9 +406,7 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                         isExpanded: true,
                         items: const [
                           DropdownMenuItem<String>(
-                            value: 'Consulta',
-                            child: Text('Consulta'),
-                          ),
+                              value: 'Consulta', child: Text('Consulta')),
                           DropdownMenuItem<String>(
                             value: 'Valoración',
                             child: Text('Valoración'),
@@ -365,20 +449,38 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 20.0),
+                    const SizedBox(width: 10.0),
                     Expanded(
                       child: FlutterSwitch(
                         activeText: "Subsecuente",
                         inactiveText: "Primera vez",
                         value: status,
-                        valueFontSize: 15.0,
-                        width: 180,
+                        valueFontSize: 11.0,
+                        width: 150,
                         height: 52,
                         borderRadius: 5.0,
                         showOnOff: true,
                         onToggle: (val) {
                           setState(() {
                             status = val;
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 20.0),
+                    Expanded(
+                      child: FlutterSwitch(
+                        activeText: "En espera",
+                        inactiveText: "Sin espera",
+                        value: espera,
+                        valueFontSize: 11.0,
+                        width: 150,
+                        height: 52,
+                        borderRadius: 5.0,
+                        showOnOff: true,
+                        onToggle: (val) {
+                          setState(() {
+                            espera = val;
                           });
                         },
                       ),
@@ -441,9 +543,27 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                       nota: nota,
                     );
 
-                    // Insertar el evento en la base de datos
-                    await DatabaseManager.insertEvento(
-                        widget.consultorioId!, evento);
+                    if (espera) {
+                      // Redirige a la página de lista de espera si la opción está activada
+                      // Navigator.push(
+                      //   context,
+                      //   MaterialPageRoute(
+                      //     builder: (context) => ListaEspera(evento: evento),
+                      //   ),
+                      // );
+                    } else {
+                      // Guarda el evento en la base de datos
+                      await DatabaseManager.insertEvento(
+                          widget.consultorioId!, evento);
+
+                      // Redirige a la página de calendario después de guardar el evento
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Calendar(),
+                        ),
+                      );
+                    }
 
                     // Mostrar mensaje de éxito o redireccionar a otra pantalla si es necesario
                     ScaffoldMessenger.of(context).showSnackBar(

@@ -320,6 +320,7 @@ class _PacienteContentState extends State<PacienteContent> {
                             // entidadNacimientoId:
                             //     entidadNacimientoIdController.text,
                             // generoId: int.parse(generoIdController.text),
+                            consultorioId: widget.consultorioId,
                           ),
                           widget.patient?.id,
                         );
@@ -350,6 +351,7 @@ class _PacienteContentState extends State<PacienteContent> {
                             // entidadNacimientoId:
                             //     entidadNacimientoIdController.text,
                             // generoId: int.parse(generoIdController.text),
+                            consultorioId: widget.consultorioId,
                           ),
                           null,
                         );

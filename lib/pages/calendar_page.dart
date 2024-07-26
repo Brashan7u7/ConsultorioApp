@@ -1,3 +1,4 @@
+import 'package:calendario_manik/pages/lista_espera.dart';
 import 'package:calendario_manik/variab.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
@@ -26,6 +27,12 @@ class _CalendarState extends State<Calendar> {
     //_loadSelectedConsultorio();
   }
 
+  //tabla muchos a muchos cada relacion
+  //medicos de grupo no pueden crear consultorio
+  //un medico no pertenece a otros grupos
+
+  //nombre original y nombre al azar, guardar archivo con mi firesistem,
+
   final CalendarController _calendarController = CalendarController();
   List<Appointment> _calendarDataSource = [];
   List<TimeRegion> _specialRegions = [];
@@ -51,16 +58,26 @@ class _CalendarState extends State<Calendar> {
       consultoriosData =
           await DatabaseManager.getConsultoriosData_id(usuario_id);
     }
-    consultoriosList = consultoriosData
-        .map((data) => Consultorio(
-              id: data['id'],
-              nombre: data['nombre'].toString(),
-              telefono: data['telefono'].toString(),
-              direccion: data['direccion'].toString(),
-              codigoPostal: int.parse(data['colonia_id'].toString()),
-              intervaloAtencion: int.parse(data['intervalo'].toString()),
-            ))
-        .toList();
+    if (usuario_cuenta_id == 3) {
+      consultoriosList = consultoriosData
+          .map((data) => Consultorio(
+                grupo_nombre: data['grupo_nombre'],
+                id: data['id'],
+                nombre: data['nombre'],
+              ))
+          .toList();
+    } else {
+      consultoriosList = consultoriosData
+          .map((data) => Consultorio(
+                id: data['id'],
+                nombre: data['nombre'].toString(),
+                telefono: data['telefono'].toString(),
+                direccion: data['direccion'].toString(),
+                codigoPostal: int.parse(data['colonia_id'].toString()),
+                intervaloAtencion: int.parse(data['intervalo'].toString()),
+              ))
+          .toList();
+    }
     setState(() {
       consultorios = consultoriosList;
       if (consultorios.isNotEmpty) {
@@ -280,7 +297,7 @@ class _CalendarState extends State<Calendar> {
                 items: consultorios.map((consultorio) {
                   return DropdownMenuItem<Consultorio>(
                     value: consultorio,
-                    child: Text(consultorio.nombre),
+                    child: Text(consultorio.nombre!),
                   );
                 }).toList(),
                 value:
@@ -346,9 +363,14 @@ class _CalendarState extends State<Calendar> {
             ListTile(
               contentPadding: const EdgeInsets.only(left: 25.0),
               leading: const Icon(Icons.announcement),
-              title: const Text('Pacientes esperando'),
+              title: const Text('Lista de espera'),
               onTap: () {
-                // Acción cuando se toca el elemento
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ListaEspera(),
+                  ),
+                );
               },
             ),
             (usuario_rol != 'ASI' && usuario_rol != 'ENF')
@@ -702,6 +724,25 @@ class _CalendarState extends State<Calendar> {
               },
               child: Text('Eliminar'),
             ),
+            if (agendarCitasEventos)
+              TextButton(
+                child: const Text('Editar'),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Add(
+                        isCitaInmediata: false,
+                        isEvento: false,
+                        isPacient: false,
+                        isCitaPro: true,
+                        isEditingCita: true,
+                        consultorioId: globalIdConsultorio,
+                      ),
+                    ),
+                  );
+                },
+              ),
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
@@ -749,6 +790,8 @@ class _CalendarState extends State<Calendar> {
   }
 
   void _navigateToAddPage(BuildContext context) {
+    String formattedTime = DateFormat('HH:mm')
+        .format(_calendarController.selectedDate as DateTime);
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -759,11 +802,12 @@ class _CalendarState extends State<Calendar> {
             text: _calendarController.selectedDate.toString().split(' ')[0],
           ),
           horaController: TextEditingController(
-            text: _calendarController.selectedDate.toString().split(' ')[1],
+            text: formattedTime,
           ),
           isCitaPro: false,
           isEvento: false,
           isPacient: false,
+          consultorioId: globalIdConsultorio,
         ),
       ),
     );

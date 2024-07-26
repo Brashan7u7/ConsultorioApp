@@ -8,10 +8,13 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Importa el paquete intl para formateo de fechas
 import 'package:flutter_switch/flutter_switch.dart';
 import 'package:calendario_manik/variab.dart';
+import 'package:calendario_manik/widgets/AddPatientForm.dart';
 
 class CitaRapidaContent extends StatefulWidget {
+  final int? consultorioId;
   const CitaRapidaContent({
     super.key,
+    this.consultorioId,
   });
   @override
   _CitaRapidaContentState createState() => _CitaRapidaContentState();
@@ -22,6 +25,7 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
   final TextEditingController notaController = TextEditingController();
   final TextEditingController doctorController = TextEditingController();
   bool status = false;
+  bool espera = false;
   String valor = "Consulta";
   final _formKey = GlobalKey<FormState>();
   List<String> suggestedPatients = [];
@@ -38,8 +42,6 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
       String nota = notaController.text;
 
       // Suponiendo que tienes el consultorioId y el paciente adecuados
-      int consultorioId = 1; // Ajusta el consultorioId según tu lógica
-
       // Obtener la fecha y hora actual
       DateTime now = DateTime.now();
       String fechaActual = DateFormat('yyyy-MM-dd').format(now);
@@ -61,14 +63,14 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
         duracion: "", // Puedes ajustar la duración si es necesario
         servicio: "", // Ajusta el servicio si es necesario
         nota: nota,
+        asignado_id: doctorId,
+        paciente_id: 1,
       );
       print('Hora redondeada: ${DateFormat('HH:mm').format(roundedTime)}');
+
       // Insertar la cita inmediata en la base de datos
       int citaId = await DatabaseManager.insertarTareaInmediata(
-        consultorioId,
-        tarea,
-        nota,
-      );
+          widget.consultorioId!, tarea, nota, doctorId);
 
       if (citaId != -1) {
         // Éxito al guardar la cita
@@ -101,6 +103,7 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
           isEvento: false,
           isPacient: true,
           isCitaPro: false,
+          consultorioId: widget.consultorioId,
         ),
       ),
     );
@@ -109,7 +112,7 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
   @override
   void initState() {
     super.initState();
-    if (usuario_cuenta_id == 3) _fetchDoctores();
+    if (usuario_cuenta_id == 3 && usuario_rol != 'MED') _fetchDoctores();
   }
 
   Future<void> _fetchDoctores() async {
@@ -146,29 +149,13 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: nameController,
-                          decoration: const InputDecoration(
-                            labelText: 'Escriba el nombre del paciente',
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'El nombre del paciente es obligatorio';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                      if (crearPacientes)
-                        IconButton(
-                          icon: const Icon(Icons.add),
-                          onPressed: _openAddPatientPage,
-                          tooltip: 'Agregar paciente',
-                        ),
-                    ],
+                  AddPatientForm(
+                    onPatientAdded: (String patientName) {
+                      setState(() {
+                        nameController.text = patientName;
+                      });
+                    },
+                    consultorioId: widget.consultorioId!,
                   ),
                   // Lista de sugerencias de pacientes
                   if (suggestedPatients.isNotEmpty)
@@ -190,7 +177,7 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
                       },
                     ),
                   const SizedBox(height: 20.0),
-                  if (usuario_cuenta_id == 3)
+                  if (usuario_cuenta_id == 3 && usuario_rol != 'MED')
                     Container(
                       child: Column(
                         children: [
@@ -213,8 +200,7 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
                                     setState(() {
                                       selectedDoctor = value;
                                       if (selectedDoctor != null) {
-                                        print(
-                                            'ID del médico seleccionado: ${selectedDoctor!.id}');
+                                        doctorId = selectedDoctor!.id!;
                                       }
                                     });
                                   },
@@ -351,6 +337,23 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
                             onToggle: (val) {
                               setState(() {
                                 status = val;
+                              });
+                            },
+                          ),
+                        ),
+                        Expanded(
+                          child: FlutterSwitch(
+                            activeText: "En espera",
+                            inactiveText: "Sin espera",
+                            value: espera,
+                            valueFontSize: 11.0,
+                            width: 150,
+                            height: 52,
+                            borderRadius: 5.0,
+                            showOnOff: true,
+                            onToggle: (val) {
+                              setState(() {
+                                espera = val;
                               });
                             },
                           ),

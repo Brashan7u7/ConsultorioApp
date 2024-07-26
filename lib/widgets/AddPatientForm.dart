@@ -1,11 +1,14 @@
 import 'package:calendario_manik/pages/add_page.dart';
+import 'package:calendario_manik/variab.dart';
 import 'package:flutter/material.dart';
 import 'package:calendario_manik/database/database.dart';
 
 class AddPatientForm extends StatefulWidget {
   final Function(String) onPatientAdded;
+  final int consultorioId;
 
-  const AddPatientForm({super.key, required this.onPatientAdded});
+  const AddPatientForm(
+      {super.key, required this.onPatientAdded, required this.consultorioId});
 
   @override
   _AddPatientFormState createState() => _AddPatientFormState();
@@ -31,7 +34,8 @@ class _AddPatientFormState extends State<AddPatientForm> {
   void searchPatients() async {
     String query = nameController.text.trim();
     if (query.isNotEmpty) {
-      List<String> patients = await DatabaseManager.searchPatients(query);
+      List<String> patients =
+          await DatabaseManager.searchPatients(query, widget.consultorioId);
       setState(() {
         suggestedPatients = patients;
       });
@@ -51,7 +55,7 @@ class _AddPatientFormState extends State<AddPatientForm> {
           isEvento: false,
           isPacient: true,
           isCitaPro: false,
-          consultorioId: 1,
+          consultorioId: widget.consultorioId,
         ),
       ),
     );
@@ -85,11 +89,12 @@ class _AddPatientFormState extends State<AddPatientForm> {
                     ),
                   ),
                 ),
-                IconButton(
-                  onPressed: _addPatient,
-                  icon: const Icon(Icons.group_add),
-                  tooltip: 'Agregar paciente',
-                ),
+                if (crearPacientes)
+                  IconButton(
+                    onPressed: _addPatient,
+                    icon: const Icon(Icons.group_add),
+                    tooltip: 'Agregar paciente',
+                  ),
               ],
             ),
             if (suggestedPatients.isNotEmpty)
@@ -101,6 +106,7 @@ class _AddPatientFormState extends State<AddPatientForm> {
                     title: Text(suggestedPatients[index]),
                     onTap: () {
                       nameController.text = suggestedPatients[index];
+                      widget.onPatientAdded(suggestedPatients[index]);
                       setState(() {
                         suggestedPatients = [];
                       });

@@ -14,7 +14,8 @@ class Add extends StatelessWidget {
       isPacient,
       isCitaPro,
       isCitaselect,
-      isEditingPacient;
+      isEditingPacient,
+      isEditingCita;
   final int? consultorioId;
   final DataPatients? pacient;
 
@@ -33,28 +34,31 @@ class Add extends StatelessWidget {
     this.duracionController,
     this.consultorioId,
     this.pacient,
+    this.isEditingCita = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(isCitaInmediata
-            ? "Cita Inmediata"
-            : isCitaselect
-                ? "Cita Programada"
-                : isEvento
-                    ? 'Evento'
-                    : isEditingPacient
-                        ? "Editar Paciente"
-                        : isPacient
-                            ? "Registrar Paciente"
-                            : isCitaPro
-                                ? "Cita Programada"
-                                : ""),
+        title: Text(isEditingCita
+            ? "Editar Cita"
+            : isCitaInmediata
+                ? "Cita Inmediata"
+                : isCitaselect
+                    ? "Cita Programada"
+                    : isEvento
+                        ? 'Evento'
+                        : isEditingPacient
+                            ? "Editar Paciente"
+                            : isPacient
+                                ? "Registrar Paciente"
+                                : isCitaPro
+                                    ? "Cita Programada"
+                                    : ""),
       ),
       body: isCitaInmediata
-          ? CitaRapidaContent()
+          ? CitaRapidaContent(consultorioId: consultorioId)
           : (isCitaselect)
               ? CitaSelectContent(
                   fechaController: fechaController!,

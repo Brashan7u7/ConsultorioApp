@@ -134,16 +134,26 @@ class _ConsultingState extends State<Consulting> {
       consultoriosData =
           await DatabaseManager.getConsultoriosData_id(usuario_id);
     }
-    consultoriosList = consultoriosData
-        .map((data) => Consultorio(
-              id: data['id'],
-              nombre: data['nombre'].toString(),
-              telefono: data['telefono'].toString(),
-              direccion: data['direccion'].toString(),
-              codigoPostal: int.parse(data['colonia_id'].toString()),
-              intervaloAtencion: int.parse(data['intervalo'].toString()),
-            ))
-        .toList();
+    if (usuario_cuenta_id == 3) {
+      consultoriosList = consultoriosData
+          .map((data) => Consultorio(
+                grupo_nombre: data['grupo_nombre'],
+                id: data['id'],
+                nombre: data['nombre'],
+              ))
+          .toList();
+    } else {
+      consultoriosList = consultoriosData
+          .map((data) => Consultorio(
+                id: data['id'],
+                nombre: data['nombre'].toString(),
+                telefono: data['telefono'].toString(),
+                direccion: data['direccion'].toString(),
+                codigoPostal: int.parse(data['colonia_id'].toString()),
+                intervaloAtencion: int.parse(data['intervalo'].toString()),
+              ))
+          .toList();
+    }
     setState(() {
       hasConsultorios = consultoriosList.isNotEmpty;
       consultorios = consultoriosList;
@@ -285,7 +295,7 @@ class _ConsultingState extends State<Consulting> {
                     items: consultorios.map((consultorio) {
                       return DropdownMenuItem<Consultorio>(
                         value: consultorio,
-                        child: Text(consultorio.nombre),
+                        child: Text(consultorio.nombre!),
                       );
                     }).toList(),
                     onChanged: (value) async {
@@ -293,15 +303,15 @@ class _ConsultingState extends State<Consulting> {
                         selectedConsultorio = value;
                         showDeleteButton = true;
                         if (selectedConsultorio != null) {
-                          _nombreController.text = selectedConsultorio!.nombre;
+                          _nombreController.text = selectedConsultorio!.nombre!;
                           _telefonoController.text =
-                              selectedConsultorio!.telefono;
+                              selectedConsultorio!.telefono!;
                           _calleController.text =
-                              selectedConsultorio!.direccion;
+                              selectedConsultorio!.direccion!;
                           _codigoPostalController.text =
                               selectedConsultorio!.codigoPostal.toString();
                           selectedInterval =
-                              selectedConsultorio!.intervaloAtencion;
+                              selectedConsultorio!.intervaloAtencion!;
                         }
                         selectedDay = daysOfWeek[0];
                       });
@@ -671,18 +681,20 @@ class _ConsultingState extends State<Consulting> {
 
 class Consultorio {
   int? id;
-  String nombre;
-  String telefono;
-  String direccion;
-  int codigoPostal;
-  int intervaloAtencion;
+  String? nombre;
+  String? telefono;
+  String? direccion;
+  int? codigoPostal;
+  int? intervaloAtencion;
+  String? grupo_nombre;
 
   Consultorio({
     this.id,
-    required this.nombre,
-    required this.telefono,
-    required this.direccion,
-    required this.codigoPostal,
-    required this.intervaloAtencion,
+    this.nombre,
+    this.telefono,
+    this.direccion,
+    this.codigoPostal,
+    this.intervaloAtencion,
+    this.grupo_nombre,
   });
 }

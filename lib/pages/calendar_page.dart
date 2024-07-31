@@ -226,6 +226,7 @@ class _CalendarState extends State<Calendar> {
     List<Map<String, dynamic>> eventosData =
         await DatabaseManager.getEventosData(globalIdConsultorio);
     //print('Eventos Data: $eventosData');
+    print('Eventos Data busca el id: $eventosData');
     List<Appointment> eventosAppointments =
         _getCalendarDataSourceEventos(eventosData);
 
@@ -233,7 +234,7 @@ class _CalendarState extends State<Calendar> {
     List<Map<String, dynamic>> tareasData =
         await DatabaseManager.getTareaSeleccionadaData(globalIdConsultorio);
     print(
-        'Tareas Data: $tareasData'); // Añadir esta línea para revisar los datos
+        'Tareas Data busca el id: $tareasData'); // Añadir esta línea para revisar los datos
     List<Appointment> tareasAppointments =
         _getCalendarDataSourceTareas(tareasData);
 
@@ -692,9 +693,6 @@ class _CalendarState extends State<Calendar> {
             ),
           ),
           actions: [
-            TextButton(
-              onPressed: () async {
-                final result = await showDialog<bool>(
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
@@ -713,14 +711,12 @@ class _CalendarState extends State<Calendar> {
                             Navigator.pop(context,
                                 false); // Return false when 'Cerrar' is pressed
                           },
-                          child: Text('Cerrar'),
                         ),
                       ],
                     );
                   },
                 );
                 if (result == true) {
-                  deleteAppointment(appointment.id);
                 }
                 Navigator.pop(context);
               },
@@ -740,16 +736,56 @@ class _CalendarState extends State<Calendar> {
                         isCitaPro: true,
                         isEditingCita: true,
                         consultorioId: globalIdConsultorio,
+                  ),
+                ),
+                PopupMenuButton(
+                  child: const Row(
+                    children: [
+                      Text('Opciones'),
+                      Icon(Icons.arrow_drop_down),
+                    ],
+                  ),
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      child: const Text(
+                        'Eliminar',
+                        style: TextStyle(
+                            fontSize: 16, color: Color.fromARGB(255, 0, 0, 0)),
                       ),
+                      onTap: () {
+                        print('se ha seleccionado para eliminar');
+                        _deleteAppointment(appointment);
+                      },
                     ),
-                  );
-                },
-              ),
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
               },
               child: Text('Cerrar'),
+                        style: TextStyle(
+                            fontSize: 16, color: Color.fromARGB(255, 0, 0, 0)),
+                      ),
+                      onTap: () {},
+                    ),
+                    PopupMenuItem(
+                      child: const Text(
+                        'Registrar llegada',
+                        style: TextStyle(
+                            fontSize: 16, color: Color.fromARGB(255, 0, 0, 0)),
+                      ),
+                      onTap: () {},
+                    ),
+                    PopupMenuItem(
+                      child: const Text(
+                        'Reagendar',
+                        style: TextStyle(
+                            fontSize: 16, color: Color.fromARGB(255, 0, 0, 0)),
+                      ),
+                      onTap: () {},
+                    ),
+                  ],
+                )
+              ],
             ),
           ],
         );
@@ -814,6 +850,30 @@ class _CalendarState extends State<Calendar> {
       ),
     );
   }
+
+  void _deleteAppointment(Appointment appointment) {
+    String id = appointment.notes ?? '';
+    String tipo = appointment.location ?? '';
+
+    if (tipo == 'evento') {
+      int eventoId = int.parse(id);
+      DatabaseManager.deleteEvento(eventoId).then((_) {
+        _loadEventosTareas(); // Recargar los datos del calendario
+        _loadHorariosConsultorios(); // Recargar los horarios de los consultorios si es necesario
+        setState(() {}); // Actualizar el estado de la interfaz de usuario
+      });
+    } else if (tipo == 'tarea') {
+      int tareaId = int.parse(id);
+      DatabaseManager.deleteTarea(tareaId).then((_) {
+        _loadEventosTareas(); // Recargar los datos del calendario
+        _loadHorariosConsultorios(); // Recargar los horarios de los consultorios si es necesario
+        setState(() {}); // Actualizar el estado de la interfaz de usuario
+      });
+    }
+
+    // Cerrar el diálogo
+    Navigator.pop(context);
+  }
 }
 
 class MeetingDataSource extends CalendarDataSource {
@@ -833,6 +893,7 @@ List<Appointment> _getCalendarDataSourceEventos(
     String nombre = evento['nombre'].toString();
     String horario =
         '${DateFormat.jm().format(startTime)} - ${DateFormat.jm().format(endTime)}'; // Formato del horario (ejemplo: 9:00 AM - 10:00 AM)
+    String id = evento['id'].toString();
 
     appointments.add(Appointment(
       subject:
@@ -840,6 +901,8 @@ List<Appointment> _getCalendarDataSourceEventos(
       startTime: startTime,
       endTime: endTime,
       color: const Color.fromARGB(255, 6, 230, 99),
+      notes: id, // Guardar el id en la propiedad notes
+      location: 'evento', // Marcar como evento
     ));
   }
 
@@ -860,14 +923,18 @@ List<Appointment> _getCalendarDataSourceTareas(
     String horario =
         '${DateFormat.jm().format(startTime)} - ${DateFormat.jm().format(endTime)}';
     String color = tarea['color'].toString();
+    String id = tarea['id'].toString();
 
     appointments.add(Appointment(
       subject: '$nombre\n$horario',
       startTime: startTime,
       endTime: endTime,
       color: HexColor(color),
+      notes: id, // Guardar el id en la propiedad notes
+      location: 'tarea', // Marcar como tarea
     ));
   }
 
   return appointments;
 }
+

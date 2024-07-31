@@ -2,6 +2,8 @@ import 'package:calendario_manik/database/database.dart';
 import 'package:calendario_manik/models/tarea.dart';
 import 'package:calendario_manik/pages/add_page.dart';
 import 'package:calendario_manik/pages/calendar_page.dart';
+import 'package:calendario_manik/widgets/ConsultaInfoForm.dart';
+import 'package:calendario_manik/widgets/IntervalDropdownSelector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_switch/flutter_switch.dart';
 import 'package:intl/intl.dart';
@@ -29,6 +31,7 @@ class CitaSelectContent extends StatefulWidget {
 class _CitaSelectContentState extends State<CitaSelectContent> {
   int selectedInterval = 60;
   TextEditingController nameController = TextEditingController(text: "");
+  final TextEditingController nameController = TextEditingController();
   String valor = "Consulta";
   TextEditingController notaController = TextEditingController(text: "");
   bool status = false;
@@ -101,7 +104,7 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    AddPatientForm(
+                   AddPatientForm(
                       onPatientAdded: (Map<String, dynamic> patient) {
                         setState(() {
                           nameController.text = patient['nombre'];
@@ -154,16 +157,7 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                       readOnly: true,
                       decoration: const InputDecoration(labelText: 'Hora'),
                     ),
-                    DropdownButtonFormField<String>(
-                      items: const [
                         DropdownMenuItem<String>(
-                          value: '60',
-                          child: Text('60 minutos'),
-                        ),
-                        DropdownMenuItem<String>(
-                          value: '30',
-                          child: Text('30 minutos'),
-                        ),
                         DropdownMenuItem<String>(
                           value: '20',
                           child: Text('20 minutos'),
@@ -268,16 +262,6 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                         ],
                       ),
                     ] else ...[
-                      Row(
-                        children: [
-                          Expanded(
-                            child: DropdownButtonFormField<String>(
-                              isExpanded: true,
-                              items: const [
-                                DropdownMenuItem<String>(
-                                    value: 'Consulta', child: Text('Consulta')),
-                                DropdownMenuItem<String>(
-                                  value: 'Valoración',
                                   child: Text('Valoración'),
                                 ),
                                 DropdownMenuItem<String>(

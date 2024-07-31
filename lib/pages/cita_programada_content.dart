@@ -169,14 +169,13 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               AddPatientForm(
-                onPatientAdded: (Map<String, dynamic> patient) {
-                  setState(() {
-                    nameController.text = patient['nombre'];
-                    pacienteId = patient['id'];
-                  });
-                },
-                consultorioId: widget.consultorioId!,
-              ),
+                      onPatientAdded: (Map<String, dynamic> patient) {
+                        setState(() {
+                          nameController.text = patient['nombre'];
+                        });
+                      },
+                      consultorioId: widget.consultorioId!,
+                    ),
               const SizedBox(height: 20.0),
               if (usuario_cuenta_id == 3 && usuario_rol != 'MED')
                 Container(

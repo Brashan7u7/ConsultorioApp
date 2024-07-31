@@ -4,6 +4,7 @@ class Evento {
   final String hora;
   final String duracion;
   final String servicio;
+  final bool allDay;
   final String nota;
 
   Evento({
@@ -12,6 +13,7 @@ class Evento {
     required this.hora,
     required this.duracion,
     required this.servicio,
+    required this.allDay,
     required this.nota,
   });
 }

@@ -1,3 +1,5 @@
+import 'package:calendario_manik/widgets/AppointmentNoteWidget.dart';
+import 'package:calendario_manik/widgets/IntervalDropdownSelector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_switch/flutter_switch.dart';
 import 'package:intl/intl.dart';
@@ -23,6 +25,8 @@ class _EventoContentState extends State<EventoContent> {
   TextEditingController horaController = TextEditingController(text: "");
   TextEditingController duracionController = TextEditingController(text: "");
   TextEditingController servicioController = TextEditingController(text: "");
+  TextEditingController servicioController = TextEditingController(text: "Subsecuente");
+  ValueNotifier<bool> allDay = ValueNotifier<bool>(false);
   TextEditingController notaController = TextEditingController(text: "");
 
   bool isAllDay = false;
@@ -59,6 +63,14 @@ class _EventoContentState extends State<EventoContent> {
     }
   }
 
+  Future<bool> _hasEventsOrTasksOnDate(String date) async {
+    final events =
+        await DatabaseManager.getEventosByFecha(widget.consultorioId!, date);
+    final tasks =
+        await DatabaseManager.getTareasByFecha(widget.consultorioId!, date);
+    return events.isNotEmpty || tasks.isNotEmpty;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Form(
@@ -90,6 +102,12 @@ class _EventoContentState extends State<EventoContent> {
                       readOnly: true,
                       decoration: const InputDecoration(labelText: 'Fecha'),
                       onTap: _pickDate,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'La fecha es obligatoria';
+                        }
+                        return null;
+                      },
                     ),
                   ),
                   const SizedBox(width: 10.0),
@@ -99,8 +117,17 @@ class _EventoContentState extends State<EventoContent> {
                       readOnly: true,
                       decoration: const InputDecoration(labelText: 'Hora'),
                       onTap: _pickTime,
+                  if (!isAllDay) ...[
+                    Expanded(
+                      child: TextFormField(
+                        controller: horaController,
+                        readOnly: isAllDay,
+                        decoration: const InputDecoration(labelText: 'Hora'),
+                        onTap: isAllDay ? null : _pickTime,
+                      ),
                     ),
                   ),
+                  ],
                 ],
               ),
               const SizedBox(height: 10.0),
@@ -133,6 +160,7 @@ class _EventoContentState extends State<EventoContent> {
                   labelText: 'Intervalo de Atención (minutos)',
                 ),
               ),
+              if (!isAllDay) ...[const IntervalDropdownSelector()],
               const SizedBox(height: 10.0),
               DropdownButtonFormField<String>(
                 value: servicioController.text.isEmpty
@@ -173,11 +201,26 @@ class _EventoContentState extends State<EventoContent> {
                     child: FlutterSwitch(
                       value: isAllDay,
                       onToggle: (value) {
+                      onToggle: (value) async {
+                        if (value) {
+                          bool hasEventsOrTasks = await _hasEventsOrTasksOnDate(
+                              fechaController.text);
+                          if (hasEventsOrTasks) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text(
+                                      'No se puede poner todo el día porque ya hay eventos o tareas.')),
+                            );
+                            return;
+                          }
+                        }
                         setState(() {
                           isAllDay = value;
+                          allDay.value = isAllDay;
                           if (isAllDay) {
                             horaController.text = '';
                             fechaController.text = '';
+                            duracionController.text = '';
                           }
                         });
                       },
@@ -194,14 +237,49 @@ class _EventoContentState extends State<EventoContent> {
               const SizedBox(height: 20.0),
               ElevatedButton(
                 onPressed: () {
+                    side: const BorderSide(width: 1, color: Colors.grey),
+                  ),
+                ),
+                onPressed: () async {
                   if (_formKey.currentState!.validate()) {
+                    if (fechaController.text.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Por favor seleccione una fecha.'),
+                        ),
+                      );
+                      return;
+                    }
+
+                    // Verificar solo si isAllDay es false
+                    if (!isAllDay) {
+                      bool hasAllDayEvent =
+                          await DatabaseManager.hasAllDayEventOnDate(
+                        widget.consultorioId!,
+                        fechaController.text,
+                      );
+
+                      if (hasAllDayEvent) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                                'Ya hay un evento todo el día en esta fecha.'),
+                          ),
+                        );
+                        return; // No guardar el evento
+                      }
+                    }
+
                     Evento evento = Evento(
                       nombre: nameController.text,
                       fecha: fechaController.text,
                       hora: horaController.text,
                       duracion: selectedInterval.toString(),
+                      hora: isAllDay ? '' : horaController.text,
+                      duracion: isAllDay ? '' : selectedInterval.toString(),
                       servicio: servicioController.text,
                       nota: notaController.text,
+                      allDay: isAllDay,
                     );
 
                     DatabaseManager.insertEvento(widget.consultorioId!, evento)
@@ -223,6 +301,7 @@ class _EventoContentState extends State<EventoContent> {
                                 Text('Error al guardar el evento: $error')),
                       );
                     });
+                    }
                   }
                 },
                 child: const Text('Guardar Evento'),

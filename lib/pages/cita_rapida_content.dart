@@ -162,14 +162,13 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   AddPatientForm(
-                    onPatientAdded: (Map<String, dynamic> patient) {
-                      setState(() {
-                        nameController.text = patient['nombre'];
-                        pacienteId = patient['id'];
-                      });
-                    },
-                    consultorioId: widget.consultorioId!,
-                  ),
+                      onPatientAdded: (Map<String, dynamic> patient) {
+                        setState(() {
+                          nameController.text = patient['nombre'];
+                        });
+                      },
+                      consultorioId: widget.consultorioId!,
+                    ),
                   // Lista de sugerencias de pacientes
                   if (suggestedPatients.isNotEmpty)
                     ListView.builder(

@@ -13,11 +13,13 @@ class DatabaseManager {
     return await Connection.open(
       Endpoint(
         host: '192.168.1.71',
+        host: '127.0.0.1',
         //host: '192.168.1.181',
         port: 5432,
         database: 'medicalmanik',
         username: 'postgres',
         password: '123',
+        password: 'DJE20ben',
       ),
       settings: const ConnectionSettings(sslMode: SslMode.disable),
     );
@@ -515,6 +517,7 @@ LIMIT 20;
           'color': row[4],
           'asignado_id': row[10],
           'paciente_id': row[11],
+          'color': row[4]
         });
       }
 
@@ -526,6 +529,7 @@ LIMIT 20;
     // print('Tareas: $tareas'); // Imprimir el resultado final
     return tareas;
   }
+
 
   //! Evento
   static Future<void> insertEvento(int consultorioId, Evento evento) async {
@@ -543,10 +547,25 @@ LIMIT 20;
       DateTime startDate = DateTime.parse(evento.fecha + " " + evento.hora);
       int duration = int.parse(evento.duracion) - 1;
       DateTime endDate = startDate.add(Duration(minutes: duration));
+      DateTime startDate;
+      DateTime endDate;
+
+      if (evento.allDay) {
+        // Asumiendo que evento.servicio indica si es de todo el día
+        // Para eventos de todo el día
+        startDate = DateTime.parse("${evento.fecha} 00:00:00");
+        endDate = DateTime.parse("${evento.fecha} 23:59:59");
+      } else {
+        // Para eventos no de todo el día
+        startDate = DateTime.parse("${evento.fecha} ${evento.hora}");
+        int duration = int.parse(evento.duracion);
+        endDate = startDate.add(Duration(minutes: duration));
+      }
 
       await conn.execute(
         Sql.named(
             "INSERT INTO evento(id, token, nombre, descripcion, fecha_inicio, fecha_fin, usuario_id, calendario_id) VALUES (@id, @token, @nombre,@descripcion, @fecha_inicio, @fecha_fin, @usuario_id, @calendario_id)"),
+            "INSERT INTO evento(id, token, nombre, descripcion, fecha_inicio, fecha_fin, all_day, usuario_id, calendario_id,tarea) VALUES (@id, @token, @nombre,@descripcion, @fecha_inicio, @fecha_fin, @all_day, @usuario_id, @calendario_id, @tarea)"),
         parameters: {
           "id": newId,
           "token": 2,
@@ -554,14 +573,46 @@ LIMIT 20;
           "descripcion": evento.nota,
           "fecha_inicio": startDate.toIso8601String(),
           "fecha_fin": endDate.toIso8601String(),
+          "all_day": evento.allDay,
           "usuario_id": 1, // Aquí deberías obtener el usuario_id correcto
           "calendario_id": consultorioId,
+          "tarea": evento.servicio,
         },
       );
 
       await conn.close();
     } catch (e) {
       print('Error al insertar el evento: $e');
+    }
+  }
+
+  static Future<void> deleteEvento(int eventoId) async {
+    try {
+      final conn = await _connect();
+
+      await conn
+          .execute(Sql.named("DELETE FROM evento WHERE id = @id"), parameters: {
+        "id": eventoId,
+      });
+
+      await conn.close();
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
+
+  static Future<void> deleteTarea(int tareaId) async {
+    try {
+      final conn = await _connect();
+
+      await conn
+          .execute(Sql.named("DELETE FROM tarea WHERE id = @id"), parameters: {
+        "id": tareaId,
+      });
+
+      await conn.close();
+    } catch (e) {
+      print('Error: $e');
     }
   }
 
@@ -740,6 +791,31 @@ WHERE gp.grupo_id = $grupo_id;""");
       print('Error: $e');
     }
     return pacientes;
+  }
+
+  static Future<bool> hasAllDayEventOnDate(
+      int consultorioId, String date) async {
+    try {
+      final conn = await _connect();
+
+      final result = await conn.execute(
+          Sql.named(
+              "SELECT COUNT(*) FROM evento WHERE calendario_id=@id AND all_day=true AND DATE(fecha_inicio) = DATE(@date)"),
+          parameters: {
+            "id": consultorioId,
+            "date": date,
+          });
+
+      await conn.close();
+
+      final count =
+          result.isNotEmpty && result[0][0] != null ? result[0][0] as int : 0;
+
+      return count > 0;
+    } catch (e) {
+      print('Error in hasAllDayEventOnDate: $e');
+      return false;
+    }
   }
 
   static Future<void> deletePaciente(int id) async {
@@ -1026,6 +1102,64 @@ WHERE gc.grupo_id = $grupo_id;
     } catch (e) {
       print('Error al actualizar el consultorio: $e');
     }
+  }
+
+  static Future<List<Map<String, dynamic>>> getEventosByFecha(
+      int consultorioId, String fecha) async {
+    List<Map<String, dynamic>> eventos = [];
+    try {
+      final conn = await _connect();
+
+      final result = await conn.execute(
+          Sql.named(
+              "select id, nombre, TO_CHAR(fecha_inicio,'yyyy-MM-dd HH24:MI:SS') fecha_inicio, TO_CHAR(fecha_fin,'yyyy-MM-dd HH24:MI:SS') fecha_fin from evento WHERE calendario_id=@id AND DATE(fecha_inicio) = DATE(@fecha)"),
+          parameters: {
+            "id": consultorioId,
+            "fecha": fecha,
+          });
+      for (final row in result) {
+        eventos.add({
+          'id': row[0],
+          'nombre': row[1],
+          'fecha_inicio': row[2],
+          'fecha_fin': row[3],
+        });
+      }
+
+      await conn.close();
+    } catch (e) {
+      print('Error: $e');
+    }
+    return eventos;
+  }
+
+  static Future<List<Map<String, dynamic>>> getTareasByFecha(
+      int consultorioId, String fecha) async {
+    List<Map<String, dynamic>> tareas = [];
+    try {
+      final conn = await _connect();
+
+      final result = await conn.execute(
+          Sql.named(
+              "select id, nombre, TO_CHAR(fecha_inicio,'yyyy-MM-dd HH24:MI:SS') fecha_inicio, TO_CHAR(fecha_fin,'yyyy-MM-dd HH24:MI:SS') fecha_fin from tarea WHERE calendario_id=@id AND DATE(fecha_inicio) = DATE(@fecha)"),
+          parameters: {
+            "id": consultorioId,
+            "fecha": fecha,
+          });
+      for (final row in result) {
+        tareas.add({
+          'id': row[0],
+          'nombre': row[1],
+          'fecha_inicio': row[2],
+          'fecha_fin': row[3],
+        });
+      }
+
+      await conn.close();
+    } catch (e) {
+      print('Error: $e');
+    }
+    return tareas;
   }
 
   static Future<List<Map<String, dynamic>>> getUsuario() async {

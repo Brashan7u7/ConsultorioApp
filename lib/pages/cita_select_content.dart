@@ -45,6 +45,7 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
   Paciente? selectedPaciente;
 
   int pacienteId = 0;
+  String nombres = 'paciente';
 
   @override
   void initState() {
@@ -103,7 +104,7 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                   AddPatientForm(
+                    AddPatientForm(
                       onPatientAdded: (Map<String, dynamic> patient) {
                         setState(() {
                           nameController.text = patient['nombre'];
@@ -111,6 +112,7 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                         });
                       },
                       consultorioId: widget.consultorioId!,
+                      nombres: nombres,
                     ),
                     if (usuario_cuenta_id == 3 && usuario_rol != 'MED')
                       Container(
@@ -157,8 +159,7 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                       decoration: const InputDecoration(labelText: 'Hora'),
                     ),
                     const IntervalDropdownSelector(),
-                   
-                    
+
                     const SizedBox(height: 20.0),
                     if (sis) ...[
                       Row(

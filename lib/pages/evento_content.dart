@@ -6,7 +6,6 @@ import 'package:intl/intl.dart';
 import 'package:calendario_manik/models/evento.dart';
 import 'package:calendario_manik/database/database.dart';
 import 'package:calendario_manik/pages/calendar_page.dart';
-import 'package:flutter_switch/flutter_switch.dart';
 
 class EventoContent extends StatefulWidget {
   final int? consultorioId;
@@ -24,7 +23,6 @@ class _EventoContentState extends State<EventoContent> {
   TextEditingController fechaController = TextEditingController(text: "");
   TextEditingController horaController = TextEditingController(text: "");
   TextEditingController duracionController = TextEditingController(text: "");
-  TextEditingController servicioController = TextEditingController(text: "");
   TextEditingController servicioController = TextEditingController(text: "Subsecuente");
   ValueNotifier<bool> allDay = ValueNotifier<bool>(false);
   TextEditingController notaController = TextEditingController(text: "");
@@ -111,12 +109,6 @@ class _EventoContentState extends State<EventoContent> {
                     ),
                   ),
                   const SizedBox(width: 10.0),
-                  Expanded(
-                    child: TextFormField(
-                      controller: horaController,
-                      readOnly: true,
-                      decoration: const InputDecoration(labelText: 'Hora'),
-                      onTap: _pickTime,
                   if (!isAllDay) ...[
                     Expanded(
                       child: TextFormField(
@@ -126,40 +118,10 @@ class _EventoContentState extends State<EventoContent> {
                         onTap: isAllDay ? null : _pickTime,
                       ),
                     ),
-                  ),
                   ],
                 ],
               ),
               const SizedBox(height: 10.0),
-              DropdownButtonFormField<String>(
-                items: const [
-                  DropdownMenuItem<String>(
-                    value: '60',
-                    child: Text('60 minutos'),
-                  ),
-                  DropdownMenuItem<String>(
-                    value: '30',
-                    child: Text('30 minutos'),
-                  ),
-                  DropdownMenuItem<String>(
-                    value: '20',
-                    child: Text('20 minutos'),
-                  ),
-                  DropdownMenuItem<String>(
-                    value: '15',
-                    child: Text('15 minutos'),
-                  ),
-                ],
-                value: selectedInterval.toString(),
-                onChanged: (value) {
-                  setState(() {
-                    selectedInterval = int.parse(value!);
-                  });
-                },
-                decoration: const InputDecoration(
-                  labelText: 'Intervalo de Atención (minutos)',
-                ),
-              ),
               if (!isAllDay) ...[const IntervalDropdownSelector()],
               const SizedBox(height: 10.0),
               DropdownButtonFormField<String>(
@@ -200,7 +162,6 @@ class _EventoContentState extends State<EventoContent> {
                     alignment: Alignment.centerLeft,
                     child: FlutterSwitch(
                       value: isAllDay,
-                      onToggle: (value) {
                       onToggle: (value) async {
                         if (value) {
                           bool hasEventsOrTasks = await _hasEventsOrTasksOnDate(
@@ -219,7 +180,6 @@ class _EventoContentState extends State<EventoContent> {
                           allDay.value = isAllDay;
                           if (isAllDay) {
                             horaController.text = '';
-                            fechaController.text = '';
                             duracionController.text = '';
                           }
                         });
@@ -228,15 +188,14 @@ class _EventoContentState extends State<EventoContent> {
                   ),
                 ],
               ),
-              const SizedBox(height: 10.0),
-              TextFormField(
-                controller: notaController,
-                decoration: const InputDecoration(labelText: 'Nota para cita'),
-                maxLines: 3,
-              ),
+              AppointmentNoteWidget(noteController: notaController),
               const SizedBox(height: 20.0),
               ElevatedButton(
-                onPressed: () {
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
                     side: const BorderSide(width: 1, color: Colors.grey),
                   ),
                 ),
@@ -273,8 +232,6 @@ class _EventoContentState extends State<EventoContent> {
                     Evento evento = Evento(
                       nombre: nameController.text,
                       fecha: fechaController.text,
-                      hora: horaController.text,
-                      duracion: selectedInterval.toString(),
                       hora: isAllDay ? '' : horaController.text,
                       duracion: isAllDay ? '' : selectedInterval.toString(),
                       servicio: servicioController.text,
@@ -282,8 +239,9 @@ class _EventoContentState extends State<EventoContent> {
                       allDay: isAllDay,
                     );
 
-                    DatabaseManager.insertEvento(widget.consultorioId!, evento)
-                        .then((_) {
+                    try {
+                      await DatabaseManager.insertEvento(
+                          widget.consultorioId!, evento);
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                             content: Text('Evento guardado correctamente')),
@@ -294,13 +252,12 @@ class _EventoContentState extends State<EventoContent> {
                           builder: (context) => Calendar(),
                         ),
                       );
-                    }).catchError((error) {
+                    } catch (error) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                             content:
                                 Text('Error al guardar el evento: $error')),
                       );
-                    });
                     }
                   }
                 },

@@ -225,7 +225,6 @@ class _CalendarState extends State<Calendar> {
     //*Eventos
     List<Map<String, dynamic>> eventosData =
         await DatabaseManager.getEventosData(globalIdConsultorio);
-    //print('Eventos Data: $eventosData');
     print('Eventos Data busca el id: $eventosData');
     List<Appointment> eventosAppointments =
         _getCalendarDataSourceEventos(eventosData);
@@ -693,49 +692,15 @@ class _CalendarState extends State<Calendar> {
             ),
           ),
           actions: [
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: Text('Eliminar Cita'),
-                      content: Text('¿Estás seguro de eliminar esta cita?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context,
-                                true); // Return true when 'Eliminar' is pressed
-                          },
-                          child: Text('Eliminar'),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context,
-                                false); // Return false when 'Cerrar' is pressed
-                          },
-                        ),
-                      ],
-                    );
+            Row(
+              children: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
                   },
-                );
-                if (result == true) {
-                }
-                Navigator.pop(context);
-              },
-              child: Text('Eliminar'),
-            ),
-            if (agendarCitasEventos)
-              TextButton(
-                child: const Text('Editar'),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => Add(
-                        isCitaInmediata: false,
-                        isEvento: false,
-                        isPacient: false,
-                        isCitaPro: true,
-                        isEditingCita: true,
-                        consultorioId: globalIdConsultorio,
+                  child: const Text(
+                    'Cerrar',
+                    style: TextStyle(fontSize: 16, color: Colors.blueGrey),
                   ),
                 ),
                 PopupMenuButton(
@@ -757,11 +722,9 @@ class _CalendarState extends State<Calendar> {
                         _deleteAppointment(appointment);
                       },
                     ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text('Cerrar'),
+                    PopupMenuItem(
+                      child: const Text(
+                        'Atender cita',
                         style: TextStyle(
                             fontSize: 16, color: Color.fromARGB(255, 0, 0, 0)),
                       ),

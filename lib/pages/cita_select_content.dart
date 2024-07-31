@@ -30,7 +30,6 @@ class CitaSelectContent extends StatefulWidget {
 
 class _CitaSelectContentState extends State<CitaSelectContent> {
   int selectedInterval = 60;
-  TextEditingController nameController = TextEditingController(text: "");
   final TextEditingController nameController = TextEditingController();
   String valor = "Consulta";
   TextEditingController notaController = TextEditingController(text: "");
@@ -157,37 +156,9 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                       readOnly: true,
                       decoration: const InputDecoration(labelText: 'Hora'),
                     ),
-                        DropdownMenuItem<String>(
-                        DropdownMenuItem<String>(
-                          value: '20',
-                          child: Text('20 minutos'),
-                        ),
-                        DropdownMenuItem<String>(
-                          value: '15',
-                          child: Text('15 minutos'),
-                        ),
-                      ],
-                      value: selectedInterval.toString(),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedInterval = int.parse(value!);
-                        });
-                      },
-                      decoration: const InputDecoration(
-                        labelText: 'Intervalo de Atención (minutos)',
-                      ),
-                    ),
-                    const SizedBox(height: 5.0),
-                    Padding(
-                      padding: const EdgeInsets.all(5.0),
-                      child: Text(
-                        'Motivo de consulta',
-                        style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.normal,
-                            color: Colors.grey[800]),
-                      ),
-                    ),
+                    const IntervalDropdownSelector(),
+                   
+                    
                     const SizedBox(height: 20.0),
                     if (sis) ...[
                       Row(
@@ -262,93 +233,10 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                         ],
                       ),
                     ] else ...[
-                                  child: Text('Valoración'),
-                                ),
-                                DropdownMenuItem<String>(
-                                  value: 'Estudios',
-                                  child: Text('Estudios'),
-                                ),
-                                DropdownMenuItem<String>(
-                                  value: 'Vacunas',
-                                  child: Text('Vacunas'),
-                                ),
-                                DropdownMenuItem<String>(
-                                  value: 'Nota de evolución',
-                                  child: Text('Nota de evolución'),
-                                ),
-                                DropdownMenuItem<String>(
-                                  value: 'interconsulta',
-                                  child: Text('Nota de interconsulta'),
-                                ),
-                                DropdownMenuItem<String>(
-                                  value: 'Rehabilitación',
-                                  child: Text('Rehabilitación'),
-                                ),
-                              ],
-                              value: valor,
-                              onChanged: (value) {
-                                setState(() {
-                                  valor = value!;
-                                });
-                              },
-                              decoration: InputDecoration(
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  borderSide:
-                                      BorderSide(width: 1, color: Colors.grey),
-                                ),
-                                filled: true,
-                                fillColor: Colors.transparent,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 10.0),
-                          Expanded(
-                            child: FlutterSwitch(
-                              activeText: "Subsecuente",
-                              inactiveText: "Primera vez",
-                              value: status,
-                              valueFontSize: 11.0,
-                              width: 150,
-                              height: 52,
-                              borderRadius: 5.0,
-                              showOnOff: true,
-                              onToggle: (val) {
-                                setState(() {
-                                  status = val;
-                                });
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 20.0),
-                          Expanded(
-                            child: FlutterSwitch(
-                              activeText: "En espera",
-                              inactiveText: "Sin espera",
-                              value: espera,
-                              valueFontSize: 11.0,
-                              width: 150,
-                              height: 52,
-                              borderRadius: 5.0,
-                              showOnOff: true,
-                              onToggle: (val) {
-                                setState(() {
-                                  espera = val;
-                                  print(espera);
-                                });
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
+                      ConsultaInfoForm(notaController: notaController),
                     ],
                     //const SizedBox(height: 20.0),
-                    TextFormField(
-                      controller: notaController,
-                      decoration:
-                          const InputDecoration(labelText: 'Nota para cita'),
-                      maxLines: 3,
-                    ),
+
                     const SizedBox(height: 50.0),
                     ElevatedButton(
                       onPressed: () async {

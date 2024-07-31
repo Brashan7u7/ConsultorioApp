@@ -172,6 +172,7 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                       onPatientAdded: (Map<String, dynamic> patient) {
                         setState(() {
                           nameController.text = patient['nombre'];
+                          pacienteId = patient['id'];
                         });
                       },
                       consultorioId: widget.consultorioId!,

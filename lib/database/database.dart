@@ -12,13 +12,11 @@ class DatabaseManager {
     tz.setLocalLocation(tz.getLocation('America/Mexico_City'));
     return await Connection.open(
       Endpoint(
-        host: '192.168.1.71',
         host: '127.0.0.1',
         //host: '192.168.1.181',
         port: 5432,
         database: 'medicalmanik',
         username: 'postgres',
-        password: '123',
         password: 'DJE20ben',
       ),
       settings: const ConnectionSettings(sslMode: SslMode.disable),
@@ -514,9 +512,6 @@ LIMIT 20;
           'nombre': row[1],
           'fecha_inicio': row[2],
           'fecha_fin': row[3],
-          'color': row[4],
-          'asignado_id': row[10],
-          'paciente_id': row[11],
           'color': row[4]
         });
       }
@@ -541,12 +536,6 @@ LIMIT 20;
 
       int newId = lastId + 1;
 
-      // print(evento.fecha);
-      // print(evento.hora);
-      // Calcular la fecha de inicio y fin basándose en la duración
-      DateTime startDate = DateTime.parse(evento.fecha + " " + evento.hora);
-      int duration = int.parse(evento.duracion) - 1;
-      DateTime endDate = startDate.add(Duration(minutes: duration));
       DateTime startDate;
       DateTime endDate;
 
@@ -564,7 +553,6 @@ LIMIT 20;
 
       await conn.execute(
         Sql.named(
-            "INSERT INTO evento(id, token, nombre, descripcion, fecha_inicio, fecha_fin, usuario_id, calendario_id) VALUES (@id, @token, @nombre,@descripcion, @fecha_inicio, @fecha_fin, @usuario_id, @calendario_id)"),
             "INSERT INTO evento(id, token, nombre, descripcion, fecha_inicio, fecha_fin, all_day, usuario_id, calendario_id,tarea) VALUES (@id, @token, @nombre,@descripcion, @fecha_inicio, @fecha_fin, @all_day, @usuario_id, @calendario_id, @tarea)"),
         parameters: {
           "id": newId,

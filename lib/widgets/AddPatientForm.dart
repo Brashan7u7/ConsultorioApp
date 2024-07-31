@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:calendario_manik/database/database.dart';
 
 class AddPatientForm extends StatefulWidget {
-  final Function(String) onPatientAdded;
+  final Function(Map<String, dynamic>) onPatientAdded;
   final int consultorioId;
 
   const AddPatientForm(
@@ -17,7 +17,7 @@ class AddPatientForm extends StatefulWidget {
 class _AddPatientFormState extends State<AddPatientForm> {
   final _formKey = GlobalKey<FormState>();
   TextEditingController nameController = TextEditingController();
-  List<String> suggestedPatients = [];
+  List<Map<String, dynamic>> suggestedPatients = [];
 
   @override
   void initState() {
@@ -34,7 +34,7 @@ class _AddPatientFormState extends State<AddPatientForm> {
   void searchPatients() async {
     String query = nameController.text.trim();
     if (query.isNotEmpty) {
-      List<String> patients =
+      List<Map<String, dynamic>> patients =
           await DatabaseManager.searchPatients(query, widget.consultorioId);
       setState(() {
         suggestedPatients = patients;
@@ -102,11 +102,12 @@ class _AddPatientFormState extends State<AddPatientForm> {
                 shrinkWrap: true,
                 itemCount: suggestedPatients.length,
                 itemBuilder: (context, index) {
+                  var patient = suggestedPatients[index];
                   return ListTile(
-                    title: Text(suggestedPatients[index]),
+                    title: Text(patient['nombre']),
                     onTap: () {
-                      nameController.text = suggestedPatients[index];
-                      widget.onPatientAdded(suggestedPatients[index]);
+                      nameController.text = patient['nombre'];
+                      widget.onPatientAdded(patient);
                       setState(() {
                         suggestedPatients = [];
                       });

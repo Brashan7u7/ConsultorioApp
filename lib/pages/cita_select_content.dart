@@ -42,16 +42,19 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
   Doctor? selectedDoctor;
   Paciente? selectedPaciente;
 
+  int pacienteId = 0;
+
   @override
   void initState() {
     super.initState();
     if (usuario_cuenta_id == 3 && usuario_rol != 'MED') _fetchDoctores();
+    if (usuario_rol == 'MED') doctorId = usuario_id;
   }
 
   Future<void> _fetchDoctores() async {
     try {
       List<Map<String, dynamic>> doctoresData =
-          await DatabaseManager.getDoctores(usuario_id);
+          await DatabaseManager.getDoctores(grupo_id);
 
       List<Doctor> doctoresList = doctoresData.map((data) {
         return Doctor(
@@ -99,9 +102,10 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     AddPatientForm(
-                      onPatientAdded: (String patientName) {
+                      onPatientAdded: (Map<String, dynamic> patient) {
                         setState(() {
-                          nameController.text = patientName;
+                          nameController.text = patient['nombre'];
+                          pacienteId = patient['id'];
                         });
                       },
                       consultorioId: widget.consultorioId!,
@@ -388,7 +392,7 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                             servicio: servicio,
                             nota: nota,
                             asignado_id: doctorId,
-                            paciente_id: 1,
+                            paciente_id: pacienteId,
                             motivoConsulta: motivoConsulta,
                             tipoCita: tipoCita,
                           );

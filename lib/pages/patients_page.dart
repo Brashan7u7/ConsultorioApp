@@ -126,6 +126,7 @@ class _PatientsState extends State<Patients> {
                           IconButton(
                             icon: const Icon(Icons.delete),
                             onPressed: () {
+                              print(_filteredPatients[index].id);
                               _deletePatient(_filteredPatients[index]);
                             },
                           ),

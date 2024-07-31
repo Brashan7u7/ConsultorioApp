@@ -69,6 +69,7 @@ class _LoginState extends State<Login> {
       usuario_rol = user['rol'];
       usuario_nombre = user['nombre'];
       usuario_cuenta_id = user['cuenta_id'];
+      if (usuario_cuenta_id == 3) grupo_id = user['grupo_id'];
 
       _loadConsultorios();
     } else {

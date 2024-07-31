@@ -30,7 +30,7 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
   TextEditingController nameController = TextEditingController(text: "");
   final TextEditingController doctorController = TextEditingController();
 
-  List<String> suggestedPatients = [];
+  List<Map<String, dynamic>> suggestedPatients = [];
   bool isPatientRegistered =
       true; // Variable para controlar si el paciente está registrado
   List<Map<String, dynamic>> _recommendedAppointments = [];
@@ -40,11 +40,14 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
   int doctorId = 0;
   Doctor? selectedDoctor;
 
+  int pacienteId = 0;
+
   @override
   void initState() {
     super.initState();
     nameController.addListener(searchPatients);
     if (usuario_cuenta_id == 3 && usuario_rol != 'MED') _fetchDoctores();
+    if (usuario_rol == 'MED') doctorId = usuario_id;
   }
 
   @override
@@ -56,11 +59,10 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
   void searchPatients() async {
     String query = nameController.text.trim();
     if (query.isNotEmpty) {
-      List<String> patients =
+      List<Map<String, dynamic>> patients =
           await DatabaseManager.searchPatients(query, widget.consultorioId!);
       setState(() {
         suggestedPatients = patients;
-        // Verificar si el paciente está registrado
         isPatientRegistered = patients.isNotEmpty;
       });
     } else {
@@ -92,7 +94,7 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
   Future<void> _fetchDoctores() async {
     try {
       List<Map<String, dynamic>> doctoresData =
-          await DatabaseManager.getDoctores(usuario_id);
+          await DatabaseManager.getDoctores(grupo_id);
 
       List<Doctor> doctoresList = doctoresData.map((data) {
         return Doctor(
@@ -167,9 +169,10 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               AddPatientForm(
-                onPatientAdded: (String patientName) {
+                onPatientAdded: (Map<String, dynamic> patient) {
                   setState(() {
-                    nameController.text = patientName;
+                    nameController.text = patient['nombre'];
+                    pacienteId = patient['id'];
                   });
                 },
                 consultorioId: widget.consultorioId!,
@@ -551,6 +554,8 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                         duracion: duracion,
                         servicio: servicio,
                         nota: nota,
+                        asignado_id: doctorId,
+                        paciente_id: pacienteId,
                         motivoConsulta: motivoConsulta,
                         tipoCita: tipoCita);
 

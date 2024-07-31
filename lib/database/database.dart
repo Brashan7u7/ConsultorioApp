@@ -49,7 +49,7 @@ class DatabaseManager {
 
       await conn.execute(
         Sql.named(
-            "INSERT INTO tarea(id, token, nombre, descripcion, fecha_inicio, fecha_fin, calendario_id, asignado_id, color, motivo_consulta, tipo_cita) VALUES (@id, @token, @nombre,@descripcion, @fecha_inicio, @fecha_fin, @calendario_id, @asignado_id, @color, @motivo_consulta, @tipo_cita)"),
+            "INSERT INTO tarea(id, token, nombre, descripcion, fecha_inicio, fecha_fin, calendario_id, asignado_id, paciente_id, color, motivo_consulta, tipo_cita) VALUES (@id, @token, @nombre,@descripcion, @fecha_inicio, @fecha_fin, @calendario_id, @asignado_id, @paciente_id, @color, @motivo_consulta, @tipo_cita)"),
         parameters: {
           "id": newId,
           "token": 2,
@@ -58,7 +58,8 @@ class DatabaseManager {
           "fecha_inicio": startDate.toIso8601String(),
           "fecha_fin": endDate.toIso8601String(),
           "calendario_id": consultorioId,
-          "asignado_id": 1,
+          "asignado_id": tarea.asignado_id,
+          "paciente_id": tarea.paciente_id,
           "color": "#9A2EE5",
           "motivo_consulta": tarea.motivoConsulta,
           "tipo_cita": tarea.tipoCita,
@@ -73,7 +74,7 @@ class DatabaseManager {
 
   //! Cita Inmediata
   static Future<int> insertarTareaInmediata(
-      int consultorioId, Tarea tarea, String nota, int doctorId) async {
+      int consultorioId, Tarea tarea, String nota) async {
     try {
       final conn = await _connect();
       DateTime now = DateTime.now();
@@ -100,7 +101,7 @@ class DatabaseManager {
 
       await conn.execute(
         Sql.named(
-          "INSERT INTO tarea(id, token, nombre, descripcion, fecha_inicio, fecha_fin,  calendario_id,asignado_id, color, motivo_consulta, tipo_cita) VALUES (@id, @token, @nombre, @descripcion, @fecha_inicio, @fecha_fin,  @calendario_id, @asignado_id, @color, @motivo_consulta, @tipo_cita)",
+          "INSERT INTO tarea(id, token, nombre, descripcion, fecha_inicio, fecha_fin,  calendario_id,asignado_id, paciente_id, color, motivo_consulta, tipo_cita) VALUES (@id, @token, @nombre, @descripcion, @fecha_inicio, @fecha_fin,  @calendario_id, @asignado_id, @paciente_id, @color, @motivo_consulta, @tipo_cita)",
         ),
         parameters: {
           "id": newId,
@@ -111,7 +112,8 @@ class DatabaseManager {
           "fecha_fin": fechaFinString, // Utiliza la fecha y hora fin calculadas
 
           "calendario_id": consultorioId,
-          "asignado_id": 1,
+          "asignado_id": tarea.asignado_id,
+          "paciente_id": tarea.paciente_id,
           "color": "#EB8015",
           "motivo_consulta": tarea.motivoConsulta,
           "tipo_cita": tarea.tipoCita,
@@ -144,7 +146,7 @@ class DatabaseManager {
 
       await conn.execute(
         Sql.named(
-            "INSERT INTO tarea(id, token, nombre, descripcion, fecha_inicio, fecha_fin,calendario_id, color, asignado_id, motivo_consulta, tipo_cita) VALUES (@id, @token, @nombre,@descripcion, @fecha_inicio, @fecha_fin, @calendario_id, @color, @asignado_id, @motivo_consulta, @tipo_cita)"),
+            "INSERT INTO tarea(id, token, nombre, descripcion, fecha_inicio, fecha_fin,calendario_id, color, asignado_id, paciente_id, motivo_consulta, tipo_cita) VALUES (@id, @token, @nombre,@descripcion, @fecha_inicio, @fecha_fin, @calendario_id, @color, @asignado_id, @paciente_id, @motivo_consulta, @tipo_cita)"),
         parameters: {
           "id": newId,
           "token": 2,
@@ -154,7 +156,8 @@ class DatabaseManager {
           "fecha_fin": endDate.toIso8601String(),
           "calendario_id": consultorioId,
           "color": '#0EEED6',
-          "asignado_id": 1,
+          "asignado_id": tarea.asignado_id,
+          "paciente_id": tarea.paciente_id,
           "motivo_consulta": tarea.motivoConsulta,
           "tipo_cita": tarea.tipoCita,
         },
@@ -592,19 +595,19 @@ LIMIT 20;
   }
 
   //*Paciente
-  static Future<List<String>> searchPatients(
+  static Future<List<Map<String, dynamic>>> searchPatients(
       String query, int consultorioId) async {
-    List<String> patients = [];
+    List<Map<String, dynamic>> patients = [];
     try {
       final conn = await _connect();
       final result = await conn.execute(
         Sql.named(
-            "SELECT nombre FROM paciente WHERE nombre LIKE @query AND consultorio_id = @consultorioId"),
+            "SELECT id, nombre FROM paciente WHERE nombre LIKE @query AND consultorio_id = @consultorioId"),
         parameters: {"query": '%$query%', "consultorioId": consultorioId},
       );
 
       for (var row in result) {
-        patients.add(row[0] as String);
+        patients.add({'id': row[0], 'nombre': row[1]});
       }
 
       await conn.close();
@@ -690,24 +693,47 @@ LIMIT 20;
     List<Map<String, dynamic>> pacientes = [];
     try {
       final conn = await _connect();
-      final result = await conn.execute(
-          Sql.named("SELECT * FROM paciente where consultorio_id = @id "),
-          parameters: {"id": consultorioId});
-      for (var row in result) {
-        pacientes.add({
-          'id': row[0],
-          'nombre': row[1],
-          'ap_paterno': row[2],
-          'ap_materno': row[3],
-          'fecha_nacimiento': row[4],
-          'sexo': row[5],
-          'telefono_movil': row[7],
-          'telefono_fijo': row[8],
-          'correo': row[9],
-          'direccion': row[12],
-          'curp': row[14],
-          'codigo_postal': row[15],
-        });
+      if (usuario_cuenta_id == 3) {
+        final result = await conn.execute("""      SELECT u.*
+FROM paciente u
+JOIN grupo_paciente gp ON u.id = gp.paciente_id
+WHERE gp.grupo_id = $grupo_id;""");
+        for (var row in result) {
+          pacientes.add({
+            'id': row[0],
+            'nombre': row[1],
+            'ap_paterno': row[2],
+            'ap_materno': row[3],
+            'fecha_nacimiento': row[4],
+            'sexo': row[5],
+            'telefono_movil': row[7],
+            'telefono_fijo': row[8],
+            'correo': row[9],
+            'direccion': row[12],
+            'curp': row[14],
+            'codigo_postal': row[15],
+          });
+        }
+      } else {
+        final result = await conn.execute(
+            Sql.named("SELECT * FROM paciente where consultorio_id = @id "),
+            parameters: {"id": consultorioId});
+        for (var row in result) {
+          pacientes.add({
+            'id': row[0],
+            'nombre': row[1],
+            'ap_paterno': row[2],
+            'ap_materno': row[3],
+            'fecha_nacimiento': row[4],
+            'sexo': row[5],
+            'telefono_movil': row[7],
+            'telefono_fijo': row[8],
+            'correo': row[9],
+            'direccion': row[12],
+            'curp': row[14],
+            'codigo_postal': row[15],
+          });
+        }
       }
       await conn.close();
     } catch (e) {
@@ -719,10 +745,21 @@ LIMIT 20;
   static Future<void> deletePaciente(int id) async {
     try {
       final conn = await _connect();
-      await conn.execute(
-        Sql.named("DELETE FROM paciente WHERE id = @id"),
-        parameters: {"id": id},
-      );
+      if (usuario_cuenta_id == 3) {
+        await conn.execute(
+          Sql.named("DELETE FROM grupo_paciente WHERE paciente_id = @id"),
+          parameters: {"id": id},
+        );
+        await conn.execute(
+          Sql.named("DELETE FROM paciente WHERE id = @id "),
+          parameters: {"id": id},
+        );
+      } else {
+        await conn.execute(
+          Sql.named("DELETE FROM paciente WHERE id = @id "),
+          parameters: {"id": id},
+        );
+      }
       await conn.close();
     } catch (e) {
       print('Error al eliminar el paciente: $e');
@@ -735,27 +772,16 @@ LIMIT 20;
       final conn = await _connect();
       if (usuario_cuenta_id == 3) {
         final result = await conn.execute(Sql.named("""
-SELECT
-    u.id AS usuario_id,
-    u.nombre AS usuario_nombre,
-    g.nombre AS grupo_nombre,
-    c.id AS consultorio_id,
-    c.nombre AS nombre
-FROM
-    usuario u
-JOIN
-    grupo g ON u.id = g.medico_id OR u.id = g.asistente_id
-JOIN
-    consultorio c ON c.id = g.consultorio_id
-WHERE
-    u.id = $id
-    AND u.cuenta_id = 3;
+      SELECT c.id,c.nombre, c.intervalo
+FROM consultorio c
+JOIN grupo_consultorio gc ON c.id = gc.consultorio_id
+WHERE gc.grupo_id = $grupo_id;
 """));
         for (var row in result) {
           consultoriosData.add({
-            'grupo_nombre': row[2],
-            'id': row[3],
-            'nombre': row[4],
+            'id': row[0],
+            'nombre': row[1],
+            'intervalo': row[2],
           });
         }
       } else {
@@ -1006,7 +1032,24 @@ WHERE
     List<Map<String, dynamic>> usuarios = [];
     try {
       final conn = await _connect();
-      final result = await conn.execute("SELECT * FROM usuario");
+
+      final result = await conn.execute("""
+SELECT
+  u.id,
+  u.correo,
+  u.contrasena,
+  u.rol,
+  u.nombre,
+  u.apellidos,
+  u.cuenta_id,
+  COALESCE(gm.grupo_id, ga.grupo_id) AS grupo_id
+FROM
+  usuario u
+LEFT JOIN
+  grupo_medico gm ON u.id = gm.medico_id
+LEFT JOIN
+  grupo_asistente ga ON u.id = ga.asistente_id
+""");
       for (var row in result) {
         usuarios.add({
           'id': row[0],
@@ -1015,7 +1058,8 @@ WHERE
           'rol': row[3],
           'nombre': row[4],
           'apellidos': row[5],
-          'cuenta_id': row[15],
+          'cuenta_id': row[6],
+          'grupo_id': row[7],
         });
       }
 
@@ -1031,24 +1075,39 @@ WHERE
     List<Map<String, dynamic>> consultoriosData = [];
     try {
       final conn = await _connect();
-      final query = '''
+      if (usuario_cuenta_id == 3) {
+        final result = await conn.execute('''
+      SELECT c.id,c.nombre, c.intervalo
+FROM consultorio c
+JOIN grupo_consultorio gc ON c.id = gc.consultorio_id
+WHERE gc.grupo_id = $grupo_id;
+    ''');
+
+        for (var row in result) {
+          consultoriosData.add({
+            'id': row[0],
+            'nombre': row[1],
+            'intervalo': row[2],
+          });
+        }
+      } else {
+        final result = await conn.execute('''
       SELECT c.*
       FROM consultorio c
       JOIN asistente_consultorio ac ON c.id = ac.consultorio_id
-      WHERE ac.asistente_id = @userId
-    ''';
-      final result =
-          await conn.execute(Sql.named(query), parameters: {"userId": userId});
+      WHERE ac.asistente_id = $userId
+    ''');
 
-      for (var row in result) {
-        consultoriosData.add({
-          'id': row[0],
-          'nombre': row[1],
-          'direccion': row[2],
-          'colonia_id': row[3],
-          'telefono': row[5],
-          'intervalo': row[8],
-        });
+        for (var row in result) {
+          consultoriosData.add({
+            'id': row[0],
+            'nombre': row[1],
+            'direccion': row[2],
+            'colonia_id': row[3],
+            'telefono': row[5],
+            'intervalo': row[8],
+          });
+        }
       }
       await conn.close();
     } catch (e) {
@@ -1105,17 +1164,15 @@ WHERE
     }
   }
 
-  static Future<List<Map<String, dynamic>>> getDoctores(
-      int asistente_id) async {
+  static Future<List<Map<String, dynamic>>> getDoctores(int grupo_id) async {
     List<Map<String, dynamic>> doctores = [];
     try {
       final conn = await _connect();
       final result = await conn.execute("""
       SELECT u.id,u.nombre, u.apellidos
 FROM usuario u
-JOIN consultorio c ON u.id = c.usuario_id
-JOIN asistente_consultorio ac ON c.id = ac.consultorio_id
-WHERE ac.asistente_id = ${asistente_id};
+JOIN grupo_medico gm ON u.id = gm.medico_id
+WHERE gm.grupo_id = $grupo_id;
     """);
       for (var row in result) {
         doctores.add({

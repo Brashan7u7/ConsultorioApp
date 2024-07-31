@@ -8,7 +8,7 @@ import 'package:calendario_manik/pages/consulting_page.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart';
 import 'package:calendario_manik/database/database.dart';
-import 'package:calendario_manik/pages/login_page.dart';
+import 'package:calendario_manik/pages/start_page.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -232,7 +232,8 @@ class _CalendarState extends State<Calendar> {
     //*Tareas
     List<Map<String, dynamic>> tareasData =
         await DatabaseManager.getTareaSeleccionadaData(globalIdConsultorio);
-    //print('Tareas Data: $tareasData'); // Añadir esta línea para revisar los datos
+    print(
+        'Tareas Data: $tareasData'); // Añadir esta línea para revisar los datos
     List<Appointment> tareasAppointments =
         _getCalendarDataSourceTareas(tareasData);
 
@@ -372,7 +373,9 @@ class _CalendarState extends State<Calendar> {
                 );
               },
             ),
-            (usuario_rol != 'ASI' && usuario_rol != 'ENF')
+            (usuario_rol != 'ASI' &&
+                    usuario_rol != 'ENF' &&
+                    usuario_cuenta_id != 3)
                 ? ListTile(
                     contentPadding: const EdgeInsets.only(left: 25.0),
                     leading: const Icon(
@@ -402,11 +405,11 @@ class _CalendarState extends State<Calendar> {
                 onTap: () async {
                   bool confirmCerrar = await _showConfirmationDialog(context);
                   if (confirmCerrar) {
-                    Navigator.push(
+                    Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const Login(),
-                      ),
+                          builder: (context) => const StartPage()),
+                      (Route<dynamic> route) => false,
                     );
                   }
                 },

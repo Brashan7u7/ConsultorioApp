@@ -36,6 +36,8 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
   int doctorId = 0;
   Doctor? selectedDoctor;
 
+  int pacienteId = 0;
+
   void _saveCitaInmediata(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
       // Aquí se realiza la lógica para guardar la cita inmediata
@@ -71,7 +73,7 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
         servicio: "", // Ajusta el servicio si es necesario
         nota: nota,
         asignado_id: doctorId,
-        paciente_id: 1,
+        paciente_id: pacienteId,
         motivoConsulta: motivoConsulta,
         tipoCita: tipoCita,
       );
@@ -79,7 +81,7 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
 
       // Insertar la cita inmediata en la base de datos
       int citaId = await DatabaseManager.insertarTareaInmediata(
-          widget.consultorioId!, tarea, nota, doctorId);
+          widget.consultorioId!, tarea, nota);
 
       if (citaId != -1) {
         // Éxito al guardar la cita
@@ -122,12 +124,13 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
   void initState() {
     super.initState();
     if (usuario_cuenta_id == 3 && usuario_rol != 'MED') _fetchDoctores();
+    if (usuario_rol == 'MED') doctorId = usuario_id;
   }
 
   Future<void> _fetchDoctores() async {
     try {
       List<Map<String, dynamic>> doctoresData =
-          await DatabaseManager.getDoctores(usuario_id);
+          await DatabaseManager.getDoctores(grupo_id);
 
       List<Doctor> doctoresList = doctoresData.map((data) {
         return Doctor(
@@ -159,9 +162,10 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   AddPatientForm(
-                    onPatientAdded: (String patientName) {
+                    onPatientAdded: (Map<String, dynamic> patient) {
                       setState(() {
-                        nameController.text = patientName;
+                        nameController.text = patient['nombre'];
+                        pacienteId = patient['id'];
                       });
                     },
                     consultorioId: widget.consultorioId!,

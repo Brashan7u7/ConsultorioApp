@@ -12,12 +12,12 @@ class DatabaseManager {
     tz.setLocalLocation(tz.getLocation('America/Mexico_City'));
     return await Connection.open(
       Endpoint(
-        host: '127.0.0.1',
+        host: '192.168.1.71',
         //host: '192.168.1.181',
         port: 5432,
         database: 'medicalmanik',
         username: 'postgres',
-        password: 'DJE20ben',
+        password: '123',
       ),
       settings: const ConnectionSettings(sslMode: SslMode.disable),
     );
@@ -499,10 +499,21 @@ LIMIT 20;
       final conn = await _connect();
 
       print('Connected. Executing query with consultorioId: $consultorioId');
-      final result = await conn.execute(
-          Sql.named(
-              "select id, nombre, TO_CHAR(fecha_inicio,'yyyy-MM-dd HH24:MI:SS') fecha_inicio,  TO_CHAR(fecha_fin,'yyyy-MM-dd HH24:MI:SS') fecha_fin, color from tarea WHERE calendario_id=@id"),
-          parameters: {"id": consultorioId});
+      final result = await conn.execute(Sql.named("""SELECT
+  t.id,
+  t.nombre AS tarea_nombre,
+  TO_CHAR(t.fecha_inicio, 'yyyy-MM-dd HH24:MI:SS') AS fecha_inicio,
+  TO_CHAR(t.fecha_fin, 'yyyy-MM-dd HH24:MI:SS') AS fecha_fin,
+  t.color,
+  m.nombre || ' ' || m.apellidos AS medico_nombre_completo,
+  p.nombre || ' ' || p.ap_paterno AS paciente_nombre_completo,
+  t.motivo_consulta
+FROM
+  tarea t
+  LEFT JOIN usuario m ON t.asignado_id = m.id AND m.rol = 'MED'
+  LEFT JOIN paciente p ON t.paciente_id = p.id
+WHERE
+  t.calendario_id = @id"""), parameters: {"id": consultorioId});
 
       print('Query executed. Processing results...');
       for (final row in result) {
@@ -512,7 +523,10 @@ LIMIT 20;
           'nombre': row[1],
           'fecha_inicio': row[2],
           'fecha_fin': row[3],
-          'color': row[4]
+          'color': row[4],
+          'asignado_id': row[5],
+          'paciente_id': row[6],
+          'motivo_consulta': row[7],
         });
       }
 
@@ -524,7 +538,6 @@ LIMIT 20;
     // print('Tareas: $tareas'); // Imprimir el resultado final
     return tareas;
   }
-
 
   //! Evento
   static Future<void> insertEvento(int consultorioId, Evento evento) async {

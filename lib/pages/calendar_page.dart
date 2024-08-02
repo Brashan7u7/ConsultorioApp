@@ -887,17 +887,31 @@ List<Appointment> _getCalendarDataSourceTareas(
         '${DateFormat.jm().format(startTime)} - ${DateFormat.jm().format(endTime)}';
     String color = tarea['color'].toString();
     String id = tarea['id'].toString();
+    String medico = tarea['asignado_id'].toString();
+    String paciente = tarea['paciente_id'].toString();
+    String motivo = tarea['motivo_consulta'].toString();
 
-    appointments.add(Appointment(
-      subject: '$nombre\n$horario',
-      startTime: startTime,
-      endTime: endTime,
-      color: HexColor(color),
-      notes: id, // Guardar el id en la propiedad notes
-      location: 'tarea', // Marcar como tarea
-    ));
+    if (usuario_cuenta_id == 3) {
+      appointments.add(Appointment(
+        subject:
+            '$nombre\n$horario\nMédico: $medico\nPaciente: $paciente\nMotivo: $motivo',
+        startTime: startTime,
+        endTime: endTime,
+        color: HexColor(color),
+        notes: id, // Guardar el id en la propiedad notes
+        location: 'tarea', // Marcar como tarea
+      ));
+    } else {
+      appointments.add(Appointment(
+        subject: '$nombre\n$horario\nPaciente: $paciente\nMotivo: $motivo',
+        startTime: startTime,
+        endTime: endTime,
+        color: HexColor(color),
+        notes: id, // Guardar el id en la propiedad notes
+        location: 'tarea', // Marcar como tarea
+      ));
+    }
   }
 
   return appointments;
 }
-

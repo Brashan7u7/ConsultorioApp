@@ -741,15 +741,23 @@ WHERE
   }
 
   static Future<List<Map<String, dynamic>>> getPacientes(
-      int consultorioId) async {
+      int consultorioId, int offset, int limit) async {
     List<Map<String, dynamic>> pacientes = [];
     try {
       final conn = await _connect();
+      String query;
+
       if (usuario_cuenta_id == 3) {
-        final result = await conn.execute("""      SELECT u.*
-FROM paciente u
-JOIN grupo_paciente gp ON u.id = gp.paciente_id
-WHERE gp.grupo_id = $grupo_id;""");
+        // Consulta SQL para el caso de usuario con ID 3
+        query = """
+        SELECT u.*
+        FROM paciente u
+        JOIN grupo_paciente gp ON u.id = gp.paciente_id
+        WHERE gp.grupo_id = $grupo_id
+        LIMIT ? OFFSET ?;
+      """;
+        final result = await conn.execute(Sql.named(query),
+            parameters: {"limit": limit, "offset": offset});
         for (var row in result) {
           pacientes.add({
             'id': row[0],
@@ -767,9 +775,18 @@ WHERE gp.grupo_id = $grupo_id;""");
           });
         }
       } else {
-        final result = await conn.execute(
-            Sql.named("SELECT * FROM paciente where consultorio_id = @id "),
-            parameters: {"id": consultorioId});
+        // Consulta SQL para otros usuarios
+        query = """
+        SELECT * 
+        FROM paciente 
+        WHERE consultorio_id = @id
+        LIMIT @limit OFFSET @offset;
+      """;
+        final result = await conn.execute(Sql.named(query), parameters: {
+          "id": consultorioId,
+          "limit": limit,
+          "offset": offset
+        });
         for (var row in result) {
           pacientes.add({
             'id': row[0],

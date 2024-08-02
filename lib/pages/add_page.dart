@@ -2,6 +2,7 @@ import 'package:calendario_manik/models/paciente.dart';
 import 'package:calendario_manik/pages/cita_programada_content.dart';
 import 'package:calendario_manik/pages/cita_rapida_content.dart';
 import 'package:calendario_manik/pages/cita_select_content.dart';
+import 'package:calendario_manik/pages/editingCita_page.dart';
 import 'package:calendario_manik/pages/evento_content.dart';
 import 'package:calendario_manik/pages/paciente_content.dart';
 import 'package:flutter/material.dart';
@@ -59,7 +60,7 @@ class Add extends StatelessWidget {
       ),
       body: isCitaInmediata
           ? CitaRapidaContent(consultorioId: consultorioId)
-          : (isCitaselect)
+          : isCitaselect
               ? CitaSelectContent(
                   fechaController: fechaController!,
                   horaController: horaController!,
@@ -76,7 +77,9 @@ class Add extends StatelessWidget {
                           ? CitaProgramadaContent(
                               consultorioId: consultorioId,
                             )
-                          : Calendar(),
+                          : isEditingCita
+                              ? EditingCita()
+                              : Calendar(),
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:calendario_manik/pages/editingCita_page.dart';
 import 'package:calendario_manik/pages/lista_espera.dart';
 import 'package:calendario_manik/variab.dart';
 import 'package:flutter/material.dart';
@@ -744,7 +745,21 @@ class _CalendarState extends State<Calendar> {
                         style: TextStyle(
                             fontSize: 16, color: Color.fromARGB(255, 0, 0, 0)),
                       ),
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => Add(
+                              isCitaInmediata: false,
+                              isEvento: false,
+                              isPacient: false,
+                              isCitaPro: false,
+                              isEditingCita: true,
+                              consultorioId: globalIdConsultorio,
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ],
                 )

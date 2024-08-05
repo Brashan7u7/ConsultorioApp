@@ -179,10 +179,9 @@ class DatabaseManager {
       print('Zona horaria actual: ${await conn.execute('SHOW timezone;')}');
       final result = await conn.execute("""
  
-
-
 WITH fechas AS (
-    SELECT CURRENT_DATE + s.i AS recomendacion_semanal,
+    SELECT 
+        CURRENT_DATE + s.i AS recomendacion_semanal,
         lower(translate(to_char((CURRENT_DATE + s.i)::timestamp with time zone, 'TMDay'::text), 'ÁÉÍÓÚáéíóú'::text, 'AEIOUaeiou'::text)) AS dia_de_la_semana,
         to_char(CURRENT_TIMESTAMP AT TIME ZONE 'America/Mexico_City', 'HH24:MI'::text) AS hora_actual,
         to_char(CURRENT_TIMESTAMP AT TIME ZONE 'America/Mexico_City', 'YYYY-MM-DD HH24:MI:SS TZ') AS fecha_hora_zona,
@@ -245,17 +244,23 @@ WITH fechas AS (
         SELECT 1
         FROM eventos e
         WHERE f.recomendacion_semanal = e.fecha_evento
-        AND substr(h.hora, 1, 5) BETWEEN e.hora_inicio AND e.hora_fin
+        AND (
+            (substr(h.hora, 1, 5) >= e.hora_inicio AND substr(h.hora, 1, 5) < e.hora_fin) OR 
+            (substr(h.hora, 1, 5) < e.hora_inicio AND substr(h.hora, 1, 5) >= e.hora_fin)
+        )
     )
     AND NOT EXISTS (
         SELECT 1
         FROM tareas t
         WHERE f.recomendacion_semanal = t.fecha_tarea
-        AND substr(h.hora, 1, 5) BETWEEN t.hora_inicio_tarea AND t.hora_fin_tarea
+        AND (
+            (substr(h.hora, 1, 5) >= t.hora_inicio_tarea AND substr(h.hora, 1, 5) < t.hora_fin_tarea) OR 
+            (substr(h.hora, 1, 5) < t.hora_inicio_tarea AND substr(h.hora, 1, 5) >= t.hora_fin_tarea)
+        )
     )
     AND (
         f.recomendacion_semanal > CURRENT_DATE OR
-        f.recomendacion_semanal = CURRENT_DATE AND substr(h.hora, 1, 5) >= f.hora_actual
+        (f.recomendacion_semanal = CURRENT_DATE AND substr(h.hora, 1, 5) >= f.hora_actual)
     )
     ORDER BY f.recomendacion_semanal, h.hora
 )
@@ -265,8 +270,6 @@ SELECT DISTINCT to_char(recomendacion_semanal::timestamp with time zone, 'YYYY-M
     fecha_hora_zona
 FROM horas_libres
 LIMIT 100;
-
-
 
 
     """);
@@ -293,7 +296,8 @@ LIMIT 100;
       final result = await conn.execute("""
      
 WITH fechas AS (
-    SELECT CURRENT_DATE + s.i AS recomendacion_semanal,
+    SELECT 
+        CURRENT_DATE + s.i AS recomendacion_semanal,
         lower(translate(to_char((CURRENT_DATE + s.i)::timestamp with time zone, 'TMDay'::text), 'ÁÉÍÓÚáéíóú'::text, 'AEIOUaeiou'::text)) AS dia_de_la_semana,
         to_char(CURRENT_TIMESTAMP AT TIME ZONE 'America/Mexico_City', 'HH24:MI'::text) AS hora_actual,
         to_char(CURRENT_TIMESTAMP AT TIME ZONE 'America/Mexico_City', 'YYYY-MM-DD HH24:MI:SS TZ') AS fecha_hora_zona,
@@ -356,17 +360,23 @@ WITH fechas AS (
         SELECT 1
         FROM eventos e
         WHERE f.recomendacion_semanal = e.fecha_evento
-        AND substr(h.hora, 1, 5) BETWEEN e.hora_inicio AND e.hora_fin
+        AND (
+            (substr(h.hora, 1, 5) >= e.hora_inicio AND substr(h.hora, 1, 5) < e.hora_fin) OR 
+            (substr(h.hora, 1, 5) < e.hora_inicio AND substr(h.hora, 1, 5) >= e.hora_fin)
+        )
     )
     AND NOT EXISTS (
         SELECT 1
         FROM tareas t
         WHERE f.recomendacion_semanal = t.fecha_tarea
-        AND substr(h.hora, 1, 5) BETWEEN t.hora_inicio_tarea AND t.hora_fin_tarea
+        AND (
+            (substr(h.hora, 1, 5) >= t.hora_inicio_tarea AND substr(h.hora, 1, 5) < t.hora_fin_tarea) OR 
+            (substr(h.hora, 1, 5) < t.hora_inicio_tarea AND substr(h.hora, 1, 5) >= t.hora_fin_tarea)
+        )
     )
     AND (
         f.recomendacion_semanal > CURRENT_DATE OR
-        f.recomendacion_semanal = CURRENT_DATE AND substr(h.hora, 1, 5) >= f.hora_actual
+        (f.recomendacion_semanal = CURRENT_DATE AND substr(h.hora, 1, 5) >= f.hora_actual)
     )
     ORDER BY f.recomendacion_semanal, h.hora
 )
@@ -398,8 +408,10 @@ LIMIT 100;
     try {
       final conn = await _connect();
       final result = await conn.execute("""
-     WITH fechas AS (
-    SELECT CURRENT_DATE + s.i AS recomendacion_semanal,
+   
+WITH fechas AS (
+    SELECT 
+        CURRENT_DATE + s.i AS recomendacion_semanal,
         lower(translate(to_char((CURRENT_DATE + s.i)::timestamp with time zone, 'TMDay'::text), 'ÁÉÍÓÚáéíóú'::text, 'AEIOUaeiou'::text)) AS dia_de_la_semana,
         to_char(CURRENT_TIMESTAMP AT TIME ZONE 'America/Mexico_City', 'HH24:MI'::text) AS hora_actual,
         to_char(CURRENT_TIMESTAMP AT TIME ZONE 'America/Mexico_City', 'YYYY-MM-DD HH24:MI:SS TZ') AS fecha_hora_zona,
@@ -462,17 +474,23 @@ LIMIT 100;
         SELECT 1
         FROM eventos e
         WHERE f.recomendacion_semanal = e.fecha_evento
-        AND substr(h.hora, 1, 5) BETWEEN e.hora_inicio AND e.hora_fin
+        AND (
+            (substr(h.hora, 1, 5) >= e.hora_inicio AND substr(h.hora, 1, 5) < e.hora_fin) OR 
+            (substr(h.hora, 1, 5) < e.hora_inicio AND substr(h.hora, 1, 5) >= e.hora_fin)
+        )
     )
     AND NOT EXISTS (
         SELECT 1
         FROM tareas t
         WHERE f.recomendacion_semanal = t.fecha_tarea
-        AND substr(h.hora, 1, 5) BETWEEN t.hora_inicio_tarea AND t.hora_fin_tarea
+        AND (
+            (substr(h.hora, 1, 5) >= t.hora_inicio_tarea AND substr(h.hora, 1, 5) < t.hora_fin_tarea) OR 
+            (substr(h.hora, 1, 5) < t.hora_inicio_tarea AND substr(h.hora, 1, 5) >= t.hora_fin_tarea)
+        )
     )
     AND (
         f.recomendacion_semanal > CURRENT_DATE OR
-        f.recomendacion_semanal = CURRENT_DATE AND substr(h.hora, 1, 5) >= f.hora_actual
+        (f.recomendacion_semanal = CURRENT_DATE AND substr(h.hora, 1, 5) >= f.hora_actual)
     )
     ORDER BY f.recomendacion_semanal, h.hora
 )

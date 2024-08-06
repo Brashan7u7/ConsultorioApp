@@ -12,7 +12,7 @@ class DatabaseManager {
     tz.setLocalLocation(tz.getLocation('America/Mexico_City'));
     return await Connection.open(
       Endpoint(
-        host: '192.168.1.71',
+        host: '192.168.1.72',
         //host: '192.168.1.181',
         port: 5432,
         database: 'medicalmanik',

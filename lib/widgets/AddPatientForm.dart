@@ -6,9 +6,13 @@ import 'package:calendario_manik/database/database.dart';
 class AddPatientForm extends StatefulWidget {
   final Function(Map<String, dynamic>) onPatientAdded;
   final int consultorioId;
+  final String nombres;
 
   const AddPatientForm(
-      {super.key, required this.onPatientAdded, required this.consultorioId});
+      {super.key,
+      required this.onPatientAdded,
+      required this.consultorioId,
+      required this.nombres});
 
   @override
   _AddPatientFormState createState() => _AddPatientFormState();
@@ -77,8 +81,8 @@ class _AddPatientFormState extends State<AddPatientForm> {
                     padding: const EdgeInsets.all(10.0),
                     child: TextFormField(
                       controller: nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Ingrese el nombre del paciente',
+                      decoration: InputDecoration(
+                        labelText: 'Ingrese el nombre del ${widget.nombres}',
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {

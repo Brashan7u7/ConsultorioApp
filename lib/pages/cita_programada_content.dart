@@ -1,6 +1,7 @@
 import 'package:calendario_manik/database/database.dart';
 import 'package:calendario_manik/models/tarea.dart';
 import 'package:calendario_manik/widgets/AddPatientForm.dart';
+import 'package:calendario_manik/widgets/AppointmentNoteWidget.dart';
 import 'package:flutter/material.dart';
 import 'package:calendario_manik/pages/add_page.dart';
 import 'package:calendario_manik/pages/calendar_page.dart';
@@ -41,6 +42,7 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
   Doctor? selectedDoctor;
 
   int pacienteId = 0;
+  String nombres = 'paciente';
 
   @override
   void initState() {
@@ -169,48 +171,47 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               AddPatientForm(
-                      onPatientAdded: (Map<String, dynamic> patient) {
-                        setState(() {
-                          nameController.text = patient['nombre'];
-                          pacienteId = patient['id'];
-                        });
-                      },
-                      consultorioId: widget.consultorioId!,
-                    ),
+                onPatientAdded: (Map<String, dynamic> patient) {
+                  setState(() {
+                    nameController.text = patient['nombre'];
+                    pacienteId = patient['id'];
+                  });
+                },
+                consultorioId: widget.consultorioId!,
+                nombres: nombres,
+              ),
               const SizedBox(height: 20.0),
               if (usuario_cuenta_id == 3 && usuario_rol != 'MED')
-                Container(
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: DropdownButton<Doctor>(
-                              isExpanded: true,
-                              hint: const Text(
-                                  'Seleccione el médico que atenderá la cita'),
-                              items: doctores.map((doctor) {
-                                return DropdownMenuItem<Doctor>(
-                                  value: doctor,
-                                  child: Text(
-                                      '${doctor.nombre} ${doctor.apellidos}'),
-                                );
-                              }).toList(),
-                              value: selectedDoctor,
-                              onChanged: (value) {
-                                setState(() {
-                                  selectedDoctor = value;
-                                  if (selectedDoctor != null) {
-                                    doctorId = selectedDoctor!.id!;
-                                  }
-                                });
-                              },
-                            ),
+                Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: DropdownButton<Doctor>(
+                            isExpanded: true,
+                            hint: const Text(
+                                'Seleccione el médico que atenderá la cita'),
+                            items: doctores.map((doctor) {
+                              return DropdownMenuItem<Doctor>(
+                                value: doctor,
+                                child: Text(
+                                    '${doctor.nombre} ${doctor.apellidos}'),
+                              );
+                            }).toList(),
+                            value: selectedDoctor,
+                            onChanged: (value) {
+                              setState(() {
+                                selectedDoctor = value;
+                                if (selectedDoctor != null) {
+                                  doctorId = selectedDoctor!.id!;
+                                }
+                              });
+                            },
                           ),
-                        ],
-                      ),
-                    ],
-                  ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               const SizedBox(height: 20.0),
               Padding(
@@ -251,7 +252,7 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(width: 1, color: Colors.grey),
+                    borderSide: const BorderSide(width: 1, color: Colors.grey),
                   ),
                   filled: true,
                   fillColor: Colors.transparent,
@@ -293,7 +294,7 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(width: 1, color: Colors.grey),
+                    borderSide: const BorderSide(width: 1, color: Colors.grey),
                   ),
                   filled: true,
                   fillColor: Colors.transparent,
@@ -359,7 +360,7 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                             borderSide:
-                                BorderSide(width: 1, color: Colors.grey),
+                                const BorderSide(width: 1, color: Colors.grey),
                           ),
                           filled: true,
                           fillColor: Colors.transparent,
@@ -450,7 +451,7 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                             borderSide:
-                                BorderSide(width: 1, color: Colors.grey),
+                                const BorderSide(width: 1, color: Colors.grey),
                           ),
                           filled: true,
                           fillColor: Colors.transparent,
@@ -499,28 +500,7 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                 ),
               ],
               const SizedBox(height: 25.0),
-              Padding(
-                padding: const EdgeInsets.all(5.0),
-                child: Text(
-                  'Nota para la cita',
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.normal,
-                      color: Colors.grey[800]),
-                ),
-              ),
-              TextFormField(
-                controller: notaController,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(width: 1, color: Colors.grey),
-                  ),
-                  filled: true,
-                  fillColor: Colors.transparent,
-                ),
-                maxLines: 3,
-              ),
+              AppointmentNoteWidget(noteController: notaController),
               const SizedBox(height: 70.0),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
@@ -529,7 +509,7 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(
                         10), // Radio de esquinas redondeadas
-                    side: BorderSide(
+                    side: const BorderSide(
                         width: 1, color: Colors.grey), // Borde del botón
                   ),
                 ),

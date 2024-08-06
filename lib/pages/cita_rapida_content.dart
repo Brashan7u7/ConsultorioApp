@@ -37,6 +37,7 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
   Doctor? selectedDoctor;
 
   int pacienteId = 0;
+  String nombres = "paciente";
 
   void _saveCitaInmediata(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
@@ -169,6 +170,7 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
                       });
                     },
                     consultorioId: widget.consultorioId!,
+                    nombres: nombres,
                   ),
                   // Lista de sugerencias de pacientes
                   if (suggestedPatients.isNotEmpty)

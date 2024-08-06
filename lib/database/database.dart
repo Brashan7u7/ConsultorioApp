@@ -179,10 +179,9 @@ class DatabaseManager {
       print('Zona horaria actual: ${await conn.execute('SHOW timezone;')}');
       final result = await conn.execute("""
  
-
-
 WITH fechas AS (
-    SELECT CURRENT_DATE + s.i AS recomendacion_semanal,
+    SELECT 
+        CURRENT_DATE + s.i AS recomendacion_semanal,
         lower(translate(to_char((CURRENT_DATE + s.i)::timestamp with time zone, 'TMDay'::text), 'ÁÉÍÓÚáéíóú'::text, 'AEIOUaeiou'::text)) AS dia_de_la_semana,
         to_char(CURRENT_TIMESTAMP AT TIME ZONE 'America/Mexico_City', 'HH24:MI'::text) AS hora_actual,
         to_char(CURRENT_TIMESTAMP AT TIME ZONE 'America/Mexico_City', 'YYYY-MM-DD HH24:MI:SS TZ') AS fecha_hora_zona,
@@ -224,13 +223,12 @@ WITH fechas AS (
         unnest(string_to_array(horario_consultorio.domingo::text, ','::text)) AS hora
     FROM horario_consultorio
 ), eventos AS (
-    SELECT date(evento.fecha_inicio) AS fecha_evento,
+    SELECT DISTINCT date(evento.fecha_inicio) AS fecha_evento,
         to_char(evento.fecha_inicio, 'HH24:MI'::text) AS hora_inicio,
         to_char(evento.fecha_fin, 'HH24:MI'::text) AS hora_fin
     FROM evento
 ), tareas AS (
-    SELECT
-        date(tarea.fecha_inicio) AS fecha_tarea,
+    SELECT DISTINCT date(tarea.fecha_inicio) AS fecha_tarea,
         to_char(tarea.fecha_inicio, 'HH24:MI'::text) AS hora_inicio_tarea,
         to_char(tarea.fecha_fin, 'HH24:MI'::text) AS hora_fin_tarea
     FROM tarea
@@ -246,30 +244,32 @@ WITH fechas AS (
         SELECT 1
         FROM eventos e
         WHERE f.recomendacion_semanal = e.fecha_evento
-        AND to_char(f.recomendacion_semanal + (split_part(h.hora, '-'::text, 1)::interval), 'HH24:MI'::text) >= e.hora_inicio
-        AND to_char(f.recomendacion_semanal + (split_part(h.hora, '-'::text, 2)::interval), 'HH24:MI'::text) <= e.hora_fin
+        AND (
+            (substr(h.hora, 1, 5) >= e.hora_inicio AND substr(h.hora, 1, 5) < e.hora_fin) OR 
+            (substr(h.hora, 1, 5) < e.hora_inicio AND substr(h.hora, 1, 5) >= e.hora_fin)
+        )
     )
     AND NOT EXISTS (
         SELECT 1
         FROM tareas t
         WHERE f.recomendacion_semanal = t.fecha_tarea
-        AND to_char(f.recomendacion_semanal + (split_part(h.hora, '-'::text, 1)::interval), 'HH24:MI'::text) >= t.hora_inicio_tarea
-        AND to_char(f.recomendacion_semanal + (split_part(h.hora, '-'::text, 2)::interval), 'HH24:MI'::text) <= t.hora_fin_tarea
+        AND (
+            (substr(h.hora, 1, 5) >= t.hora_inicio_tarea AND substr(h.hora, 1, 5) < t.hora_fin_tarea) OR 
+            (substr(h.hora, 1, 5) < t.hora_inicio_tarea AND substr(h.hora, 1, 5) >= t.hora_fin_tarea)
+        )
     )
     AND (
         f.recomendacion_semanal > CURRENT_DATE OR
-        f.recomendacion_semanal = CURRENT_DATE AND to_char(f.recomendacion_semanal + (split_part(h.hora, '-'::text, 1)::interval), 'HH24:MI'::text) >= f.hora_actual
+        (f.recomendacion_semanal = CURRENT_DATE AND substr(h.hora, 1, 5) >= f.hora_actual)
     )
     ORDER BY f.recomendacion_semanal, h.hora
 )
-SELECT to_char(recomendacion_semanal::timestamp with time zone, 'YYYY-MM-DD'::text) AS recomendacion_semanal,
+SELECT DISTINCT to_char(recomendacion_semanal::timestamp with time zone, 'YYYY-MM-DD'::text) AS recomendacion_semanal,
     dia_de_la_semana,
     hora_disponible,
     fecha_hora_zona
 FROM horas_libres
 LIMIT 100;
-
-
 
 
     """);
@@ -297,82 +297,95 @@ LIMIT 100;
      
 WITH fechas AS (
     SELECT 
-        CURRENT_DATE + i AS recomendacion_semanal,
-        LOWER(translate(TO_CHAR(CURRENT_DATE + i, 'TMDay'), 'ÁÉÍÓÚáéíóú', 'AEIOUaeiou')) AS dia_de_la_semana,
-        TO_CHAR(CURRENT_TIMESTAMP, 'HH24:MI') AS hora_actual
-    FROM 
-        generate_series(7, 30) AS s(i)
-), 
-horario AS (
-    SELECT id, 'lunes' AS dia_de_la_semana, UNNEST(string_to_array(lunes, ',')) AS hora FROM horario_consultorio
+        CURRENT_DATE + s.i AS recomendacion_semanal,
+        lower(translate(to_char((CURRENT_DATE + s.i)::timestamp with time zone, 'TMDay'::text), 'ÁÉÍÓÚáéíóú'::text, 'AEIOUaeiou'::text)) AS dia_de_la_semana,
+        to_char(CURRENT_TIMESTAMP AT TIME ZONE 'America/Mexico_City', 'HH24:MI'::text) AS hora_actual,
+        to_char(CURRENT_TIMESTAMP AT TIME ZONE 'America/Mexico_City', 'YYYY-MM-DD HH24:MI:SS TZ') AS fecha_hora_zona,
+        'America/Mexico_City' AS zona_horaria
+    FROM generate_series(7, 30) s(i)
+), horario AS (
+    SELECT horario_consultorio.id,
+        'lunes'::text AS dia_de_la_semana,
+        unnest(string_to_array(horario_consultorio.lunes::text, ','::text)) AS hora
+    FROM horario_consultorio
     UNION ALL
-    SELECT id, 'martes' AS dia_de_la_semana, UNNEST(string_to_array(martes, ',')) AS hora FROM horario_consultorio
+    SELECT horario_consultorio.id,
+        'martes'::text AS dia_de_la_semana,
+        unnest(string_to_array(horario_consultorio.martes::text, ','::text)) AS hora
+    FROM horario_consultorio
     UNION ALL
-    SELECT id, 'miercoles' AS dia_de_la_semana, UNNEST(string_to_array(miercoles, ',')) AS hora FROM horario_consultorio
+    SELECT horario_consultorio.id,
+        'miercoles'::text AS dia_de_la_semana,
+        unnest(string_to_array(horario_consultorio.miercoles::text, ','::text)) AS hora
+    FROM horario_consultorio
     UNION ALL
-    SELECT id, 'jueves' AS dia_de_la_semana, UNNEST(string_to_array(jueves, ',')) AS hora FROM horario_consultorio
+    SELECT horario_consultorio.id,
+        'jueves'::text AS dia_de_la_semana,
+        unnest(string_to_array(horario_consultorio.jueves::text, ','::text)) AS hora
+    FROM horario_consultorio
     UNION ALL
-    SELECT id, 'viernes' AS dia_de_la_semana, UNNEST(string_to_array(viernes, ',')) AS hora FROM horario_consultorio
+    SELECT horario_consultorio.id,
+        'viernes'::text AS dia_de_la_semana,
+        unnest(string_to_array(horario_consultorio.viernes::text, ','::text)) AS hora
+    FROM horario_consultorio
     UNION ALL
-    SELECT id, 'sabado' AS dia_de_la_semana, UNNEST(string_to_array(sabado, ',')) AS hora FROM horario_consultorio
+    SELECT horario_consultorio.id,
+        'sabado'::text AS dia_de_la_semana,
+        unnest(string_to_array(horario_consultorio.sabado::text, ','::text)) AS hora
+    FROM horario_consultorio
     UNION ALL
-    SELECT id, 'domingo' AS dia_de_la_semana, UNNEST(string_to_array(domingo, ',')) AS hora FROM horario_consultorio
-), 
-eventos AS (
-    SELECT 
-        DATE(fecha_inicio) AS fecha_evento,
-        TO_CHAR(fecha_inicio, 'HH24:MI') AS hora_inicio,
-        TO_CHAR(fecha_fin, 'HH24:MI') AS hora_fin
-    FROM 
-        evento
-), 
-tareas AS (
-    SELECT 
-        DATE(fecha_inicio) AS fecha_tarea,
-        TO_CHAR(fecha_inicio, 'HH24:MI') AS hora_inicio,
-        TO_CHAR(fecha_fin, 'HH24:MI') AS hora_fin
-    FROM 
-        tarea
-), 
-horas_libres AS (
-    SELECT 
-        f.recomendacion_semanal,
+    SELECT horario_consultorio.id,
+        'domingo'::text AS dia_de_la_semana,
+        unnest(string_to_array(horario_consultorio.domingo::text, ','::text)) AS hora
+    FROM horario_consultorio
+), eventos AS (
+    SELECT DISTINCT date(evento.fecha_inicio) AS fecha_evento,
+        to_char(evento.fecha_inicio, 'HH24:MI'::text) AS hora_inicio,
+        to_char(evento.fecha_fin, 'HH24:MI'::text) AS hora_fin
+    FROM evento
+), tareas AS (
+    SELECT DISTINCT date(tarea.fecha_inicio) AS fecha_tarea,
+        to_char(tarea.fecha_inicio, 'HH24:MI'::text) AS hora_inicio_tarea,
+        to_char(tarea.fecha_fin, 'HH24:MI'::text) AS hora_fin_tarea
+    FROM tarea
+), horas_libres AS (
+    SELECT f.recomendacion_semanal,
         f.dia_de_la_semana,
-        SUBSTR(h.hora, 1, 5) AS hora_disponible
-    FROM 
-        fechas f
-    JOIN 
-        horario h ON f.dia_de_la_semana = h.dia_de_la_semana
-    LEFT JOIN 
-        eventos e ON f.recomendacion_semanal = e.fecha_evento 
+        substr(h.hora, 1, 5) AS hora_disponible,
+        f.fecha_hora_zona,
+        f.zona_horaria
+    FROM fechas f
+    JOIN horario h ON f.dia_de_la_semana = h.dia_de_la_semana
+    WHERE NOT EXISTS (
+        SELECT 1
+        FROM eventos e
+        WHERE f.recomendacion_semanal = e.fecha_evento
         AND (
-            (split_part(h.hora, '-', 1) >= e.hora_inicio AND split_part(h.hora, '-', 1) < e.hora_fin) 
-            OR (split_part(h.hora, '-', 2) > e.hora_inicio AND split_part(h.hora, '-', 2) <= e.hora_fin) 
-            OR (e.hora_inicio >= split_part(h.hora, '-', 1) AND e.hora_inicio < split_part(h.hora, '-', 2)) 
-            OR (e.hora_fin > split_part(h.hora, '-', 1) AND e.hora_fin <= split_part(h.hora, '-', 2))
+            (substr(h.hora, 1, 5) >= e.hora_inicio AND substr(h.hora, 1, 5) < e.hora_fin) OR 
+            (substr(h.hora, 1, 5) < e.hora_inicio AND substr(h.hora, 1, 5) >= e.hora_fin)
         )
-    LEFT JOIN 
-        tareas t ON f.recomendacion_semanal = t.fecha_tarea 
+    )
+    AND NOT EXISTS (
+        SELECT 1
+        FROM tareas t
+        WHERE f.recomendacion_semanal = t.fecha_tarea
         AND (
-            (split_part(h.hora, '-', 1) >= t.hora_inicio AND split_part(h.hora, '-', 1) < t.hora_fin) 
-            OR (split_part(h.hora, '-', 2) > t.hora_inicio AND split_part(h.hora, '-', 2) <= t.hora_fin) 
-            OR (t.hora_inicio >= split_part(h.hora, '-', 1) AND t.hora_inicio < split_part(h.hora, '-', 2)) 
-            OR (t.hora_fin > split_part(h.hora, '-', 1) AND t.hora_fin <= split_part(h.hora, '-', 2))
+            (substr(h.hora, 1, 5) >= t.hora_inicio_tarea AND substr(h.hora, 1, 5) < t.hora_fin_tarea) OR 
+            (substr(h.hora, 1, 5) < t.hora_inicio_tarea AND substr(h.hora, 1, 5) >= t.hora_fin_tarea)
         )
-    WHERE 
-        e.fecha_evento IS NULL 
-        AND t.fecha_tarea IS NULL 
-        AND (f.recomendacion_semanal > CURRENT_DATE OR (f.recomendacion_semanal = CURRENT_DATE AND split_part(h.hora, '-', 1) >= f.hora_actual))
-    ORDER BY 
-        f.recomendacion_semanal, h.hora
+    )
+    AND (
+        f.recomendacion_semanal > CURRENT_DATE OR
+        (f.recomendacion_semanal = CURRENT_DATE AND substr(h.hora, 1, 5) >= f.hora_actual)
+    )
+    ORDER BY f.recomendacion_semanal, h.hora
 )
-SELECT 
-    TO_CHAR(recomendacion_semanal, 'YYYY-MM-DD') AS recomendacion_semanal,
+SELECT DISTINCT to_char(recomendacion_semanal::timestamp with time zone, 'YYYY-MM-DD'::text) AS recomendacion_semanal,
     dia_de_la_semana,
-    hora_disponible
-FROM 
-    horas_libres
-LIMIT 20;
+    hora_disponible,
+    fecha_hora_zona
+FROM horas_libres
+LIMIT 100;
 
 
     """);
@@ -395,84 +408,98 @@ LIMIT 20;
     try {
       final conn = await _connect();
       final result = await conn.execute("""
-      WITH fechas AS (
+   
+WITH fechas AS (
     SELECT 
-        CURRENT_DATE + i AS recomendacion_semanal,
-        LOWER(translate(TO_CHAR(CURRENT_DATE + i, 'TMDay'), 'ÁÉÍÓÚáéíóú', 'AEIOUaeiou')) AS dia_de_la_semana,
-        TO_CHAR(CURRENT_TIMESTAMP, 'HH24:MI') AS hora_actual
-    FROM 
-        generate_series(31, 90) AS s(i)
-), 
-horario AS (
-    SELECT id, 'lunes' AS dia_de_la_semana, UNNEST(string_to_array(lunes, ',')) AS hora FROM horario_consultorio
+        CURRENT_DATE + s.i AS recomendacion_semanal,
+        lower(translate(to_char((CURRENT_DATE + s.i)::timestamp with time zone, 'TMDay'::text), 'ÁÉÍÓÚáéíóú'::text, 'AEIOUaeiou'::text)) AS dia_de_la_semana,
+        to_char(CURRENT_TIMESTAMP AT TIME ZONE 'America/Mexico_City', 'HH24:MI'::text) AS hora_actual,
+        to_char(CURRENT_TIMESTAMP AT TIME ZONE 'America/Mexico_City', 'YYYY-MM-DD HH24:MI:SS TZ') AS fecha_hora_zona,
+        'America/Mexico_City' AS zona_horaria
+    FROM generate_series(31, 90) s(i)
+), horario AS (
+    SELECT horario_consultorio.id,
+        'lunes'::text AS dia_de_la_semana,
+        unnest(string_to_array(horario_consultorio.lunes::text, ','::text)) AS hora
+    FROM horario_consultorio
     UNION ALL
-    SELECT id, 'martes' AS dia_de_la_semana, UNNEST(string_to_array(martes, ',')) AS hora FROM horario_consultorio
+    SELECT horario_consultorio.id,
+        'martes'::text AS dia_de_la_semana,
+        unnest(string_to_array(horario_consultorio.martes::text, ','::text)) AS hora
+    FROM horario_consultorio
     UNION ALL
-    SELECT id, 'miercoles' AS dia_de_la_semana, UNNEST(string_to_array(miercoles, ',')) AS hora FROM horario_consultorio
+    SELECT horario_consultorio.id,
+        'miercoles'::text AS dia_de_la_semana,
+        unnest(string_to_array(horario_consultorio.miercoles::text, ','::text)) AS hora
+    FROM horario_consultorio
     UNION ALL
-    SELECT id, 'jueves' AS dia_de_la_semana, UNNEST(string_to_array(jueves, ',')) AS hora FROM horario_consultorio
+    SELECT horario_consultorio.id,
+        'jueves'::text AS dia_de_la_semana,
+        unnest(string_to_array(horario_consultorio.jueves::text, ','::text)) AS hora
+    FROM horario_consultorio
     UNION ALL
-    SELECT id, 'viernes' AS dia_de_la_semana, UNNEST(string_to_array(viernes, ',')) AS hora FROM horario_consultorio
+    SELECT horario_consultorio.id,
+        'viernes'::text AS dia_de_la_semana,
+        unnest(string_to_array(horario_consultorio.viernes::text, ','::text)) AS hora
+    FROM horario_consultorio
     UNION ALL
-    SELECT id, 'sabado' AS dia_de_la_semana, UNNEST(string_to_array(sabado, ',')) AS hora FROM horario_consultorio
+    SELECT horario_consultorio.id,
+        'sabado'::text AS dia_de_la_semana,
+        unnest(string_to_array(horario_consultorio.sabado::text, ','::text)) AS hora
+    FROM horario_consultorio
     UNION ALL
-    SELECT id, 'domingo' AS dia_de_la_semana, UNNEST(string_to_array(domingo, ',')) AS hora FROM horario_consultorio
-), 
-eventos AS (
-    SELECT 
-        DATE(fecha_inicio) AS fecha_evento,
-        TO_CHAR(fecha_inicio, 'HH24:MI') AS hora_inicio,
-        TO_CHAR(fecha_fin, 'HH24:MI') AS hora_fin
-    FROM 
-        evento
-), 
-tareas AS (
-    SELECT 
-        DATE(fecha_inicio) AS fecha_tarea,
-        TO_CHAR(fecha_inicio, 'HH24:MI') AS hora_inicio,
-        TO_CHAR(fecha_fin, 'HH24:MI') AS hora_fin
-    FROM 
-        tarea
-), 
-horas_libres AS (
-    SELECT 
-        f.recomendacion_semanal,
+    SELECT horario_consultorio.id,
+        'domingo'::text AS dia_de_la_semana,
+        unnest(string_to_array(horario_consultorio.domingo::text, ','::text)) AS hora
+    FROM horario_consultorio
+), eventos AS (
+    SELECT DISTINCT date(evento.fecha_inicio) AS fecha_evento,
+        to_char(evento.fecha_inicio, 'HH24:MI'::text) AS hora_inicio,
+        to_char(evento.fecha_fin, 'HH24:MI'::text) AS hora_fin
+    FROM evento
+), tareas AS (
+    SELECT DISTINCT date(tarea.fecha_inicio) AS fecha_tarea,
+        to_char(tarea.fecha_inicio, 'HH24:MI'::text) AS hora_inicio_tarea,
+        to_char(tarea.fecha_fin, 'HH24:MI'::text) AS hora_fin_tarea
+    FROM tarea
+), horas_libres AS (
+    SELECT f.recomendacion_semanal,
         f.dia_de_la_semana,
-        SUBSTR(h.hora, 1, 5) AS hora_disponible
-    FROM 
-        fechas f
-    JOIN 
-        horario h ON f.dia_de_la_semana = h.dia_de_la_semana
-    LEFT JOIN 
-        eventos e ON f.recomendacion_semanal = e.fecha_evento 
+        substr(h.hora, 1, 5) AS hora_disponible,
+        f.fecha_hora_zona,
+        f.zona_horaria
+    FROM fechas f
+    JOIN horario h ON f.dia_de_la_semana = h.dia_de_la_semana
+    WHERE NOT EXISTS (
+        SELECT 1
+        FROM eventos e
+        WHERE f.recomendacion_semanal = e.fecha_evento
         AND (
-            (split_part(h.hora, '-', 1) >= e.hora_inicio AND split_part(h.hora, '-', 1) < e.hora_fin) 
-            OR (split_part(h.hora, '-', 2) > e.hora_inicio AND split_part(h.hora, '-', 2) <= e.hora_fin) 
-            OR (e.hora_inicio >= split_part(h.hora, '-', 1) AND e.hora_inicio < split_part(h.hora, '-', 2)) 
-            OR (e.hora_fin > split_part(h.hora, '-', 1) AND e.hora_fin <= split_part(h.hora, '-', 2))
+            (substr(h.hora, 1, 5) >= e.hora_inicio AND substr(h.hora, 1, 5) < e.hora_fin) OR 
+            (substr(h.hora, 1, 5) < e.hora_inicio AND substr(h.hora, 1, 5) >= e.hora_fin)
         )
-    LEFT JOIN 
-        tareas t ON f.recomendacion_semanal = t.fecha_tarea 
+    )
+    AND NOT EXISTS (
+        SELECT 1
+        FROM tareas t
+        WHERE f.recomendacion_semanal = t.fecha_tarea
         AND (
-            (split_part(h.hora, '-', 1) >= t.hora_inicio AND split_part(h.hora, '-', 1) < t.hora_fin) 
-            OR (split_part(h.hora, '-', 2) > t.hora_inicio AND split_part(h.hora, '-', 2) <= t.hora_fin) 
-            OR (t.hora_inicio >= split_part(h.hora, '-', 1) AND t.hora_inicio < split_part(h.hora, '-', 2)) 
-            OR (t.hora_fin > split_part(h.hora, '-', 1) AND t.hora_fin <= split_part(h.hora, '-', 2))
+            (substr(h.hora, 1, 5) >= t.hora_inicio_tarea AND substr(h.hora, 1, 5) < t.hora_fin_tarea) OR 
+            (substr(h.hora, 1, 5) < t.hora_inicio_tarea AND substr(h.hora, 1, 5) >= t.hora_fin_tarea)
         )
-    WHERE 
-        e.fecha_evento IS NULL 
-        AND t.fecha_tarea IS NULL 
-        AND (f.recomendacion_semanal > CURRENT_DATE OR (f.recomendacion_semanal = CURRENT_DATE AND split_part(h.hora, '-', 1) >= f.hora_actual))
-    ORDER BY 
-        f.recomendacion_semanal, h.hora
+    )
+    AND (
+        f.recomendacion_semanal > CURRENT_DATE OR
+        (f.recomendacion_semanal = CURRENT_DATE AND substr(h.hora, 1, 5) >= f.hora_actual)
+    )
+    ORDER BY f.recomendacion_semanal, h.hora
 )
-SELECT 
-    TO_CHAR(recomendacion_semanal, 'YYYY-MM-DD') AS recomendacion_semanal,
+SELECT DISTINCT to_char(recomendacion_semanal::timestamp with time zone, 'YYYY-MM-DD'::text) AS recomendacion_semanal,
     dia_de_la_semana,
-    hora_disponible
-FROM 
-    horas_libres
-LIMIT 20;
+    hora_disponible,
+    fecha_hora_zona
+FROM horas_libres
+LIMIT 100;
 
     """);
       for (var row in result) {

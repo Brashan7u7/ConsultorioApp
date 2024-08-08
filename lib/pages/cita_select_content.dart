@@ -287,7 +287,7 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => ListaEspera(tarea: tarea),
+                                builder: (context) => ListaEspera(),
                               ),
                             );
                           } else {

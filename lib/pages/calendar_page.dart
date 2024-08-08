@@ -369,7 +369,8 @@ class _CalendarState extends State<Calendar> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const ListaEspera(),
+                    builder: (context) =>
+                        ListaEspera(consultorioId: globalIdConsultorio),
                   ),
                 );
               },
@@ -445,15 +446,17 @@ class _CalendarState extends State<Calendar> {
               DateTime selectedDate = details.date!;
               _navigateToSelectedDate(selectedDate);
             }
-            if (_lastTap != null &&
-                DateTime.now().difference(_lastTap!) <
-                    Duration(milliseconds: _tapInterval)) {
-              // Si se hace doble clic en una celda del calendario, redirige a la página de "Cita Rápida"
-              _lastTap = null;
-              _navigateToAddPage(context);
-            } else {
-              // Si se hace un solo clic, actualiza el tiempo del último toque
-              _lastTap = DateTime.now();
+            if (agendarCitasEventos) {
+              if (_lastTap != null &&
+                  DateTime.now().difference(_lastTap!) <
+                      Duration(milliseconds: _tapInterval)) {
+                // Si se hace doble clic en una celda del calendario, redirige a la página de "Cita Rápida"
+                _lastTap = null;
+                _navigateToAddPage(context);
+              } else {
+                // Si se hace un solo clic, actualiza el tiempo del último toque
+                _lastTap = DateTime.now();
+              }
             }
           },
         ),

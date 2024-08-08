@@ -715,11 +715,32 @@ class _CalendarState extends State<Calendar> {
                       child: const Text(
                         'Eliminar',
                         style: TextStyle(
-                            fontSize: 16, color: Color.fromARGB(255, 0, 0, 0)),
+                          fontSize: 16,
+                          color: Color.fromARGB(255, 0, 0, 0),
+                        ),
                       ),
                       onTap: () {
                         print('se ha seleccionado para eliminar');
-                        _deleteAppointment(appointment);
+                        showDialog<String>(
+                          context: context,
+                          builder: (BuildContext context) => AlertDialog(
+                            title: const Text('¿Desea eliminar la cita?'),
+                            actions: <Widget>[
+                              TextButton(
+                                onPressed: () =>
+                                    Navigator.pop(context, 'Cancelar'),
+                                child: const Text('Cancelar'),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context, 'Eliminar');
+                                  _deleteAppointment(appointment);
+                                },
+                                child: const Text('Eliminar'),
+                              ),
+                            ],
+                          ),
+                        );
                       },
                     ),
                     PopupMenuItem(
@@ -900,4 +921,3 @@ List<Appointment> _getCalendarDataSourceTareas(
 
   return appointments;
 }
-

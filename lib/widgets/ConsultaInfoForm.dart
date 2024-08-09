@@ -90,8 +90,8 @@ class _ConsultaInfoFormState extends State<ConsultaInfoForm> {
                 activeText: "Subsecuente",
                 inactiveText: "Primera vez",
                 value: status,
-                valueFontSize: 15.0,
-                width: 180,
+                valueFontSize: 11.0,
+                width: 150,
                 height: 52,
                 borderRadius: 5.0,
                 showOnOff: true,
@@ -104,6 +104,7 @@ class _ConsultaInfoFormState extends State<ConsultaInfoForm> {
                 },
               ),
             ),
+            const SizedBox(width: 20.0),
             Expanded(
               child: FlutterSwitch(
                 activeText: "En espera",

@@ -240,6 +240,18 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
 
                     const SizedBox(height: 50.0),
                     ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            Colors.blue, // Color de fondo del botón
+                        foregroundColor:
+                            Colors.white, // Color del texto del botón
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                              10), // Radio de esquinas redondeadas
+                          side: BorderSide(
+                              width: 1, color: Colors.grey), // Borde del botón
+                        ),
+                      ),
                       onPressed: () async {
                         if (widget.fechaController.text.isNotEmpty &&
                             widget.horaController.text.isNotEmpty &&
@@ -275,7 +287,7 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => ListaEspera(tarea: tarea),
+                                builder: (context) => ListaEspera(),
                               ),
                             );
                           } else {

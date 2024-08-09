@@ -1,3 +1,4 @@
+import 'package:calendario_manik/pages/editingCita_page.dart';
 import 'package:calendario_manik/pages/lista_espera.dart';
 import 'package:calendario_manik/variab.dart';
 import 'package:flutter/material.dart';
@@ -368,7 +369,8 @@ class _CalendarState extends State<Calendar> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const ListaEspera(),
+                    builder: (context) =>
+                        ListaEspera(consultorioId: globalIdConsultorio),
                   ),
                 );
               },
@@ -444,15 +446,17 @@ class _CalendarState extends State<Calendar> {
               DateTime selectedDate = details.date!;
               _navigateToSelectedDate(selectedDate);
             }
-            if (_lastTap != null &&
-                DateTime.now().difference(_lastTap!) <
-                    Duration(milliseconds: _tapInterval)) {
-              // Si se hace doble clic en una celda del calendario, redirige a la página de "Cita Rápida"
-              _lastTap = null;
-              _navigateToAddPage(context);
-            } else {
-              // Si se hace un solo clic, actualiza el tiempo del último toque
-              _lastTap = DateTime.now();
+            if (agendarCitasEventos) {
+              if (_lastTap != null &&
+                  DateTime.now().difference(_lastTap!) <
+                      Duration(milliseconds: _tapInterval)) {
+                // Si se hace doble clic en una celda del calendario, redirige a la página de "Cita Rápida"
+                _lastTap = null;
+                _navigateToAddPage(context);
+              } else {
+                // Si se hace un solo clic, actualiza el tiempo del último toque
+                _lastTap = DateTime.now();
+              }
             }
           },
         ),
@@ -765,7 +769,21 @@ class _CalendarState extends State<Calendar> {
                         style: TextStyle(
                             fontSize: 16, color: Color.fromARGB(255, 0, 0, 0)),
                       ),
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => Add(
+                              isCitaInmediata: false,
+                              isEvento: false,
+                              isPacient: false,
+                              isCitaPro: false,
+                              isEditingCita: true,
+                              consultorioId: globalIdConsultorio,
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ],
                 )
@@ -908,15 +926,30 @@ List<Appointment> _getCalendarDataSourceTareas(
         '${DateFormat.jm().format(startTime)} - ${DateFormat.jm().format(endTime)}';
     String color = tarea['color'].toString();
     String id = tarea['id'].toString();
+    String medico = tarea['asignado_id'].toString();
+    String paciente = tarea['paciente_id'].toString();
+    String motivo = tarea['motivo_consulta'].toString();
 
-    appointments.add(Appointment(
-      subject: '$nombre\n$horario',
-      startTime: startTime,
-      endTime: endTime,
-      color: HexColor(color),
-      notes: id, // Guardar el id en la propiedad notes
-      location: 'tarea', // Marcar como tarea
-    ));
+    if (usuario_cuenta_id == 3) {
+      appointments.add(Appointment(
+        subject:
+            '$nombre\n$horario\nMédico: $medico\nPaciente: $paciente\nMotivo: $motivo',
+        startTime: startTime,
+        endTime: endTime,
+        color: HexColor(color),
+        notes: id, // Guardar el id en la propiedad notes
+        location: 'tarea', // Marcar como tarea
+      ));
+    } else {
+      appointments.add(Appointment(
+        subject: '$nombre\n$horario\nPaciente: $paciente\nMotivo: $motivo',
+        startTime: startTime,
+        endTime: endTime,
+        color: HexColor(color),
+        notes: id, // Guardar el id en la propiedad notes
+        location: 'tarea', // Marcar como tarea
+      ));
+    }
   }
 
   return appointments;

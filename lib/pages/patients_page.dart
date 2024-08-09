@@ -24,6 +24,9 @@ class _PatientsState extends State<Patients> {
 
   List<DataPatients> _filteredPatients = [];
   final TextEditingController _searchController = TextEditingController();
+  bool _isLoading = false; // Indica si los pacientes están siendo cargados
+  int _patientsToLoad = 8; // Número de pacientes a cargar en cada solicitud
+  int _currentOffset = 0;
 
   @override
   void initState() {
@@ -37,9 +40,14 @@ class _PatientsState extends State<Patients> {
     }
   }
 
-  Future<void> _loaderPacientes() async {
+  Future<void> _loaderPacientes({int offset = 0}) async {
+    if (_isLoading) return; // Previene llamadas concurrentes
+    setState(() {
+      _isLoading = true;
+    });
     List<Map<String, dynamic>> pacientesData =
-        await DatabaseManager.getPacientes(widget.consultorioId);
+        await DatabaseManager.getPacientes(
+            widget.consultorioId, offset, _patientsToLoad);
 
     List<DataPatients> pacientesList = pacientesData.map((data) {
       return DataPatients(
@@ -62,9 +70,27 @@ class _PatientsState extends State<Patients> {
     }).toList();
 
     setState(() {
-      _allPatients.addAll(pacientesList);
-      _filteredPatients.addAll(_allPatients);
+      _isLoading = false;
+      if (pacientesList.isNotEmpty) {
+        _allPatients.addAll(pacientesList);
+        _filteredPatients = _allPatients
+            .where((patient) =>
+                patient.name
+                    .toLowerCase()
+                    .contains(_searchController.text.toLowerCase()) ||
+                patient.primerPat
+                    .toLowerCase()
+                    .contains(_searchController.text.toLowerCase()))
+            .toList();
+        _currentOffset += _patientsToLoad;
+      }
     });
+  }
+
+  void _loadMorePatients() {
+    if (!_isLoading) {
+      _loaderPacientes(offset: _currentOffset);
+    }
   }
 
   @override
@@ -103,37 +129,60 @@ class _PatientsState extends State<Patients> {
           Expanded(
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 25),
-              child: ListView.builder(
-                itemCount: _filteredPatients.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    onTap: () {
-                      _viewPatient(context, _filteredPatients[index]);
+              child: Stack(
+                children: [
+                  NotificationListener<ScrollNotification>(
+                    onNotification: (scrollInfo) {
+                      if (!scrollInfo.metrics.outOfRange &&
+                          scrollInfo.metrics.pixels ==
+                              scrollInfo.metrics.maxScrollExtent) {
+                        _loadMorePatients();
+                        return true;
+                      }
+                      return false;
                     },
-                    title: Text(
-                        "${_filteredPatients[index].name} ${_filteredPatients[index].primerPat}"),
-                    subtitle: Text(_filteredPatients[index].telefonomov),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.arrow_forward_ios),
-                          onPressed: () {
+                    child: ListView.builder(
+                      itemCount: _filteredPatients.length,
+                      itemBuilder: (context, index) {
+                        return ListTile(
+                          onTap: () {
                             _viewPatient(context, _filteredPatients[index]);
                           },
-                        ),
-                        if (eliminarPacientes)
-                          IconButton(
-                            icon: const Icon(Icons.delete),
-                            onPressed: () {
-                              print(_filteredPatients[index].id);
-                              _deletePatient(_filteredPatients[index]);
-                            },
+                          title: Text(
+                              "${_filteredPatients[index].name} ${_filteredPatients[index].primerPat}"),
+                          subtitle: Text(_filteredPatients[index].telefonomov),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.arrow_forward_ios),
+                                onPressed: () {
+                                  _viewPatient(
+                                      context, _filteredPatients[index]);
+                                },
+                              ),
+                              if (eliminarPacientes)
+                                IconButton(
+                                  icon: const Icon(Icons.delete),
+                                  onPressed: () {
+                                    print(_filteredPatients[index].id);
+                                    _deletePatient(_filteredPatients[index]);
+                                  },
+                                ),
+                            ],
                           ),
-                      ],
+                        );
+                      },
                     ),
-                  );
-                },
+                  ),
+                  if (_isLoading)
+                    Center(
+                      child: Container(
+                        color: Colors.white.withOpacity(0.8),
+                        child: const CircularProgressIndicator(),
+                      ),
+                    ),
+                ],
               ),
             ),
           ),

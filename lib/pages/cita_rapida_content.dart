@@ -354,9 +354,9 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
                             inactiveText: "Primera vez",
                             value: status,
                             valueFontSize: 11.0,
-                            width: 110,
-                            height: 30,
-                            borderRadius: 30.0,
+                            width: 150,
+                            height: 52,
+                            borderRadius: 5.0,
                             showOnOff: true,
                             onToggle: (val) {
                               setState(() {
@@ -367,6 +367,7 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
                             },
                           ),
                         ),
+                        const SizedBox(width: 20.0),
                         Expanded(
                           child: FlutterSwitch(
                             activeText: "En espera",
@@ -397,6 +398,17 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
                   ),
                   const SizedBox(height: 20.0),
                   ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue, // Color de fondo del botón
+                      foregroundColor:
+                          Colors.white, // Color del texto del botón
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                            10), // Radio de esquinas redondeadas
+                        side: BorderSide(
+                            width: 1, color: Colors.grey), // Borde del botón
+                      ),
+                    ),
                     onPressed: () => _saveCitaInmediata(context),
                     child: const Text('Guardar Cita Inmediata'),
                   ),

@@ -12,12 +12,12 @@ class DatabaseManager {
     tz.setLocalLocation(tz.getLocation('America/Mexico_City'));
     return await Connection.open(
       Endpoint(
-        host: '127.0.0.1',
+        host: '192.168.1.69',
         //host: '192.168.1.181',
         port: 5432,
         database: 'medicalmanik',
         username: 'postgres',
-        password: 'DJE20ben',
+        password: '123',
       ),
       settings: const ConnectionSettings(sslMode: SslMode.disable),
     );
@@ -526,10 +526,21 @@ LIMIT 100;
       final conn = await _connect();
 
       print('Connected. Executing query with consultorioId: $consultorioId');
-      final result = await conn.execute(
-          Sql.named(
-              "select id, nombre, TO_CHAR(fecha_inicio,'yyyy-MM-dd HH24:MI:SS') fecha_inicio,  TO_CHAR(fecha_fin,'yyyy-MM-dd HH24:MI:SS') fecha_fin, color from tarea WHERE calendario_id=@id"),
-          parameters: {"id": consultorioId});
+      final result = await conn.execute(Sql.named("""SELECT
+  t.id,
+  t.nombre AS tarea_nombre,
+  TO_CHAR(t.fecha_inicio, 'yyyy-MM-dd HH24:MI:SS') AS fecha_inicio,
+  TO_CHAR(t.fecha_fin, 'yyyy-MM-dd HH24:MI:SS') AS fecha_fin,
+  t.color,
+  m.nombre || ' ' || m.apellidos AS medico_nombre_completo,
+  p.nombre || ' ' || p.ap_paterno AS paciente_nombre_completo,
+  t.motivo_consulta
+FROM
+  tarea t
+  LEFT JOIN usuario m ON t.asignado_id = m.id AND m.rol = 'MED'
+  LEFT JOIN paciente p ON t.paciente_id = p.id
+WHERE
+  t.calendario_id = @id"""), parameters: {"id": consultorioId});
 
       print('Query executed. Processing results...');
       for (final row in result) {
@@ -539,7 +550,10 @@ LIMIT 100;
           'nombre': row[1],
           'fecha_inicio': row[2],
           'fecha_fin': row[3],
-          'color': row[4]
+          'color': row[4],
+          'asignado_id': row[5],
+          'paciente_id': row[6],
+          'motivo_consulta': row[7],
         });
       }
 
@@ -754,15 +768,25 @@ LIMIT 100;
   }
 
   static Future<List<Map<String, dynamic>>> getPacientes(
-      int consultorioId) async {
+      int consultorioId, int offset, int limit) async {
     List<Map<String, dynamic>> pacientes = [];
     try {
       final conn = await _connect();
+      String query;
+
       if (usuario_cuenta_id == 3) {
-        final result = await conn.execute("""      SELECT u.*
-FROM paciente u
-JOIN grupo_paciente gp ON u.id = gp.paciente_id
-WHERE gp.grupo_id = $grupo_id;""");
+        // Consulta SQL para el caso de usuario con ID 3
+        query = """
+        SELECT * 
+        FROM paciente 
+        WHERE consultorio_id = @id
+        LIMIT @limit OFFSET @offset;
+      """;
+        final result = await conn.execute(Sql.named(query), parameters: {
+          "id": consultorioId,
+          "limit": limit,
+          "offset": offset
+        });
         for (var row in result) {
           pacientes.add({
             'id': row[0],
@@ -780,9 +804,18 @@ WHERE gp.grupo_id = $grupo_id;""");
           });
         }
       } else {
-        final result = await conn.execute(
-            Sql.named("SELECT * FROM paciente where consultorio_id = @id "),
-            parameters: {"id": consultorioId});
+        // Consulta SQL para otros usuarios
+        query = """
+        SELECT * 
+        FROM paciente 
+        WHERE consultorio_id = @id
+        LIMIT @limit OFFSET @offset;
+      """;
+        final result = await conn.execute(Sql.named(query), parameters: {
+          "id": consultorioId,
+          "limit": limit,
+          "offset": offset
+        });
         for (var row in result) {
           pacientes.add({
             'id': row[0],
@@ -1190,13 +1223,15 @@ SELECT
   u.nombre,
   u.apellidos,
   u.cuenta_id,
-  COALESCE(gm.grupo_id, ga.grupo_id) AS grupo_id
+  COALESCE(gm.grupo_id, ga.grupo_id, ge.grupo_id) AS grupo_id
 FROM
   usuario u
 LEFT JOIN
   grupo_medico gm ON u.id = gm.medico_id
 LEFT JOIN
   grupo_asistente ga ON u.id = ga.asistente_id
+LEFT JOIN
+  grupo_enfermero ge ON u.id = ge.enfermero_id
 """);
       for (var row in result) {
         usuarios.add({
@@ -1334,5 +1369,209 @@ WHERE gm.grupo_id = $grupo_id;
       print('Error: $e');
     }
     return doctores;
+  }
+
+  static Future<void> insertarListaEspera(
+      int consultorioId, Tarea tarea) async {
+    try {
+      final conn = await _connect();
+
+      final result = await conn.execute("SELECT MAX(id) FROM lista_espera");
+      int lastId = (result.first.first as int?) ?? 0;
+
+      int newId = lastId + 1;
+
+      DateTime startDate = DateTime.parse("${tarea.fecha} ${tarea.hora}");
+      int duration = int.parse(tarea.duracion);
+      DateTime endDate = startDate.add(Duration(minutes: duration));
+
+      await conn.execute(
+        Sql.named(
+            "INSERT INTO lista_espera(id, token, nombre, descripcion, fecha_inicio, fecha_fin,calendario_id, color, asignado_id, paciente_id, motivo_consulta, tipo_cita) VALUES (@id, @token, @nombre,@descripcion, @fecha_inicio, @fecha_fin, @calendario_id, @color, @asignado_id, @paciente_id, @motivo_consulta, @tipo_cita)"),
+        parameters: {
+          "id": newId,
+          "token": 2,
+          "nombre": tarea.nombre,
+          "descripcion": tarea.nota,
+          "fecha_inicio": startDate.toIso8601String(),
+          "fecha_fin": endDate.toIso8601String(),
+          "calendario_id": consultorioId,
+          "color": '#FF6666',
+          "asignado_id": tarea.asignado_id,
+          "paciente_id": tarea.paciente_id,
+          "motivo_consulta": tarea.motivoConsulta,
+          "tipo_cita": tarea.tipoCita,
+        },
+      );
+
+      await conn.close();
+    } catch (e) {
+      print('Error al insertar la cita programada: $e');
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> getListaEsperaData(
+      int consultorioId) async {
+    List<Map<String, dynamic>> tareas = [];
+    try {
+      final conn = await _connect();
+
+      final result = await conn.execute(Sql.named("""SELECT
+  t.id,
+  t.nombre AS tarea_nombre,
+  TO_CHAR(t.fecha_inicio, 'yyyy-MM-dd HH24:MI:SS') AS fecha_inicio,
+  TO_CHAR(t.fecha_fin, 'yyyy-MM-dd HH24:MI:SS') AS fecha_fin,
+  t.color,
+  m.nombre || ' ' || m.apellidos AS medico_nombre_completo,
+  p.nombre || ' ' || p.ap_paterno AS paciente_nombre_completo,
+  t.motivo_consulta,
+t.status
+FROM
+  lista_espera t
+  LEFT JOIN usuario m ON t.asignado_id = m.id AND m.rol = 'MED'
+  LEFT JOIN paciente p ON t.paciente_id = p.id
+WHERE
+  t.calendario_id = @id"""), parameters: {"id": consultorioId});
+
+      print('Query executed. Processing results...');
+      for (final row in result) {
+        // print('Row: $row'); // Imprimir cada fila para verificar los datos
+        tareas.add({
+          'id': row[0],
+          'nombre': row[1],
+          'fecha_inicio': row[2],
+          'fecha_fin': row[3],
+          'color': row[4],
+          'asignado_id': row[5],
+          'paciente_id': row[6],
+          'motivo_consulta': row[7],
+          'status': row[8],
+        });
+      }
+
+      await conn.close();
+      // print('Connection closed.');
+    } catch (e) {
+      print('Error: $e');
+    }
+    // print('Tareas: $tareas'); // Imprimir el resultado final
+    return tareas;
+  }
+
+  static Future<bool> isHorarioDisponible(
+      int consultorioId, DateTime fechaInicio, DateTime fechaFin) async {
+    try {
+      final conn = await _connect();
+
+      final result = await conn.execute(
+        Sql.named("""
+        SELECT 1 
+        FROM tarea 
+        WHERE calendario_id = @id 
+          AND ((fecha_inicio <= @fechaFin AND fecha_fin >= @fechaInicio))
+      """),
+        parameters: {
+          "id": consultorioId,
+          "fechaInicio": fechaInicio.toIso8601String(),
+          "fechaFin": fechaFin.toIso8601String(),
+        },
+      );
+
+      await conn.close();
+
+      return result.isEmpty;
+    } catch (e) {
+      print('Error en horario disponible: $e');
+      return false;
+    }
+  }
+
+  static Future<void> moverCitaDeListaEspera(
+      int listaEsperaId,
+      int consultorioId,
+      DateTime fechaInicio,
+      DateTime fechaFin,
+      String nombre,
+      String motivoConsulta,
+      int asignadoId,
+      int pacienteId) async {
+    if (await isHorarioDisponible(consultorioId, fechaInicio, fechaFin)) {
+      try {
+        final conn = await _connect();
+
+        final result = await conn.execute("SELECT MAX(id) FROM tarea");
+        int lastId = (result.first.first as int?) ?? 0;
+        int newId = lastId + 1;
+
+        // Insertar en la tabla tarea
+        await conn.execute(
+          Sql.named("""
+          INSERT INTO tarea (id, token, nombre, descripcion, fecha_inicio, fecha_fin, calendario_id, color, status, asignado_id, paciente_id, motivo_consulta, tipo_cita) 
+        SELECT @newId, token, nombre, descripcion, @fechaInicio, @fechaFin, calendario_id, color, 'PROGRAMADA', asignado_id, paciente_id, motivo_consulta, tipo_cita
+        FROM lista_espera
+        WHERE id = @id
+        """),
+          parameters: {
+            "newId": newId,
+            "id": listaEsperaId,
+            "fechaInicio": fechaInicio.toIso8601String(),
+            "fechaFin": fechaFin.toIso8601String(),
+          },
+        );
+
+        // Eliminar de la lista de espera
+        await conn.execute(
+          Sql.named("DELETE FROM lista_espera WHERE id = @id"),
+          parameters: {
+            "id": listaEsperaId,
+          },
+        );
+
+        await conn.close();
+      } catch (e) {
+        print('Error en mover cita de lista: $e');
+      }
+    } else {
+      print('El horario no está disponible.');
+    }
+  }
+
+  static Future<void> verificarYMoverCitasEnEspera() async {
+    try {
+      final conn = await _connect();
+
+      final result = await conn.execute("""
+      SELECT id, calendario_id, fecha_inicio, fecha_fin, nombre, motivo_consulta, asignado_id, paciente_id 
+      FROM lista_espera
+
+    """);
+
+      for (final row in result) {
+        final int listaEsperaId = row[0] as int;
+        final int consultorioId = row[1] as int;
+        final DateTime fechaInicio = row[2] as DateTime;
+        final DateTime fechaFin = row[3] as DateTime;
+        final String nombre = row[4] as String;
+        final String motivoConsulta = row[5] as String;
+        final int asignadoId = row[6] as int;
+        final int pacienteId = row[7] as int;
+
+        if (await isHorarioDisponible(consultorioId, fechaInicio, fechaFin)) {
+          await moverCitaDeListaEspera(
+              listaEsperaId,
+              consultorioId,
+              fechaInicio,
+              fechaFin,
+              nombre,
+              motivoConsulta,
+              asignadoId,
+              pacienteId);
+        }
+      }
+
+      await conn.close();
+    } catch (e) {
+      print('Error en verificar y mover cita: $e');
+    }
   }
 }

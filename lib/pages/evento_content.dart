@@ -23,7 +23,8 @@ class _EventoContentState extends State<EventoContent> {
   TextEditingController fechaController = TextEditingController(text: "");
   TextEditingController horaController = TextEditingController(text: "");
   TextEditingController duracionController = TextEditingController(text: "");
-  TextEditingController servicioController = TextEditingController(text: "Subsecuente");
+  TextEditingController servicioController =
+      TextEditingController(text: "Subsecuente");
   ValueNotifier<bool> allDay = ValueNotifier<bool>(false);
   TextEditingController notaController = TextEditingController(text: "");
 
@@ -86,7 +87,7 @@ class _EventoContentState extends State<EventoContent> {
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'El nombre del paciente es obligatorio';
+                    return 'El nombre del evento es obligatorio';
                   }
                   return null;
                 },

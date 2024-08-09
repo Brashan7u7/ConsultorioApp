@@ -540,18 +540,24 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                         tipoCita: tipoCita);
 
                     if (espera) {
+                      // Guarda el evento en la base de datos
+                      await DatabaseManager.insertarListaEspera(
+                          widget.consultorioId!, tarea);
+
+                      await Future.delayed(const Duration(milliseconds: 1500));
                       // Redirige a la página de lista de espera si la opción está activada
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(
-                      //     builder: (context) => ListaEspera(evento: evento),
-                      //   ),
-                      // );
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ListaEspera(),
+                        ),
+                      );
                     } else {
                       // Guarda el evento en la base de datos
                       await DatabaseManager.insertarTareaProgramada(
                           widget.consultorioId!, tarea);
 
+                      await Future.delayed(const Duration(milliseconds: 1500));
                       // Redirige a la página de calendario después de guardar el evento
                       Navigator.push(
                         context,
@@ -566,12 +572,6 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                       const SnackBar(
                           content:
                               Text('Cita programada agregada correctamente')),
-                    );
-
-                    // Opcional: Redirigir a la página de calendario u otra página relevante
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => Calendar()),
                     );
                   }
                 },

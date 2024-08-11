@@ -83,6 +83,13 @@ class _AddPatientFormState extends State<AddPatientForm> {
                       controller: nameController,
                       decoration: InputDecoration(
                         labelText: 'Ingrese el nombre del ${widget.nombres}',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide:
+                              const BorderSide(width: 1, color: Colors.grey),
+                        ),
+                        filled: true,
+                        fillColor: Colors.transparent,
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {

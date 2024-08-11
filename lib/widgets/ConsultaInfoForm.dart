@@ -21,15 +21,14 @@ class _ConsultaInfoFormState extends State<ConsultaInfoForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 5.0),
-        const Padding(
+        Padding(
           padding: EdgeInsets.all(5.0),
           child: Text(
             'Motivo de consulta',
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.normal,
-              color: Colors.grey,
+              color: Colors.grey[800],
             ),
           ),
         ),
@@ -84,7 +83,7 @@ class _ConsultaInfoFormState extends State<ConsultaInfoForm> {
                 ),
               ),
             ),
-            const SizedBox(width: 20.0),
+            const SizedBox(width: 10.0),
             Expanded(
               child: FlutterSwitch(
                 activeText: "Subsecuente",

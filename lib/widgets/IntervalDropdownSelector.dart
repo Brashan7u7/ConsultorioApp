@@ -16,17 +16,7 @@ class _IntervalDropdownSelectorState extends State<IntervalDropdownSelector> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.all(5.0),
-          child: Text(
-            'Intervalo de Atención (minutos)',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.normal,
-              color: Colors.grey[800],
-            ),
-          ),
-        ),
+        const SizedBox(height: 20.0),
         DropdownButtonFormField<String>(
           items: const [
             DropdownMenuItem<String>(
@@ -53,6 +43,7 @@ class _IntervalDropdownSelectorState extends State<IntervalDropdownSelector> {
             });
           },
           decoration: InputDecoration(
+            labelText: 'Intervalo de Atención (minutos)',
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
               borderSide: const BorderSide(width: 1, color: Colors.grey),

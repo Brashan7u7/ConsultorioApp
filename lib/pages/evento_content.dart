@@ -82,8 +82,14 @@ class _EventoContentState extends State<EventoContent> {
             children: [
               TextFormField(
                 controller: nameController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Escriba el nombre del evento',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(width: 1, color: Colors.grey),
+                  ),
+                  filled: true,
+                  fillColor: Colors.transparent,
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -92,60 +98,7 @@ class _EventoContentState extends State<EventoContent> {
                   return null;
                 },
               ),
-              const SizedBox(height: 10.0),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: fechaController,
-                      readOnly: true,
-                      decoration: const InputDecoration(labelText: 'Fecha'),
-                      onTap: _pickDate,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'La fecha es obligatoria';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 10.0),
-                  if (!isAllDay) ...[
-                    Expanded(
-                      child: TextFormField(
-                        controller: horaController,
-                        readOnly: isAllDay,
-                        decoration: const InputDecoration(labelText: 'Hora'),
-                        onTap: isAllDay ? null : _pickTime,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-              const SizedBox(height: 10.0),
-              if (!isAllDay) ...[const IntervalDropdownSelector()],
-              const SizedBox(height: 10.0),
-              DropdownButtonFormField<String>(
-                value: servicioController.text.isEmpty
-                    ? null
-                    : servicioController.text,
-                hint: const Text('Servicio de atención'),
-                items: const <DropdownMenuItem<String>>[
-                  DropdownMenuItem<String>(
-                    value: 'Subsecuente',
-                    child: Text('Subsecuente'),
-                  ),
-                  DropdownMenuItem<String>(
-                    value: 'Videoconsulta',
-                    child: Text('Videoconsulta'),
-                  ),
-                  // ... Add more service options here
-                ],
-                onChanged: (value) => setState(() {
-                  servicioController.text = value!;
-                }),
-              ),
-              const SizedBox(height: 10.0),
+              const SizedBox(height: 20.0),
               Padding(
                 padding: const EdgeInsets.all(5.0),
                 child: Text(
@@ -187,8 +140,91 @@ class _EventoContentState extends State<EventoContent> {
                       },
                     ),
                   ),
+                  const SizedBox(width: 20.0),
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: servicioController.text.isEmpty
+                          ? null
+                          : servicioController.text,
+                      items: const <DropdownMenuItem<String>>[
+                        DropdownMenuItem<String>(
+                          value: 'Subsecuente',
+                          child: Text('Subsecuente'),
+                        ),
+                        DropdownMenuItem<String>(
+                          value: 'Videoconsulta',
+                          child: Text('Videoconsulta'),
+                        ),
+                        // ... Add more service options here
+                      ],
+                      onChanged: (value) => setState(() {
+                        servicioController.text = value!;
+                      }),
+                      decoration: InputDecoration(
+                        labelText: 'Servicio de atención',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide:
+                              const BorderSide(width: 1, color: Colors.grey),
+                        ),
+                        filled: true,
+                        fillColor: Colors.transparent,
+                      ),
+                    ),
+                  ),
                 ],
               ),
+              const SizedBox(height: 20.0),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: fechaController,
+                      readOnly: true,
+                      decoration: InputDecoration(
+                        labelText: 'Fecha',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide:
+                              const BorderSide(width: 1, color: Colors.grey),
+                        ),
+                        filled: true,
+                        fillColor: Colors.transparent,
+                      ),
+                      onTap: _pickDate,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'La fecha es obligatoria';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  if (!isAllDay) ...[
+                    const SizedBox(width: 10.0),
+                    Expanded(
+                      child: TextFormField(
+                        controller: horaController,
+                        readOnly: isAllDay,
+                        decoration: InputDecoration(
+                          labelText: 'Hora',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide:
+                                const BorderSide(width: 1, color: Colors.grey),
+                          ),
+                          filled: true,
+                          fillColor: Colors.transparent,
+                        ),
+                        onTap: isAllDay ? null : _pickTime,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 20.0),
+              if (!isAllDay) ...[const IntervalDropdownSelector()],
+              const SizedBox(height: 20.0),
               AppointmentNoteWidget(noteController: notaController),
               const SizedBox(height: 20.0),
               ElevatedButton(

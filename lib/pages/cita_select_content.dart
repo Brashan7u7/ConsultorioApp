@@ -100,7 +100,7 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
         child: Form(
             key: _formKey,
             child: Padding(
-                padding: const EdgeInsets.all(20.0),
+                padding: const EdgeInsets.all(10.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -148,18 +148,37 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                           ],
                         ),
                       ),
+                    const SizedBox(height: 20.0),
                     TextFormField(
                       controller: widget.fechaController,
                       readOnly: true,
-                      decoration: const InputDecoration(labelText: 'Fecha'),
+                      decoration: InputDecoration(
+                        labelText: 'Fecha',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide:
+                              const BorderSide(width: 1, color: Colors.grey),
+                        ),
+                        filled: true,
+                        fillColor: Colors.transparent,
+                      ),
                     ),
+                    const SizedBox(height: 20.0),
                     TextFormField(
                       controller: widget.horaController,
                       readOnly: true,
-                      decoration: const InputDecoration(labelText: 'Hora'),
+                      decoration: InputDecoration(
+                        labelText: 'Hora',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide:
+                              const BorderSide(width: 1, color: Colors.grey),
+                        ),
+                        filled: true,
+                        fillColor: Colors.transparent,
+                      ),
                     ),
                     const IntervalDropdownSelector(),
-
                     const SizedBox(height: 20.0),
                     if (sis) ...[
                       Row(
@@ -195,7 +214,7 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 20.0),
+                          const SizedBox(width: 10.0),
                           Expanded(
                             child: FlutterSwitch(
                               activeText: "Subsecuente",
@@ -236,9 +255,7 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                     ] else ...[
                       ConsultaInfoForm(notaController: notaController),
                     ],
-                    //const SizedBox(height: 20.0),
-
-                    const SizedBox(height: 50.0),
+                    const SizedBox(height: 20.0),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor:

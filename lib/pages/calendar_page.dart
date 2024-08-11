@@ -25,20 +25,13 @@ class _CalendarState extends State<Calendar> {
   void initState() {
     super.initState();
     _loadConsultorios();
-    //_loadSelectedConsultorio();
-    //print('variable gloabl en calendar $variableglobal');
   }
-  //tabla muchos a muchos cada relacion
-  //medicos de grupo no pueden crear consultorio
-  //un medico no pertenece a otros grupos
-
-  //nombre original y nombre al azar, guardar archivo con mi firesistem,
 
   final CalendarController _calendarController = CalendarController();
   List<Appointment> _calendarDataSource = [];
   List<TimeRegion> _specialRegions = [];
 
-  int intervaloHoras = 1;
+  int intervaloHoras = 60;
 
   // Lista de consultorios
   List<Consultorio> consultorios = [];
@@ -82,14 +75,6 @@ class _CalendarState extends State<Calendar> {
     setState(() {
       consultorios = consultoriosList;
       if (consultorios.isNotEmpty) {
-        // Ajustar consulIndex a un valor válido
-        // if (consulIndex >= consultorios.length) {
-        //   consulIndex = 0;
-        // }
-        // globalIdConsultorio = consultorios[consulIndex].id ?? 0;
-        // _loadEventos();
-        // _loadHorariosConsultorios();
-        // print(globalIdConsultorio);
         _loadSelectedConsultorio();
       }
     });
@@ -226,15 +211,13 @@ class _CalendarState extends State<Calendar> {
     //*Eventos
     List<Map<String, dynamic>> eventosData =
         await DatabaseManager.getEventosData(globalIdConsultorio);
-    print('Eventos Data busca el id: $eventosData');
     List<Appointment> eventosAppointments =
         _getCalendarDataSourceEventos(eventosData);
 
     //*Tareas
     List<Map<String, dynamic>> tareasData =
         await DatabaseManager.getTareaSeleccionadaData(globalIdConsultorio);
-    print(
-        'Tareas Data busca el id: $tareasData'); // Añadir esta línea para revisar los datos
+    // Añadir esta línea para revisar los datos
     List<Appointment> tareasAppointments =
         _getCalendarDataSourceTareas(tareasData);
 
@@ -256,6 +239,8 @@ class _CalendarState extends State<Calendar> {
         consulIndex = 0;
       }
       globalIdConsultorio = consultorios[consulIndex].id ?? 0;
+
+      intervaloHoras = consultorios[consulIndex].intervaloAtencion ?? 60;
       _loadEventosTareas();
       _loadHorariosConsultorios();
     });
@@ -293,7 +278,7 @@ class _CalendarState extends State<Calendar> {
         title: Row(
           children: [
             Expanded(
-              child: DropdownButton<Consultorio>(
+              child: DropdownButtonFormField<Consultorio>(
                 isExpanded: true,
                 items: consultorios.map((consultorio) {
                   return DropdownMenuItem<Consultorio>(
@@ -307,6 +292,8 @@ class _CalendarState extends State<Calendar> {
                   if (value != null) {
                     setState(() {
                       consulIndex = consultorios.indexOf(value);
+                      intervaloHoras =
+                          consultorios[consulIndex].intervaloAtencion ?? 60;
                     });
                     int newConsultorioId = consultorios[consulIndex].id ?? 0;
                     if (newConsultorioId != globalIdConsultorio) {
@@ -318,6 +305,16 @@ class _CalendarState extends State<Calendar> {
                     }
                   }
                 },
+                decoration: InputDecoration(
+                  contentPadding: const EdgeInsets.symmetric(
+                      vertical: 4.0, horizontal: 8.0),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(width: 1, color: Colors.grey),
+                  ),
+                  filled: true,
+                  fillColor: Colors.transparent,
+                ),
               ),
             ),
           ],
@@ -424,6 +421,7 @@ class _CalendarState extends State<Calendar> {
         context: context,
         locale: const Locale('es', ''),
         child: SfCalendar(
+          key: ValueKey(globalIdConsultorio),
           controller: _calendarController,
           view: CalendarView.day,
           showNavigationArrow: true,
@@ -433,8 +431,9 @@ class _CalendarState extends State<Calendar> {
           timeSlotViewSettings: TimeSlotViewSettings(
             startHour: 0,
             endHour: 24,
-            timeIntervalHeight: 120,
-            timeInterval: Duration(hours: intervaloHoras),
+            timeIntervalHeight: 100,
+            timeFormat: 'hh:mm a',
+            timeInterval: Duration(minutes: intervaloHoras),
           ),
           dataSource: MeetingDataSource(_calendarDataSource),
           specialRegions: _specialRegions,
@@ -724,7 +723,6 @@ class _CalendarState extends State<Calendar> {
                         ),
                       ),
                       onTap: () {
-                        print('se ha seleccionado para eliminar');
                         showDialog<String>(
                           context: context,
                           builder: (BuildContext context) => AlertDialog(

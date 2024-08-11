@@ -11,10 +11,6 @@ import 'package:calendario_manik/variab.dart';
 import 'package:calendario_manik/models/doctor.dart';
 import 'package:calendario_manik/pages/lista_espera.dart';
 
-// cuenado es usuario-grupo es 3, cuenta-id
-// la asistente hacer arrelgo de médicos
-// agendar cita mostrar para que medico
-// mostrar nombre de medico y paciente en cita
 class CitaProgramadaContent extends StatefulWidget {
   final int? consultorioId;
 
@@ -214,16 +210,6 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                   ],
                 ),
               const SizedBox(height: 20.0),
-              Padding(
-                padding: const EdgeInsets.all(5.0),
-                child: Text(
-                  'Intervalo de Atención (minutos)',
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.normal,
-                      color: Colors.grey[800]),
-                ),
-              ),
               DropdownButtonFormField<String>(
                 items: const [
                   DropdownMenuItem<String>(
@@ -250,6 +236,7 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                   });
                 },
                 decoration: InputDecoration(
+                  labelText: 'Intervalo de Atención (minutos)',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                     borderSide: const BorderSide(width: 1, color: Colors.grey),
@@ -259,16 +246,6 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                 ),
               ),
               const SizedBox(height: 20.0),
-              Padding(
-                padding: const EdgeInsets.all(5.0),
-                child: Text(
-                  'Recomendación de la próxima cita',
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.normal,
-                      color: Colors.grey[800]),
-                ),
-              ),
               DropdownButtonFormField<String>(
                 value: servicioController.text.isEmpty
                     ? null
@@ -292,6 +269,7 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                   await _getRecommendedDateTime(value);
                 },
                 decoration: InputDecoration(
+                  labelText: 'Recomendación de la próxima cita',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                     borderSide: const BorderSide(width: 1, color: Colors.grey),
@@ -320,6 +298,16 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                       _selectedAppointment = value!;
                     });
                   },
+                  decoration: InputDecoration(
+                    labelText: 'Seleccione una fecha y hora recomendada',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide:
+                          const BorderSide(width: 1, color: Colors.grey),
+                    ),
+                    filled: true,
+                    fillColor: Colors.transparent,
+                  ),
                 ),
               const SizedBox(height: 5.0),
               Padding(
@@ -332,7 +320,7 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                       color: Colors.grey[800]),
                 ),
               ),
-              const SizedBox(height: 20.0),
+              const SizedBox(height: 5.0),
               if (sis) ...[
                 Row(
                   children: [
@@ -367,7 +355,7 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 20.0),
+                    const SizedBox(width: 10.0),
                     Expanded(
                       child: FlutterSwitch(
                         activeText: "Subsecuente",
@@ -499,9 +487,9 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                   ],
                 ),
               ],
-              const SizedBox(height: 25.0),
+              const SizedBox(height: 20.0),
               AppointmentNoteWidget(noteController: notaController),
-              const SizedBox(height: 70.0),
+              const SizedBox(height: 20.0),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue, // Color de fondo del botón

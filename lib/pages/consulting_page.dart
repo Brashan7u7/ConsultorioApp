@@ -290,8 +290,6 @@ class _ConsultingState extends State<Consulting> {
                   const Text('No hay consultorios registrados'),
                 if (hasConsultorios)
                   DropdownButtonFormField<Consultorio>(
-                    hint:
-                        const Text('Seleccione un consultorio para modificar'),
                     items: consultorios.map((consultorio) {
                       return DropdownMenuItem<Consultorio>(
                         value: consultorio,
@@ -321,11 +319,29 @@ class _ConsultingState extends State<Consulting> {
                             selectedConsultorio!.id);
                       }
                     },
+                    decoration: InputDecoration(
+                      labelText: 'Seleccione un consultorio para modificar',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide:
+                            const BorderSide(width: 1, color: Colors.grey),
+                      ),
+                      filled: true,
+                      fillColor: Colors.transparent,
+                    ),
                   ),
+                const SizedBox(height: 20.0),
                 TextFormField(
                   controller: _nombreController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Nombre del Consultorio',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide:
+                          const BorderSide(width: 1, color: Colors.grey),
+                    ),
+                    filled: true,
+                    fillColor: Colors.transparent,
                   ),
                   validator: (value) {
                     if (value!.isEmpty) {
@@ -334,10 +350,18 @@ class _ConsultingState extends State<Consulting> {
                     return null; // retorna null si la validación es exitosa
                   },
                 ),
+                const SizedBox(height: 20.0),
                 TextFormField(
                   controller: _telefonoController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Teléfono Fijo',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide:
+                          const BorderSide(width: 1, color: Colors.grey),
+                    ),
+                    filled: true,
+                    fillColor: Colors.transparent,
                   ),
                   inputFormatters: [
                     FilteringTextInputFormatter.digitsOnly
@@ -351,10 +375,18 @@ class _ConsultingState extends State<Consulting> {
                     return null;
                   },
                 ),
+                const SizedBox(height: 20.0),
                 TextFormField(
                   controller: _calleController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Calle y Número',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide:
+                          const BorderSide(width: 1, color: Colors.grey),
+                    ),
+                    filled: true,
+                    fillColor: Colors.transparent,
                   ),
                   validator: (value) {
                     if (value!.isEmpty) {
@@ -363,11 +395,19 @@ class _ConsultingState extends State<Consulting> {
                     return null;
                   },
                 ),
+                const SizedBox(height: 20.0),
                 TextFormField(
                   controller: _codigoPostalController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Código Postal',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide:
+                          const BorderSide(width: 1, color: Colors.grey),
+                    ),
+                    filled: true,
+                    fillColor: Colors.transparent,
                   ),
                   inputFormatters: [
                     FilteringTextInputFormatter.digitsOnly
@@ -384,6 +424,7 @@ class _ConsultingState extends State<Consulting> {
                     return null;
                   },
                 ),
+                const SizedBox(height: 20.0),
                 DropdownButtonFormField<String>(
                   items: const [
                     DropdownMenuItem<String>(
@@ -409,12 +450,18 @@ class _ConsultingState extends State<Consulting> {
                       selectedInterval = int.parse(value!);
                     });
                   },
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Intervalo de Atención (minutos)',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide:
+                          const BorderSide(width: 1, color: Colors.grey),
+                    ),
+                    filled: true,
+                    fillColor: Colors.transparent,
                   ),
                 ),
-                const SizedBox(height: 16.0),
-                const Text('Selecciona un día de la semana:'),
+                const SizedBox(height: 20.0),
                 DropdownButtonFormField<String>(
                   items: daysOfWeek.map((day) {
                     return DropdownMenuItem<String>(
@@ -428,12 +475,32 @@ class _ConsultingState extends State<Consulting> {
                       selectedDay = value;
                     });
                   },
+                  decoration: InputDecoration(
+                    labelText: 'Selecciona un día de la semana:',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide:
+                          const BorderSide(width: 1, color: Colors.grey),
+                    ),
+                    filled: true,
+                    fillColor: Colors.transparent,
+                  ),
                 ),
-                const SizedBox(height: 16.0),
+                const SizedBox(height: 20.0),
                 const Text('Horarios de atención'),
                 _buildTimeIntervals(), // Llama al método para generar los intervalos de tiempo
                 if (hasConsultorios) const SizedBox(height: 16.0),
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue, // Color de fondo del botón
+                    foregroundColor: Colors.white, // Color del texto del botón
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                          10), // Radio de esquinas redondeadas
+                      side: const BorderSide(
+                          width: 1, color: Colors.grey), // Borde del botón
+                    ),
+                  ),
                   onPressed: () async {
                     _guardarConsultorio();
 

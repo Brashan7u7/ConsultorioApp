@@ -10,21 +10,11 @@ class AppointmentNoteWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.all(5.0),
-          child: Text(
-            'Nota para la cita',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.normal,
-              color: Colors.grey,
-            ),
-          ),
-        ),
         TextFormField(
           controller: noteController,
           maxLength: 100,
           decoration: InputDecoration(
+            labelText: 'Nota para la cita',
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
               borderSide: const BorderSide(width: 1, color: Colors.grey),

@@ -1,6 +1,8 @@
+import 'package:calendario_manik/models/consultorio.dart';
 import 'package:calendario_manik/pages/editingCita_page.dart';
 import 'package:calendario_manik/pages/lista_espera.dart';
 import 'package:calendario_manik/variab.dart';
+import 'package:calendario_manik/widgets/ReagendarDialog.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:calendario_manik/pages/add_page.dart';
@@ -765,26 +767,20 @@ class _CalendarState extends State<Calendar> {
                     ),
                     PopupMenuItem(
                       child: const Text(
-                        'Reagendar',
+                        'Reprogramar cita',
                         style: TextStyle(
                             fontSize: 16, color: Color.fromARGB(255, 0, 0, 0)),
                       ),
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => Add(
-                              isCitaInmediata: false,
-                              isEvento: false,
-                              isPacient: false,
-                              isCitaPro: false,
-                              isEditingCita: true,
-                              consultorioId: globalIdConsultorio,
-                            ),
-                          ),
+                        print('se ha presionado reagendar');
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return ReagendarDialog(appointment: appointment);
+                          },
                         );
                       },
-                    ),
+                    )
                   ],
                 )
               ],

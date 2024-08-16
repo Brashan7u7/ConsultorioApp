@@ -1,4 +1,5 @@
 import 'package:calendario_manik/database/database.dart';
+import 'package:calendario_manik/models/consultorio.dart';
 import 'package:calendario_manik/pages/calendar_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -679,22 +680,3 @@ class _ConsultingState extends State<Consulting> {
   }
 }
 
-class Consultorio {
-  int? id;
-  String? nombre;
-  String? telefono;
-  String? direccion;
-  int? codigoPostal;
-  int? intervaloAtencion;
-  String? grupo_nombre;
-
-  Consultorio({
-    this.id,
-    this.nombre,
-    this.telefono,
-    this.direccion,
-    this.codigoPostal,
-    this.intervaloAtencion,
-    this.grupo_nombre,
-  });
-}

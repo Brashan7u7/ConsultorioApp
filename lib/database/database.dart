@@ -175,8 +175,11 @@ class DatabaseManager {
     List<Map<String, dynamic>> recomeDiaria = [];
     try {
       final conn = await _connect();
+      final nuevaFechaHoraInicio = fechaHoraInicio.subtract(Duration(hours: 6));
+
+      // Formatear la nueva fecha y hora
       final formattedFechaHoraInicio =
-          DateFormat('yyyy-MM-dd HH:mm:ss').format(fechaHoraInicio);
+          DateFormat('yyyy-MM-dd HH:mm:ss').format(nuevaFechaHoraInicio);
 
       final result = await conn.execute("""
       WITH fechas AS (
@@ -1499,48 +1502,44 @@ WHERE gm.grupo_id = $grupo_id;
       print('Intentando reagendar evento...');
       print('Evento ID: $eventoId');
       print('Consultorio ID: $consultorioId');
-      print('Nueva fecha de inicio: $newStartTime');
-      print('Nueva fecha de fin: $newEndTime');
-      print('La fecha en la que se guarda$newStartTime' );
+
+      // Restar 6 horas a la nueva fecha de inicio y fin
+      DateTime adjustedStartTime = newStartTime.subtract(Duration(hours: 6));
+      DateTime adjustedEndTime = newEndTime.subtract(Duration(hours: 6));
+
+      print('Nueva fecha de inicio original: $newStartTime');
+      print('Nueva fecha de fin original: $newEndTime');
+      print('Nueva fecha de inicio ajustada: $adjustedStartTime');
+      print('Nueva fecha de fin ajustada: $adjustedEndTime');
+
       final conn = await _connect();
-      // Verificar si el nuevo horario está disponible
-      bool puedeReagendar =
-          await canReagendarEvento(consultorioId, newStartTime, newEndTime);
+
+      // Verificar si el nuevo horario ajustado está disponible
+      bool puedeReagendar = await canReagendarEvento(
+          consultorioId, adjustedStartTime, adjustedEndTime);
       print('Resultado de canReagendarEvento: $puedeReagendar');
 
       if (!puedeReagendar) {
         print('Conflicto detectado, no se puede reagendar.');
         return false; // No se puede reagendar debido a conflictos
       }
-      // print('Conexión a la base de datos establecida.');
 
-      // print('Preparando consulta para actualizar el evento...');
-      // print('Consulta SQL: '
-      //     'UPDATE evento '
-      //     'SET fecha_inicio = @newStartTime, '
-      //     '    fecha_fin = @newEndTime '
-      //     'WHERE id = @eventoId');
-      // print('Parámetros de consulta: '
-      //     'newStartTime: ${newStartTime.toUtc()}, '
-      //     'newEndTime: ${newEndTime.toUtc()}, '
-      //     'eventoId: $eventoId');
-
-      // Actualizar el evento en la base de datos
+      // Actualizar el evento en la base de datos con las fechas ajustadas
       await conn.execute(
         Sql.named("""
-    UPDATE evento
-    SET fecha_inicio = @newStartTime,
-        fecha_fin = @newEndTime
-    WHERE id = @eventoId
-    """),
+            UPDATE evento
+            SET fecha_inicio = @adjustedStartTime,
+                fecha_fin = @adjustedEndTime
+            WHERE id = @eventoId
+            """),
         parameters: {
-          'newStartTime': newStartTime.toUtc(),
-          'newEndTime': newEndTime.toUtc(),
-          'eventoId': eventoId as int, // Use 'eventoId' as the key
+          'adjustedStartTime': adjustedStartTime.toUtc(),
+          'adjustedEndTime': adjustedEndTime.toUtc(),
+          'eventoId': eventoId,
         },
       );
 
-      //print('Evento actualizado exitosamente en la base de datos.');
+      print('Evento actualizado exitosamente en la base de datos.');
 
       await conn.close();
       print('Conexión a la base de datos cerrada.');
@@ -1548,6 +1547,65 @@ WHERE gm.grupo_id = $grupo_id;
       return true; // Reagendamiento exitoso
     } catch (e) {
       print('Error en reagendarEvento: $e');
+      return false; // Error durante el proceso
+    }
+  }
+
+  static Future<bool> reagendarTarea(
+    int tareaId,
+    int consultorioId,
+    DateTime newStartTime,
+    DateTime newEndTime,
+  ) async {
+    try {
+      print('Intentando reagendar tarea...');
+      print('tarea ID: $tareaId');
+      print('Consultorio ID: $consultorioId');
+
+      // Restar 6 horas a la nueva fecha de inicio y fin
+      DateTime adjustedStartTime = newStartTime.subtract(Duration(hours: 6));
+      DateTime adjustedEndTime = newEndTime.subtract(Duration(hours: 6));
+
+      print('Nueva fecha de inicio original: $newStartTime');
+      print('Nueva fecha de fin original: $newEndTime');
+      print('Nueva fecha de inicio ajustada: $adjustedStartTime');
+      print('Nueva fecha de fin ajustada: $adjustedEndTime');
+
+      final conn = await _connect();
+
+      // Verificar si el nuevo horario ajustado está disponible
+      bool puedeReagendar = await canReagendarEvento(
+          consultorioId, adjustedStartTime, adjustedEndTime);
+      print('Resultado de canReagendarEvento: $puedeReagendar');
+
+      if (!puedeReagendar) {
+        print('Conflicto detectado, no se puede reagendar.');
+        return false; // No se puede reagendar debido a conflictos
+      }
+
+      // Actualizar el evento en la base de datos con las fechas ajustadas
+      await conn.execute(
+        Sql.named("""
+            UPDATE tarea
+            SET fecha_inicio = @adjustedStartTime,
+                fecha_fin = @adjustedEndTime
+            WHERE id = @tareaId
+            """),
+        parameters: {
+          'adjustedStartTime': adjustedStartTime.toUtc(),
+          'adjustedEndTime': adjustedEndTime.toUtc(),
+          'tareaId': tareaId,
+        },
+      );
+
+      print('Evento actualizado exitosamente en la base de datos.');
+
+      await conn.close();
+      print('Conexión a la base de datos cerrada.');
+
+      return true; // Reagendamiento exitoso
+    } catch (e) {
+      print('Error en reagendarTarea: $e');
       return false; // Error durante el proceso
     }
   }

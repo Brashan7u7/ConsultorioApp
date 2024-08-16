@@ -776,7 +776,10 @@ class _CalendarState extends State<Calendar> {
                         showDialog(
                           context: context,
                           builder: (BuildContext context) {
-                            return ReagendarDialog(appointment: appointment);
+                            return ReagendarDialog(
+                              appointment: appointment,
+                              onSave: _loadEventosTareas,
+                            );
                           },
                         );
                       },

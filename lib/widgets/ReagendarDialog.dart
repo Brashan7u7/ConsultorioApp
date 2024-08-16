@@ -198,13 +198,15 @@ class _ReagendarDialogState extends State<ReagendarDialog> {
       if (tipoCita == 'evento') {
         // Aquí colocas la lógica para guardar un evento
         print('se ha seleccionado evento');
-        int eventId = widget.appointment.id as int;
-        int consultorioId = int.parse(_selectedConsultorio ?? '1');
+        String id = widget.appointment.notes ?? '';
+        int eventId = int.parse(id);
+        print(widget.appointment.id);
+        int consultorioId = int.parse(_selectedConsultorio ?? '0');
         await DatabaseManager.reagendarEvento(
           eventId,
           consultorioId,
-          newStartTime,
-          newEndTime,
+          newStartTime.toUtc(),
+          newEndTime.toUtc(),
         );
 
         await Future.delayed(const Duration(milliseconds: 1500));

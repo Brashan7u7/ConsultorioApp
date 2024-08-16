@@ -1490,69 +1490,67 @@ WHERE gm.grupo_id = $grupo_id;
   }
 
   static Future<bool> reagendarEvento(
-  int eventoId,
-  int consultorioId,
-  DateTime newStartTime,
-  DateTime newEndTime,
-) async {
-  try {
-    print('Intentando reagendar evento...');
-    print('Evento ID: $eventoId');
-    print('Consultorio ID: $consultorioId');
-    print('Nueva fecha de inicio: $newStartTime');
-    print('Nueva fecha de fin: $newEndTime');
+    int eventoId,
+    int consultorioId,
+    DateTime newStartTime,
+    DateTime newEndTime,
+  ) async {
+    try {
+      print('Intentando reagendar evento...');
+      print('Evento ID: $eventoId');
+      print('Consultorio ID: $consultorioId');
+      print('Nueva fecha de inicio: $newStartTime');
+      print('Nueva fecha de fin: $newEndTime');
+      print('La fecha en la que se guarda$newStartTime' );
+      final conn = await _connect();
+      // Verificar si el nuevo horario está disponible
+      bool puedeReagendar =
+          await canReagendarEvento(consultorioId, newStartTime, newEndTime);
+      print('Resultado de canReagendarEvento: $puedeReagendar');
 
-    // Verificar si el nuevo horario está disponible
-    bool puedeReagendar =
-        await canReagendarEvento(consultorioId, newStartTime, newEndTime);
-    print('Resultado de canReagendarEvento: $puedeReagendar');
+      if (!puedeReagendar) {
+        print('Conflicto detectado, no se puede reagendar.');
+        return false; // No se puede reagendar debido a conflictos
+      }
+      // print('Conexión a la base de datos establecida.');
 
-    if (!puedeReagendar) {
-      print('Conflicto detectado, no se puede reagendar.');
-      return false; // No se puede reagendar debido a conflictos
-    }
+      // print('Preparando consulta para actualizar el evento...');
+      // print('Consulta SQL: '
+      //     'UPDATE evento '
+      //     'SET fecha_inicio = @newStartTime, '
+      //     '    fecha_fin = @newEndTime '
+      //     'WHERE id = @eventoId');
+      // print('Parámetros de consulta: '
+      //     'newStartTime: ${newStartTime.toUtc()}, '
+      //     'newEndTime: ${newEndTime.toUtc()}, '
+      //     'eventoId: $eventoId');
 
-    final conn = await _connect();
-    print('Conexión a la base de datos establecida.');
-
-    print('Preparando consulta para actualizar el evento...');
-    print('Consulta SQL: '
-        'UPDATE evento '
-        'SET fecha_inicio = @newStartTime, '
-        '    fecha_fin = @newEndTime '
-        'WHERE id = @eventoId');
-    print('Parámetros de consulta: '
-        'newStartTime: ${newStartTime.toUtc()}, '
-        'newEndTime: ${newEndTime.toUtc()}, '
-        'eventoId: $eventoId');
-
-    // Actualizar el evento en la base de datos
-    await conn.execute(
-      Sql.named("""
+      // Actualizar el evento en la base de datos
+      await conn.execute(
+        Sql.named("""
     UPDATE evento
     SET fecha_inicio = @newStartTime,
         fecha_fin = @newEndTime
     WHERE id = @eventoId
     """),
-      parameters: {
-        'newStartTime': newStartTime.toUtc(),
-        'newEndTime': newEndTime.toUtc(),
-        'eventoId': eventoId,
-      },
-    );
+        parameters: {
+          'newStartTime': newStartTime.toUtc(),
+          'newEndTime': newEndTime.toUtc(),
+          'eventoId': eventoId as int, // Use 'eventoId' as the key
+        },
+      );
 
-    print('Evento actualizado exitosamente en la base de datos.');
+      //print('Evento actualizado exitosamente en la base de datos.');
 
-    await conn.close();
-    print('Conexión a la base de datos cerrada.');
+      await conn.close();
+      print('Conexión a la base de datos cerrada.');
 
-    return true; // Reagendamiento exitoso
-  } catch (e) {
-    print('Error en reagendarEvento: $e');
-    return false; // Error durante el proceso
+      return true; // Reagendamiento exitoso
+    } catch (e) {
+      print('Error en reagendarEvento: $e');
+      return false; // Error durante el proceso
+    }
   }
-}
-
 
   static Future<void> insertarListaEspera(
       int consultorioId, Tarea tarea) async {
@@ -1778,7 +1776,7 @@ WHERE
       FROM public.evento
       WHERE calendario_id = @calendarioId
         AND (
-          (fecha_inicio < @newEndTime AND fecha_fin > @newStartTime)
+          (fecha_inicio <= @newEndTime AND fecha_fin >= @newStartTime)
         )
     """), parameters: {
         'calendarioId': consultorioId,
@@ -1786,16 +1784,18 @@ WHERE
         'newEndTime': newEndTime.toUtc(),
       });
 
-      print('Consulta ejecutada.');
+      print('Valor RESULT: $result');
+
+      //print('Consulta ejecutada.');
 
       // Imprime el resultado de la consulta
-      print('Resultado de la consulta: $result');
+      //print('Resultado de la consulta: $result');
 
       await conn.close();
       print('Conexión a la base de datos cerrada.');
 
       // El resultado es un solo valor en la primera fila, obtenemos ese valor
-      final count = result.isNotEmpty ? result.first[0] as int : 0;
+      final count = result.isNotEmpty ? result.first[0] as int : 1;
       print('Número de conflictos encontrados: $count');
 
       // Si count es 0, no hay conflictos, por lo tanto, se puede reagendar

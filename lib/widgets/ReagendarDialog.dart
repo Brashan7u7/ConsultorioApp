@@ -7,9 +7,9 @@ import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 class ReagendarDialog extends StatefulWidget {
   final Appointment appointment;
+  final VoidCallback onSave;
 
-  const ReagendarDialog({super.key, required this.appointment});
-
+  const ReagendarDialog({super.key, required this.appointment, required this.onSave});
   @override
   State<ReagendarDialog> createState() => _ReagendarDialogState();
 }
@@ -88,6 +88,8 @@ class _ReagendarDialogState extends State<ReagendarDialog> {
         time.hour,
         time.minute,
       );
+      _recomendations = []; // Vaciar las recomendaciones antes de actualizar
+      selectedRecommendation = null; // Resetear la selección de recomendación
       _selectedAppointments(); // Actualizar las recomendaciones automáticamente
     });
   }
@@ -200,8 +202,10 @@ class _ReagendarDialogState extends State<ReagendarDialog> {
         print('se ha seleccionado evento');
         String id = widget.appointment.notes ?? '';
         int eventId = int.parse(id);
-        print(widget.appointment.id);
+        print('----------------------- ${widget.appointment.id}');
         int consultorioId = int.parse(_selectedConsultorio ?? '0');
+        final localStartTime = newStartTime.toLocal();
+        final localEndTime = newEndTime.toLocal();
         await DatabaseManager.reagendarEvento(
           eventId,
           consultorioId,
@@ -211,12 +215,24 @@ class _ReagendarDialogState extends State<ReagendarDialog> {
 
         await Future.delayed(const Duration(milliseconds: 1500));
       } else if (tipoCita == 'tarea') {
+        // Aquí colocas la lógica para guardar un evento
         print('se ha seleccionado una tarea');
-        // Aquí colocas la lógica para guardar una tarea
-        // await DatabaseManager.reagendarTarea(widget.appointment.id,
-        // newStartTime, newEndTime, _selectedConsultorio);
-      }
+        String id = widget.appointment.notes ?? '';
+        int eventId = int.parse(id);
+        print('----------------------- ${widget.appointment.id}');
+        int consultorioId = int.parse(_selectedConsultorio ?? '0');
+        final localStartTime = newStartTime.toLocal();
+        final localEndTime = newEndTime.toLocal();
+        await DatabaseManager.reagendarTarea(
+          eventId,
+          consultorioId,
+          newStartTime.toUtc(),
+          newEndTime.toUtc(),
+        );
 
+        await Future.delayed(const Duration(milliseconds: 1500));
+      }
+      widget.onSave();
       await showDialog(
         context: context,
         builder: (BuildContext context) {

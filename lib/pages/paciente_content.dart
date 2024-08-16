@@ -74,8 +74,9 @@ class _PacienteContentState extends State<PacienteContent> {
 
   Future<void> fetchLocationData(String postalCode) async {
     final response = await http.get(Uri.parse(
-        'https://api.copomex.com/query/info_cp/$postalCode?token=a7a13953-8c5f-46c1-9f43-dafdb1160303'));
-
+        'https://api.copomex.com/query/info_cp/$postalCode?token=023e6e30-b7c6-4945-a9e2-ec4623a2f705'
+        //'https://mexico-zip-codes.p.rapidapi.com/codigo_postal/$postalCode'
+        ));
     if (response.statusCode == 200) {
       final List<dynamic> dataList = json.decode(response.body);
       if (dataList.isNotEmpty) {
@@ -95,6 +96,32 @@ class _PacienteContentState extends State<PacienteContent> {
     }
   }
 
+  Future<void> fetchCurpData(String curp) async {
+    final response = await http.get(Uri.parse(
+        'https://api.valida-curp.com.mx/curp/obtener_datos/?token=bdc5a46a-b2b8-423a-9364-27eab0075ec0&curp=$curp'));
+    print(response);
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> responseData = json.decode(response.body);
+
+      if (responseData['error'] == false && responseData['response'] != null) {
+        final Map<String, dynamic> solicitanteData =
+            responseData['response']['Solicitante'];
+
+        setState(() {
+          nameController.text = solicitanteData['Nombres'];
+          apPaternoController.text = solicitanteData['ApellidoPaterno'];
+          apMaternoController.text = solicitanteData['ApellidoMaterno'];
+          fechaNacimientoController.text = solicitanteData['FechaNacimiento'];
+        });
+      } else {
+        print('Error: No se encontraron datos del CURP proporcionado.');
+      }
+    } else {
+      print(
+          'Error al obtener la CURP. Código de estado: ${response.statusCode}');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -105,23 +132,36 @@ class _PacienteContentState extends State<PacienteContent> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Padding(
-                padding: const EdgeInsets.all(5.0),
-                child: Text(
-                  'Ingrese el nombre del paciente',
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.normal,
-                      color: Colors.grey[800]),
-                ),
+              TextFormField(
+                controller: curpController,
+                decoration: InputDecoration(
+                    labelText: 'Ingrese su curp',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(width: 1, color: Colors.grey),
+                    )),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'El CURP es obligatorio';
+                  }
+                  return null;
+                },
+                onChanged: (value) {
+                  if (value.length == 18) {
+                    fetchCurpData(value);
+                    print(value);
+                  }
+                },
               ),
+              const SizedBox(height: 20.0),
               TextFormField(
                 controller: nameController,
                 decoration: InputDecoration(
+                    labelText: 'Ingrese el nombre del paciente',
                     border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(width: 1, color: Colors.grey),
-                )),
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(width: 1, color: Colors.grey),
+                    )),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'El nombre del paciente es obligatorio';
@@ -129,37 +169,32 @@ class _PacienteContentState extends State<PacienteContent> {
                   return null;
                 },
               ),
-
-              Padding(
-                padding: const EdgeInsets.all(5.0),
-                child: Text(
-                  'Ingrese el apellido paterno',
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.normal,
-                      color: Colors.grey[800]),
-                ),
-              ),
+              const SizedBox(height: 20.0),
               TextFormField(
                 controller: apPaternoController,
                 decoration: InputDecoration(
+                    labelText: 'Ingrese el apellido paterno',
                     border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(width: 1, color: Colors.grey),
-                )),
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(width: 1, color: Colors.grey),
+                    )),
               ),
+              const SizedBox(height: 20.0),
               TextFormField(
                 controller: apMaternoController,
                 decoration: InputDecoration(
+                    labelText: 'Ingrese el apellido materno',
                     border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(width: 1, color: Colors.grey),
-                )),
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(width: 1, color: Colors.grey),
+                    )),
               ),
+              const SizedBox(height: 20.0),
               TextFormField(
                 controller: fechaNacimientoController,
                 readOnly: true,
                 decoration: InputDecoration(
+                  labelText: 'Ingrese la fecha de nacimiento',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                     borderSide: BorderSide(width: 1, color: Colors.grey),
@@ -189,16 +224,7 @@ class _PacienteContentState extends State<PacienteContent> {
                   return null;
                 },
               ),
-              Padding(
-                padding: const EdgeInsets.all(5.0),
-                child: Text(
-                  'Seleccione su sexo',
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.normal,
-                      color: Colors.grey[800]),
-                ),
-              ),
+              const SizedBox(height: 20.0),
               DropdownButtonFormField<String>(
                 items: const [
                   DropdownMenuItem<String>(
@@ -217,6 +243,7 @@ class _PacienteContentState extends State<PacienteContent> {
                   });
                 },
                 decoration: InputDecoration(
+                  labelText: 'Seleccione su sexo',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                     borderSide: BorderSide(width: 1, color: Colors.grey),
@@ -227,49 +254,15 @@ class _PacienteContentState extends State<PacienteContent> {
               //   controller: coloniaIdController,
               //   decoration: InputDecoration(labelText: 'ColoniaId'),
               // ),
-
-              Padding(
-                padding: const EdgeInsets.all(5.0),
-                child: Text(
-                  'Ingrese su curp',
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.normal,
-                      color: Colors.grey[800]),
-                ),
-              ),
-              TextFormField(
-                controller: curpController,
-                decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(width: 1, color: Colors.grey),
-                )),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'El CURP es obligatorio';
-                  }
-
-                  return null;
-                },
-              ),
-              Padding(
-                padding: const EdgeInsets.all(5.0),
-                child: Text(
-                  'Ingrese su telefono movil',
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.normal,
-                      color: Colors.grey[800]),
-                ),
-              ),
+              const SizedBox(height: 20.0),
               TextFormField(
                 controller: telefonoMovilController,
                 decoration: InputDecoration(
+                    labelText: 'Ingrese su telefono movil',
                     border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(width: 1, color: Colors.grey),
-                )),
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(width: 1, color: Colors.grey),
+                    )),
                 keyboardType: TextInputType.phone,
                 inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly,
@@ -284,23 +277,16 @@ class _PacienteContentState extends State<PacienteContent> {
                   return null;
                 },
               ),
-              Padding(
-                padding: const EdgeInsets.all(5.0),
-                child: Text(
-                  'Ingrese su Telefono fijo',
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.normal,
-                      color: Colors.grey[800]),
-                ),
-              ),
+              const SizedBox(height: 20.0),
               TextFormField(
                 controller: telefonoFijoController,
                 decoration: InputDecoration(
+                    labelText: 'Ingrese su telefono fijo',
                     border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(width: 1, color: Colors.grey),
-                )),
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide:
+                          const BorderSide(width: 1, color: Colors.grey),
+                    )),
                 keyboardType: TextInputType.phone,
                 inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly,
@@ -315,23 +301,16 @@ class _PacienteContentState extends State<PacienteContent> {
                   return null;
                 },
               ),
-              Padding(
-                padding: const EdgeInsets.all(5.0),
-                child: Text(
-                  'Ingrese su Correo eléctronico',
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.normal,
-                      color: Colors.grey[800]),
-                ),
-              ),
+              const SizedBox(height: 20.0),
               TextFormField(
                 controller: correoController,
                 decoration: InputDecoration(
+                    labelText: 'Ingrese su correo eléctronico',
                     border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(width: 1, color: Colors.grey),
-                )),
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide:
+                          const BorderSide(width: 1, color: Colors.grey),
+                    )),
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -348,45 +327,31 @@ class _PacienteContentState extends State<PacienteContent> {
               //   controller: avatarController,
               //   decoration: InputDecoration(labelText: 'Avatar'),
               // ),
-              Padding(
-                padding: const EdgeInsets.all(5.0),
-                child: Text(
-                  'Ingrese su Direccion',
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.normal,
-                      color: Colors.grey[800]),
-                ),
-              ),
+              const SizedBox(height: 20.0),
               TextFormField(
                 controller: direccionController,
                 decoration: InputDecoration(
+                    labelText: 'Ingrese su direccion',
                     border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(width: 1, color: Colors.grey),
-                )),
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide:
+                          const BorderSide(width: 1, color: Colors.grey),
+                    )),
               ),
               // TextFormField(
               //   controller: identificadorController,
               //   decoration: InputDecoration(labelText: 'Identificador'),
-              // ),
-              Padding(
-                padding: const EdgeInsets.all(5.0),
-                child: Text(
-                  'Ingrese su codigo postal',
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.normal,
-                      color: Colors.grey[800]),
-                ),
-              ),
+              // ),}
+              const SizedBox(height: 20.0),
               TextFormField(
                 controller: codigoPostalController,
                 decoration: InputDecoration(
+                    labelText: 'Ingrese su codigo postal',
                     border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(width: 1, color: Colors.grey),
-                )),
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide:
+                          const BorderSide(width: 1, color: Colors.grey),
+                    )),
                 keyboardType: TextInputType.number,
                 inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly,
@@ -397,18 +362,39 @@ class _PacienteContentState extends State<PacienteContent> {
                   }
                 },
               ),
-              // TextFormField(
-              //   controller: municipioIdController,
-              //   decoration: InputDecoration(labelText: 'Municipio'),
-              // ),
-              // TextFormField(
-              //   controller: estadoIdController,
-              //   decoration: InputDecoration(labelText: 'Estado'),
-              // ),
-              // TextFormField(
-              //   controller: paisIdController,
-              //   decoration: InputDecoration(labelText: 'País'),
-              // ),
+              const SizedBox(height: 20.0),
+              TextFormField(
+                controller: estadoIdController,
+                decoration: InputDecoration(
+                    labelText: 'Estado',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide:
+                          const BorderSide(width: 1, color: Colors.grey),
+                    )),
+              ),
+              const SizedBox(height: 20.0),
+              TextFormField(
+                controller: paisIdController,
+                decoration: InputDecoration(
+                    labelText: 'País',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide:
+                          const BorderSide(width: 1, color: Colors.grey),
+                    )),
+              ),
+              const SizedBox(height: 20.0),
+              TextFormField(
+                controller: municipioIdController,
+                decoration: InputDecoration(
+                    labelText: 'Municipio',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide:
+                          const BorderSide(width: 1, color: Colors.grey),
+                    )),
+              ),
               // TextFormField(
               //   controller: entidadNacimientoIdController,
               //   decoration:
@@ -420,6 +406,16 @@ class _PacienteContentState extends State<PacienteContent> {
               // ),
               const SizedBox(height: 20.0),
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue, // Color de fondo del botón
+                  foregroundColor: Colors.white, // Color del texto del botón
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(
+                        10), // Radio de esquinas redondeadas
+                    side: BorderSide(
+                        width: 1, color: Colors.grey), // Borde del botón
+                  ),
+                ),
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     try {
@@ -446,9 +442,9 @@ class _PacienteContentState extends State<PacienteContent> {
                             curp: curpController.text,
                             codigoPostal:
                                 int.parse(codigoPostalController.text),
-                            // municipioId: int.parse(municipioIdController.text),
-                            // estadoId: int.parse(estadoIdController.text),
-                            // pais: paisController.text,
+                            municipioId: municipioIdController.text,
+                            estadoId: estadoIdController.text,
+                            pais: paisController.text,
                             // paisId: int.parse(paisIdController.text),
                             // entidadNacimientoId:
                             //     entidadNacimientoIdController.text,
@@ -477,9 +473,9 @@ class _PacienteContentState extends State<PacienteContent> {
                             curp: curpController.text,
                             codigoPostal:
                                 int.parse(codigoPostalController.text),
-                            // municipioId: int.parse(municipioIdController.text),
-                            // estadoId: int.parse(estadoIdController.text),
-                            // pais: paisController.text,
+                            municipioId: municipioIdController.text,
+                            estadoId: estadoIdController.text,
+                            pais: paisController.text,
                             // paisId: int.parse(paisIdController.text),
                             // entidadNacimientoId:
                             //     entidadNacimientoIdController.text,

@@ -15,9 +15,9 @@ class Paciente {
   //String identificador;
   String curp;
   int codigoPostal;
-  // int municipioId;
-  // int estadoId;
-  // String pais;
+  String municipioId;
+  String estadoId;
+  String pais;
   // int paisId;
   // String entidadNacimientoId;
   // int generoId;
@@ -40,9 +40,9 @@ class Paciente {
     //required this.identificador,
     required this.curp,
     required this.codigoPostal,
-    // required this.municipioId,
-    // required this.estadoId,
-    // required this.pais,
+    required this.municipioId,
+    required this.estadoId,
+    required this.pais,
     // required this.paisId,
     // required this.entidadNacimientoId,
     // required this.generoId,

@@ -47,11 +47,36 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
   int pacienteId = 0;
   String nombres = 'paciente';
 
+  String _fechaGuardada = '';
+  String _horaGuardada = '';
+
   @override
   void initState() {
     super.initState();
     if (usuario_cuenta_id == 3 && usuario_rol != 'MED') _fetchDoctores();
     if (usuario_rol == 'MED') doctorId = usuario_id;
+    _fechaGuardada = widget.fechaController.text;
+    _horaGuardada = widget.horaController.text;
+  }
+
+  void _handleEsperaChanged(bool newValue) {
+    setState(() {
+      espera = newValue;
+
+      if (espera) {
+        // Guarda los valores actuales
+        _fechaGuardada = widget.fechaController.text;
+        _horaGuardada = widget.horaController.text;
+
+        // Limpia los campos de fecha y hora
+        widget.fechaController.clear();
+        widget.horaController.clear();
+      } else {
+        // Restaura los valores guardados
+        widget.fechaController.text = _fechaGuardada;
+        widget.horaController.text = _horaGuardada;
+      }
+    });
   }
 
   Future<void> _fetchDoctores() async {
@@ -114,6 +139,7 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                       consultorioId: widget.consultorioId!,
                       nombres: nombres,
                     ),
+                    const SizedBox(height: 20.0),
                     if (usuario_cuenta_id == 3 && usuario_rol != 'MED')
                       Container(
                         child: Column(
@@ -121,10 +147,8 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                             Row(
                               children: [
                                 Expanded(
-                                  child: DropdownButton<Doctor>(
+                                  child: DropdownButtonFormField<Doctor>(
                                     isExpanded: true,
-                                    hint: const Text(
-                                        'Seleccione el médico que atenderá la cita'),
                                     items: doctores.map((doctor) {
                                       return DropdownMenuItem<Doctor>(
                                         value: doctor,
@@ -141,6 +165,17 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                                         }
                                       });
                                     },
+                                    decoration: InputDecoration(
+                                      labelText:
+                                          'Seleccione el médico que atenderá la cita',
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                        borderSide: const BorderSide(
+                                            width: 1, color: Colors.grey),
+                                      ),
+                                      filled: true,
+                                      fillColor: Colors.transparent,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -151,7 +186,7 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                     const SizedBox(height: 20.0),
                     TextFormField(
                       controller: widget.fechaController,
-                      readOnly: true,
+                      readOnly: !espera,
                       decoration: InputDecoration(
                         labelText: 'Fecha',
                         border: OutlineInputBorder(
@@ -162,11 +197,27 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                         filled: true,
                         fillColor: Colors.transparent,
                       ),
+                      onTap: () async {
+                        if (espera) {
+                          DateTime? selectedDate = await showDatePicker(
+                            context: context,
+                            initialDate: DateTime.now(),
+                            firstDate: DateTime.now()
+                                .subtract(const Duration(days: 365)),
+                            lastDate:
+                                DateTime.now().add(const Duration(days: 365)),
+                          );
+                          if (selectedDate != null) {
+                            widget.fechaController.text =
+                                DateFormat('yyyy-MM-dd').format(selectedDate);
+                          }
+                        }
+                      },
                     ),
                     const SizedBox(height: 20.0),
                     TextFormField(
                       controller: widget.horaController,
-                      readOnly: true,
+                      readOnly: !espera,
                       decoration: InputDecoration(
                         labelText: 'Hora',
                         border: OutlineInputBorder(
@@ -177,6 +228,19 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                         filled: true,
                         fillColor: Colors.transparent,
                       ),
+                      onTap: () async {
+                        if (espera) {
+                          TimeOfDay? selectedTime = await showTimePicker(
+                            context: context,
+                            initialTime: TimeOfDay.now(),
+                          );
+                          if (selectedTime != null) {
+                            String formattedTime =
+                                "${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}";
+                            widget.horaController.text = formattedTime;
+                          }
+                        }
+                      },
                     ),
                     const IntervalDropdownSelector(),
                     const SizedBox(height: 20.0),
@@ -253,7 +317,10 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                         ],
                       ),
                     ] else ...[
-                      ConsultaInfoForm(notaController: notaController),
+                      ConsultaInfoForm(
+                        notaController: notaController,
+                        onEsperaChanged: _handleEsperaChanged,
+                      ),
                     ],
                     const SizedBox(height: 20.0),
                     ElevatedButton(
@@ -300,6 +367,7 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                           );
 
                           if (espera) {
+                            print(espera);
                             // Redirige a la página de lista de espera si la opción está activada
                             Navigator.push(
                               context,

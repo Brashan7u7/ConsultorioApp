@@ -183,10 +183,8 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                     Row(
                       children: [
                         Expanded(
-                          child: DropdownButton<Doctor>(
+                          child: DropdownButtonFormField<Doctor>(
                             isExpanded: true,
-                            hint: const Text(
-                                'Seleccione el médico que atenderá la cita'),
                             items: doctores.map((doctor) {
                               return DropdownMenuItem<Doctor>(
                                 value: doctor,
@@ -203,6 +201,17 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                                 }
                               });
                             },
+                            decoration: InputDecoration(
+                              labelText:
+                                  'Seleccione el médico que atenderá la cita',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: const BorderSide(
+                                    width: 1, color: Colors.grey),
+                              ),
+                              filled: true,
+                              fillColor: Colors.transparent,
+                            ),
                           ),
                         ),
                       ],
@@ -245,39 +254,102 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                   fillColor: Colors.transparent,
                 ),
               ),
-              const SizedBox(height: 20.0),
-              DropdownButtonFormField<String>(
-                value: servicioController.text.isEmpty
-                    ? null
-                    : servicioController.text,
-                items: const <DropdownMenuItem<String>>[
-                  DropdownMenuItem<String>(
-                    value: 'Opción 1',
-                    child: Text('Próximo día disponible'),
+              if (espera) ...[
+                const SizedBox(height: 20.0),
+                TextFormField(
+                  controller: fechaController,
+                  //readOnly: !espera,
+                  decoration: InputDecoration(
+                    labelText: 'Fecha',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide:
+                          const BorderSide(width: 1, color: Colors.grey),
+                    ),
+                    filled: true,
+                    fillColor: Colors.transparent,
                   ),
-                  DropdownMenuItem<String>(
-                    value: 'Opción 2',
-                    child: Text('Próxima semana disponible'),
-                  ),
-                  DropdownMenuItem<String>(
-                    value: 'Opción 3',
-                    child: Text('Próximo mes disponible'),
-                  ),
-                ],
-                onChanged: (value) async {
-                  servicioController.text = value!;
-                  await _getRecommendedDateTime(value);
-                },
-                decoration: InputDecoration(
-                  labelText: 'Recomendación de la próxima cita',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(width: 1, color: Colors.grey),
-                  ),
-                  filled: true,
-                  fillColor: Colors.transparent,
+                  onTap: () async {
+                    if (espera) {
+                      DateTime? selectedDate = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate:
+                            DateTime.now().subtract(const Duration(days: 365)),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                      );
+                      if (selectedDate != null) {
+                        fechaController.text =
+                            DateFormat('yyyy-MM-dd').format(selectedDate);
+                      }
+                    }
+                  },
                 ),
-              ),
+                const SizedBox(height: 20.0),
+                TextFormField(
+                  controller: horaController,
+                  //readOnly: !espera,
+                  decoration: InputDecoration(
+                    labelText: 'Hora',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide:
+                          const BorderSide(width: 1, color: Colors.grey),
+                    ),
+                    filled: true,
+                    fillColor: Colors.transparent,
+                  ),
+                  onTap: () async {
+                    if (espera) {
+                      TimeOfDay? selectedTime = await showTimePicker(
+                        context: context,
+                        initialTime: TimeOfDay.now(),
+                      );
+                      if (selectedTime != null) {
+                        String formattedTime =
+                            "${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}";
+
+                        horaController.text = formattedTime;
+                      }
+                    }
+                  },
+                ),
+              ] else ...[
+                const SizedBox(height: 20.0),
+                DropdownButtonFormField<String>(
+                  value: servicioController.text.isEmpty
+                      ? null
+                      : servicioController.text,
+                  items: const <DropdownMenuItem<String>>[
+                    DropdownMenuItem<String>(
+                      value: 'Opción 1',
+                      child: Text('Próximo día disponible'),
+                    ),
+                    DropdownMenuItem<String>(
+                      value: 'Opción 2',
+                      child: Text('Próxima semana disponible'),
+                    ),
+                    DropdownMenuItem<String>(
+                      value: 'Opción 3',
+                      child: Text('Próximo mes disponible'),
+                    ),
+                  ],
+                  onChanged: (value) async {
+                    servicioController.text = value!;
+                    await _getRecommendedDateTime(value);
+                  },
+                  decoration: InputDecoration(
+                    labelText: 'Recomendación de la próxima cita',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide:
+                          const BorderSide(width: 1, color: Colors.grey),
+                    ),
+                    filled: true,
+                    fillColor: Colors.transparent,
+                  ),
+                ),
+              ],
               const SizedBox(height: 20.0),
               if (_recommendedAppointments.isNotEmpty)
                 DropdownButtonFormField<String>(
@@ -505,8 +577,12 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                   if (_formKey.currentState!.validate()) {
                     // Recolectar datos del formulario
                     String nombre = nameController.text;
-                    String? fecha = _selectedAppointment?.split(' ')[0];
-                    String? hora = _selectedAppointment?.split(' ')[1];
+                    String? fecha = _selectedAppointment != null
+                        ? _selectedAppointment?.split(' ')[0]
+                        : fechaController.text;
+                    String? hora = _selectedAppointment != null
+                        ? _selectedAppointment?.split(' ')[1]
+                        : horaController.text;
                     String duracion = selectedInterval.toString();
                     String servicio = servicioController.text;
                     String nota = notaController.text;

@@ -4,7 +4,9 @@ import 'package:flutter_switch/flutter_switch.dart';
 
 class ConsultaInfoForm extends StatefulWidget {
   final TextEditingController notaController;
-  const ConsultaInfoForm({super.key, required this.notaController});
+  final ValueChanged<bool> onEsperaChanged;
+  const ConsultaInfoForm(
+      {super.key, required this.notaController, required this.onEsperaChanged});
 
   @override
   _ConsultaInfoFormState createState() => _ConsultaInfoFormState();
@@ -117,7 +119,7 @@ class _ConsultaInfoFormState extends State<ConsultaInfoForm> {
                 onToggle: (val) {
                   setState(() {
                     espera = val;
-                    print(espera);
+                    widget.onEsperaChanged(espera);
                   });
                 },
               ),

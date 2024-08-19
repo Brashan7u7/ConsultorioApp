@@ -1,3 +1,4 @@
+import 'package:calendario_manik/models/consultorio.dart';
 import 'package:calendario_manik/models/tarea.dart';
 import 'package:calendario_manik/pages/consulting_page.dart';
 import 'package:postgres/postgres.dart';
@@ -12,8 +13,8 @@ class DatabaseManager {
     tz.setLocalLocation(tz.getLocation('America/Mexico_City'));
     return await Connection.open(
       Endpoint(
-        //host: '192.168.1.71',
-        host: '192.168.1.181',
+        host: '192.168.1.71',
+        //host: '192.168.1.181',
         port: 5432,
         database: 'medicalmanik',
         username: 'postgres',
@@ -139,7 +140,7 @@ class DatabaseManager {
       int lastId = (result.first.first as int?) ?? 0;
 
       int newId = lastId + 1;
-
+      print("${tarea.fecha} ${tarea.hora}");
       DateTime startDate = DateTime.parse("${tarea.fecha} ${tarea.hora}");
       int duration = int.parse(tarea.duracion);
       DateTime endDate = startDate.add(Duration(minutes: duration));
@@ -169,14 +170,131 @@ class DatabaseManager {
     }
   }
 
+  static Future<List<Map<String, dynamic>>> getRecomeDiariaDesdeFecha(
+      DateTime fechaHoraInicio) async {
+    List<Map<String, dynamic>> recomeDiaria = [];
+    try {
+      final conn = await _connect();
+      //final nuevaFechaHoraInicio = fechaHoraInicio.subtract(Duration(hours: 6));
+
+      // Formatear la nueva fecha y hora
+      final formattedFechaHoraInicio =
+          DateFormat('yyyy-MM-dd HH:mm:ss').format(fechaHoraInicio);
+
+      print(formattedFechaHoraInicio);
+
+      final result = await conn.execute("""
+      WITH fechas AS (
+          SELECT 
+              DATE '$formattedFechaHoraInicio' + s.i AS recomendacion_semanal,
+              lower(translate(to_char((DATE '$formattedFechaHoraInicio' + s.i)::timestamp with time zone, 'TMDay'::text), 'ÁÉÍÓÚáéíóú'::text, 'AEIOUaeiou'::text)) AS dia_de_la_semana,
+              to_char(TIMESTAMP '$formattedFechaHoraInicio' AT TIME ZONE 'America/Mexico_City', 'HH24:MI'::text) AS hora_actual,
+              to_char(TIMESTAMP '$formattedFechaHoraInicio' AT TIME ZONE 'America/Mexico_City', 'YYYY-MM-DD HH24:MI:SS TZ') AS fecha_hora_zona,
+              'America/Mexico_City' AS zona_horaria
+          FROM generate_series(0, 6) s(i)
+      ), horario AS (
+          SELECT horario_consultorio.id,
+              'lunes'::text AS dia_de_la_semana,
+              unnest(string_to_array(horario_consultorio.lunes::text, ','::text)) AS hora
+          FROM horario_consultorio
+          UNION ALL
+          SELECT horario_consultorio.id,
+              'martes'::text AS dia_de_la_semana,
+              unnest(string_to_array(horario_consultorio.martes::text, ','::text)) AS hora
+          FROM horario_consultorio
+          UNION ALL
+          SELECT horario_consultorio.id,
+              'miercoles'::text AS dia_de_la_semana,
+              unnest(string_to_array(horario_consultorio.miercoles::text, ','::text)) AS hora
+          FROM horario_consultorio
+          UNION ALL
+          SELECT horario_consultorio.id,
+              'jueves'::text AS dia_de_la_semana,
+              unnest(string_to_array(horario_consultorio.jueves::text, ','::text)) AS hora
+          FROM horario_consultorio
+          UNION ALL
+          SELECT horario_consultorio.id,
+              'viernes'::text AS dia_de_la_semana,
+              unnest(string_to_array(horario_consultorio.viernes::text, ','::text)) AS hora
+          FROM horario_consultorio
+          UNION ALL
+          SELECT horario_consultorio.id,
+              'sabado'::text AS dia_de_la_semana,
+              unnest(string_to_array(horario_consultorio.sabado::text, ','::text)) AS hora
+          FROM horario_consultorio
+          UNION ALL
+          SELECT horario_consultorio.id,
+              'domingo'::text AS dia_de_la_semana,
+              unnest(string_to_array(horario_consultorio.domingo::text, ','::text)) AS hora
+          FROM horario_consultorio
+      ), eventos AS (
+          SELECT DISTINCT date(evento.fecha_inicio) AS fecha_evento,
+              to_char(evento.fecha_inicio, 'HH24:MI'::text) AS hora_inicio,
+              to_char(evento.fecha_fin, 'HH24:MI'::text) AS hora_fin
+          FROM evento
+      ), tareas AS (
+          SELECT DISTINCT date(tarea.fecha_inicio) AS fecha_tarea,
+              to_char(tarea.fecha_inicio, 'HH24:MI'::text) AS hora_inicio_tarea,
+              to_char(tarea.fecha_fin, 'HH24:MI'::text) AS hora_fin_tarea
+          FROM tarea
+      ), horas_libres AS (
+          SELECT f.recomendacion_semanal,
+              f.dia_de_la_semana,
+              substr(h.hora, 1, 5) AS hora_disponible,
+              f.fecha_hora_zona,
+              f.zona_horaria
+          FROM fechas f
+          JOIN horario h ON f.dia_de_la_semana = h.dia_de_la_semana
+          WHERE NOT EXISTS (
+              SELECT 1
+              FROM eventos e
+              WHERE f.recomendacion_semanal = e.fecha_evento
+              AND (
+                  (substr(h.hora, 1, 5) >= e.hora_inicio AND substr(h.hora, 1, 5) < e.hora_fin) OR 
+                  (substr(h.hora, 1, 5) < e.hora_inicio AND substr(h.hora, 1, 5) >= e.hora_fin)
+              )
+          )
+          AND NOT EXISTS (
+              SELECT 1
+              FROM tareas t
+              WHERE f.recomendacion_semanal = t.fecha_tarea
+              AND (
+                  (substr(h.hora, 1, 5) >= t.hora_inicio_tarea AND substr(h.hora, 1, 5) < t.hora_fin_tarea) OR 
+                  (substr(h.hora, 1, 5) < t.hora_inicio_tarea AND substr(h.hora, 1, 5) >= t.hora_fin_tarea)
+              )
+          )
+          AND (
+              f.recomendacion_semanal > DATE '$formattedFechaHoraInicio' OR
+              (f.recomendacion_semanal = DATE '$formattedFechaHoraInicio' AND substr(h.hora, 1, 5) >= f.hora_actual)
+          )
+          ORDER BY f.recomendacion_semanal, h.hora
+      )
+      SELECT DISTINCT to_char(recomendacion_semanal::timestamp with time zone, 'YYYY-MM-DD'::text) AS recomendacion_semanal,
+          dia_de_la_semana,
+          hora_disponible,
+          fecha_hora_zona
+      FROM horas_libres
+      LIMIT 100;
+    """);
+
+      for (var row in result) {
+        recomeDiaria.add({
+          'fecha': row[0],
+          'dia': row[1],
+          'hora': row[2],
+        });
+      }
+      await conn.close();
+    } catch (e) {
+      print('Error: $e');
+    }
+    return recomeDiaria;
+  }
+
   static Future<List<Map<String, dynamic>>> getRecomeDiaria() async {
     List<Map<String, dynamic>> recomeDiaria = [];
     try {
       final conn = await _connect();
-      print('Zona horaria actual: ${await conn.execute('SHOW timezone;')}');
-      print(
-          'Fecha y hor actual: ${await conn.execute('SELECT CURRENT_TIMESTAMP;')}');
-      print('Zona horaria actual: ${await conn.execute('SHOW timezone;')}');
       final result = await conn.execute("""
  
 WITH fechas AS (
@@ -281,7 +399,6 @@ LIMIT 100;
           'hora': row[2],
         });
       }
-      print(result);
       await conn.close();
     } catch (e) {
       print('Error: $e');
@@ -522,10 +639,8 @@ LIMIT 100;
       int consultorioId) async {
     List<Map<String, dynamic>> tareas = [];
     try {
-      print('Connecting to database...');
       final conn = await _connect();
 
-      print('Connected. Executing query with consultorioId: $consultorioId');
       final result = await conn.execute(Sql.named("""SELECT
   t.id,
   t.nombre AS tarea_nombre,
@@ -534,7 +649,8 @@ LIMIT 100;
   t.color,
   m.nombre || ' ' || m.apellidos AS medico_nombre_completo,
   p.nombre || ' ' || p.ap_paterno AS paciente_nombre_completo,
-  t.motivo_consulta
+  t.motivo_consulta,
+  t.asignado_id as doctorid
 FROM
   tarea t
   LEFT JOIN usuario m ON t.asignado_id = m.id AND m.rol = 'MED'
@@ -542,9 +658,7 @@ FROM
 WHERE
   t.calendario_id = @id"""), parameters: {"id": consultorioId});
 
-      print('Query executed. Processing results...');
       for (final row in result) {
-        // print('Row: $row'); // Imprimir cada fila para verificar los datos
         tareas.add({
           'id': row[0],
           'nombre': row[1],
@@ -554,15 +668,14 @@ WHERE
           'asignado_id': row[5],
           'paciente_id': row[6],
           'motivo_consulta': row[7],
+          'doctorid': row[8],
         });
       }
 
       await conn.close();
-      // print('Connection closed.');
     } catch (e) {
       print('Error: $e');
     }
-    // print('Tareas: $tareas'); // Imprimir el resultado final
     return tareas;
   }
 
@@ -593,7 +706,7 @@ WHERE
 
       await conn.execute(
         Sql.named(
-            "INSERT INTO evento(id, token, nombre, descripcion, fecha_inicio, fecha_fin, all_day, usuario_id, calendario_id,tarea) VALUES (@id, @token, @nombre,@descripcion, @fecha_inicio, @fecha_fin, @all_day, @usuario_id, @calendario_id, @tarea)"),
+            "INSERT INTO evento(id, token, nombre, descripcion, fecha_inicio, fecha_fin, all_day, usuario_id, calendario_id, tipo_evento) VALUES (@id, @token, @nombre,@descripcion, @fecha_inicio, @fecha_fin, @all_day, @usuario_id, @calendario_id, @tipo_evento)"),
         parameters: {
           "id": newId,
           "token": 2,
@@ -602,9 +715,9 @@ WHERE
           "fecha_inicio": startDate.toIso8601String(),
           "fecha_fin": endDate.toIso8601String(),
           "all_day": evento.allDay,
-          "usuario_id": 1, // Aquí deberías obtener el usuario_id correcto
+          "usuario_id": evento.usuarioId,
           "calendario_id": consultorioId,
-          "tarea": evento.servicio,
+          "tipo_evento": evento.servicio,
         },
       );
 
@@ -653,7 +766,7 @@ WHERE
 
       final result = await conn.execute(
           Sql.named(
-              "select id, nombre,TO_CHAR(fecha_inicio,'yyyy-MM-dd HH24:MI:SS') fecha_inicio,  TO_CHAR(fecha_fin,'yyyy-MM-dd HH24:MI:SS')fecha_fin from evento WHERE calendario_id=@id"),
+              "select id, nombre,TO_CHAR(fecha_inicio,'yyyy-MM-dd HH24:MI:SS') fecha_inicio,  TO_CHAR(fecha_fin,'yyyy-MM-dd HH24:MI:SS')fecha_fin, all_day from evento WHERE calendario_id=@id"),
           parameters: {
             "id": consultorioId,
           });
@@ -663,6 +776,7 @@ WHERE
           'nombre': row[1],
           'fecha_inicio': row[2],
           'fecha_fin': row[3],
+          'all_day': row[4],
         });
       }
 
@@ -1371,6 +1485,91 @@ WHERE gm.grupo_id = $grupo_id;
     return doctores;
   }
 
+  static Future<bool> reagendarEvento(
+    int eventoId,
+    int consultorioId,
+    DateTime newStartTime,
+    DateTime newEndTime,
+    int doctorId,
+  ) async {
+    try {
+      final conn = await _connect();
+
+      // Verificar si el nuevo horario ajustado está disponible
+      bool puedeReagendar =
+          await canReagendarEvento(consultorioId, newStartTime, newEndTime);
+
+      if (!puedeReagendar) {
+        print('Conflicto detectado, no se puede reagendar.');
+        return false; // No se puede reagendar debido a conflictos
+      }
+
+      // Actualizar el evento en la base de datos con las fechas ajustadas
+      await conn.execute(
+        Sql.named("""
+            UPDATE evento
+            SET fecha_inicio = @adjustedStartTime,
+                fecha_fin = @adjustedEndTime
+            WHERE id = @eventoId
+            """),
+        parameters: {
+          'adjustedStartTime': newStartTime.toUtc(),
+          'adjustedEndTime': newEndTime.toUtc(),
+          'eventoId': eventoId,
+        },
+      );
+
+      await conn.close();
+      return true; // Reagendamiento exitoso
+    } catch (e) {
+      print('Error en reagendarEvento: $e');
+      return false; // Error durante el proceso
+    }
+  }
+
+  static Future<bool> reagendarTarea(
+    int tareaId,
+    int consultorioId,
+    DateTime newStartTime,
+    DateTime newEndTime,
+    int doctorId,
+  ) async {
+    try {
+      final conn = await _connect();
+
+      // Verificar si el nuevo horario ajustado está disponible
+      bool puedeReagendar =
+          await canReagendarEvento(consultorioId, newStartTime, newEndTime);
+
+      if (!puedeReagendar) {
+        return false; // No se puede reagendar debido a conflictos
+      }
+
+      await conn.execute(
+        Sql.named("""UPDATE tarea
+            SET fecha_inicio = @newStartTime,
+                fecha_fin = @newEndTime,
+                calendario_id = @consultorioId,
+                asignado_id = @doctorId
+            WHERE id = @tareaId
+            """),
+        parameters: {
+          'newStartTime': newStartTime.toUtc(),
+          'newEndTime': newEndTime.toUtc(),
+          'tareaId': tareaId,
+          'consultorioId': consultorioId,
+          'doctorId': doctorId,
+        },
+      );
+
+      await conn.close();
+      return true; // Reagendamiento exitoso
+    } catch (e) {
+      print('Error en reagendarTarea: $e');
+      return false; // Error durante el proceso
+    }
+  }
+
   static Future<void> insertarListaEspera(
       int consultorioId, Tarea tarea) async {
     try {
@@ -1380,7 +1579,6 @@ WHERE gm.grupo_id = $grupo_id;
       int lastId = (result.first.first as int?) ?? 0;
 
       int newId = lastId + 1;
-
       DateTime startDate = DateTime.parse("${tarea.fecha} ${tarea.hora}");
       int duration = int.parse(tarea.duracion);
       DateTime endDate = startDate.add(Duration(minutes: duration));
@@ -1406,7 +1604,7 @@ WHERE gm.grupo_id = $grupo_id;
 
       await conn.close();
     } catch (e) {
-      print('Error al insertar la cita programada: $e');
+      print('Error al insertar a la lista espera: $e');
     }
   }
 
@@ -1433,9 +1631,7 @@ FROM
 WHERE
   t.calendario_id = @id"""), parameters: {"id": consultorioId});
 
-      print('Query executed. Processing results...');
       for (final row in result) {
-        // print('Row: $row'); // Imprimir cada fila para verificar los datos
         tareas.add({
           'id': row[0],
           'nombre': row[1],
@@ -1450,11 +1646,9 @@ WHERE
       }
 
       await conn.close();
-      // print('Connection closed.');
     } catch (e) {
       print('Error: $e');
     }
-    // print('Tareas: $tareas'); // Imprimir el resultado final
     return tareas;
   }
 
@@ -1572,6 +1766,42 @@ WHERE
       await conn.close();
     } catch (e) {
       print('Error en verificar y mover cita: $e');
+    }
+  }
+
+  static Future<bool> canReagendarEvento(
+    int consultorioId,
+    DateTime newStartTime,
+    DateTime newEndTime,
+  ) async {
+    try {
+      final conn = await _connect();
+      // Realiza la consulta y obtén el resultado
+      final result = await conn.execute(Sql.named("""
+      SELECT COUNT(*) 
+      FROM public.evento
+      WHERE calendario_id = @calendarioId
+        AND (
+          (fecha_inicio <= @newEndTime AND fecha_fin >= @newStartTime)
+        )
+    """), parameters: {
+        'calendarioId': consultorioId,
+        'newStartTime': newStartTime.toUtc(),
+        'newEndTime': newEndTime.toUtc(),
+      });
+
+      await conn.close();
+
+      // El resultado es un solo valor en la primera fila, obtenemos ese valor
+      final count = result.isNotEmpty ? result.first[0] as int : 1;
+
+      // Si count es 0, no hay conflictos, por lo tanto, se puede reagendar
+      final canReagendar = count == 0;
+
+      return canReagendar;
+    } catch (e) {
+      print('Error en canReagendarEvento: $e');
+      return false; // Devuelve false en caso de error
     }
   }
 }

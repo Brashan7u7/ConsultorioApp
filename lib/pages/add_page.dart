@@ -2,7 +2,6 @@ import 'package:calendario_manik/models/paciente.dart';
 import 'package:calendario_manik/pages/cita_programada_content.dart';
 import 'package:calendario_manik/pages/cita_rapida_content.dart';
 import 'package:calendario_manik/pages/cita_select_content.dart';
-import 'package:calendario_manik/pages/editingCita_page.dart';
 import 'package:calendario_manik/pages/evento_content.dart';
 import 'package:calendario_manik/pages/paciente_content.dart';
 import 'package:flutter/material.dart';
@@ -15,8 +14,7 @@ class Add extends StatelessWidget {
       isPacient,
       isCitaPro,
       isCitaselect,
-      isEditingPacient,
-      isEditingCita;
+      isEditingPacient;
   final int? consultorioId;
   final DataPatients? pacient;
 
@@ -35,28 +33,25 @@ class Add extends StatelessWidget {
     this.duracionController,
     this.consultorioId,
     this.pacient,
-    this.isEditingCita = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEditingCita
-            ? "Editar Cita"
-            : isCitaInmediata
-                ? "Cita Inmediata"
-                : isCitaselect
-                    ? "Cita Programada"
-                    : isEvento
-                        ? 'Evento'
-                        : isEditingPacient
-                            ? "Editar Paciente"
-                            : isPacient
-                                ? "Registrar Paciente"
-                                : isCitaPro
-                                    ? "Cita Programada"
-                                    : ""),
+        title: Text(isCitaInmediata
+            ? "Cita Inmediata"
+            : isCitaselect
+                ? "Cita Programada"
+                : isEvento
+                    ? 'Evento'
+                    : isEditingPacient
+                        ? "Editar Paciente"
+                        : isPacient
+                            ? "Registrar Paciente"
+                            : isCitaPro
+                                ? "Cita Programada"
+                                : ""),
       ),
       body: isCitaInmediata
           ? CitaRapidaContent(consultorioId: consultorioId)
@@ -77,9 +72,7 @@ class Add extends StatelessWidget {
                           ? CitaProgramadaContent(
                               consultorioId: consultorioId,
                             )
-                          : isEditingCita
-                              ? EditingCita()
-                              : Calendar(),
+                          : Calendar(),
     );
   }
 }

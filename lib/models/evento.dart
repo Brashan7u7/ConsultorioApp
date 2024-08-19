@@ -6,6 +6,7 @@ class Evento {
   final String servicio;
   final bool allDay;
   final String nota;
+  final int usuarioId;
 
   Evento({
     required this.nombre,
@@ -15,5 +16,6 @@ class Evento {
     required this.servicio,
     required this.allDay,
     required this.nota,
+    required this.usuarioId,
   });
 }

@@ -1,3 +1,4 @@
+import 'package:calendario_manik/variab.dart';
 import 'package:calendario_manik/widgets/AppointmentNoteWidget.dart';
 import 'package:calendario_manik/widgets/IntervalDropdownSelector.dart';
 import 'package:flutter/material.dart';
@@ -205,7 +206,8 @@ class _EventoContentState extends State<EventoContent> {
                     Expanded(
                       child: TextFormField(
                         controller: horaController,
-                        readOnly: isAllDay,
+                        //readOnly: isAllDay,
+                        readOnly: true,
                         decoration: InputDecoration(
                           labelText: 'Hora',
                           border: OutlineInputBorder(
@@ -274,6 +276,7 @@ class _EventoContentState extends State<EventoContent> {
                       servicio: servicioController.text,
                       nota: notaController.text,
                       allDay: isAllDay,
+                      usuarioId: usuario_id,
                     );
 
                     try {

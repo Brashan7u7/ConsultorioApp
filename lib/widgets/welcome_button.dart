@@ -7,34 +7,35 @@ class WelcomeButton extends StatelessWidget {
   final Widget? onTap;
   final Color? color;
   final Color? textColor;
+
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     double fontSize = screenWidth > 600 ? 24.0 : 20.0;
 
-    return Positioned(
-      bottom: 0,
-      right: 0,
-      child: GestureDetector(
-        onTap: () {
+    return GestureDetector(
+      onTap: () {
+        if (onTap != null) {
           Navigator.push(context, MaterialPageRoute(builder: (e) => onTap!));
-        },
-        child: Container(
-          padding: const EdgeInsets.only(
-            top: 30,
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.only(
+          top: 30,
+        ),
+        decoration: BoxDecoration(
+          color: color!,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(50),
           ),
-          decoration: BoxDecoration(
-            color: color!,
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(50),
-            ),
-          ),
-          child: Text(
-            buttonText!,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-                fontSize: 20.0, fontWeight: FontWeight.bold, color: textColor!),
-          ),
+        ),
+        child: Text(
+          buttonText!,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: FontWeight.bold,
+              color: textColor!),
         ),
       ),
     );

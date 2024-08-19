@@ -190,7 +190,6 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
                   },
                 ),
               const SizedBox(height: 20.0),
-              const SizedBox(height: 20.0),
               if (usuario_cuenta_id == 3 && usuario_rol != 'MED')
                 Container(
                   child: Column(
@@ -198,10 +197,8 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
                       Row(
                         children: [
                           Expanded(
-                            child: DropdownButton<Doctor>(
+                            child: DropdownButtonFormField<Doctor>(
                               isExpanded: true,
-                              hint: const Text(
-                                  'Seleccione el médico que atenderá la cita'),
                               items: doctores.map((doctor) {
                                 return DropdownMenuItem<Doctor>(
                                   value: doctor,
@@ -218,6 +215,17 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
                                   }
                                 });
                               },
+                              decoration: InputDecoration(
+                                labelText:
+                                    'Seleccione el médico que atenderá la cita',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: const BorderSide(
+                                      width: 1, color: Colors.grey),
+                                ),
+                                filled: true,
+                                fillColor: Colors.transparent,
+                              ),
                             ),
                           ),
                         ],
@@ -225,6 +233,8 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
                     ],
                   ),
                 ),
+              const SizedBox(height: 20.0),
+
               const Text(
                 'Fecha y hora por registrar:',
                 style: TextStyle(fontWeight: FontWeight.bold),
@@ -368,24 +378,6 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
                             status = val;
                             tipoCitaController.text =
                                 val ? "Subsecuente" : "Primera vez";
-                          });
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 10.0),
-                    Expanded(
-                      child: FlutterSwitch(
-                        activeText: "En espera",
-                        inactiveText: "Sin espera",
-                        value: espera,
-                        valueFontSize: 11.0,
-                        width: 150,
-                        height: 52,
-                        borderRadius: 5.0,
-                        showOnOff: true,
-                        onToggle: (val) {
-                          setState(() {
-                            espera = val;
                           });
                         },
                       ),

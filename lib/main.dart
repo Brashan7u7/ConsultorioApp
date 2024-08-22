@@ -40,9 +40,10 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _startTimer() {
-    //_timer = Timer.periodic(Duration(seconds: 30), (Timer t) async {
-    //await DatabaseManager.verificarYMoverCitasEnEspera();
-    //});
+    _timer = Timer.periodic(Duration(seconds: 5), (Timer t) async {
+      await DatabaseManager.verificarYMoverCitasEnEspera();
+    });
+    //print(_timer);
   }
 
   @override

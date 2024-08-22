@@ -74,11 +74,14 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
   Future<void> _getRecommendedDateTime(String option) async {
     List<Map<String, dynamic>> recommendations = [];
     if (option == 'Opción 1') {
-      recommendations = await DatabaseManager.getRecomeDiaria();
+      recommendations =
+          await DatabaseManager.getRecomeDiaria(widget.consultorioId!);
     } else if (option == 'Opción 2') {
-      recommendations = await DatabaseManager.getRecomeSema();
+      recommendations =
+          await DatabaseManager.getRecomeSema(widget.consultorioId!);
     } else if (option == 'Opción 3') {
-      recommendations = await DatabaseManager.getRecomeMen();
+      recommendations =
+          await DatabaseManager.getRecomeMen(widget.consultorioId!);
     }
 
     setState(() {
@@ -212,6 +215,12 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                               filled: true,
                               fillColor: Colors.transparent,
                             ),
+                            validator: (value) {
+                              if (value == null) {
+                                return 'Por favor, seleccione un médico';
+                              }
+                              return null;
+                            },
                           ),
                         ),
                       ],
@@ -284,6 +293,12 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                       }
                     }
                   },
+                  validator: (value) {
+                    if (value == null) {
+                      return 'Por favor, seleccione una fecha';
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 20.0),
                 TextFormField(
@@ -312,6 +327,12 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                         horaController.text = formattedTime;
                       }
                     }
+                  },
+                  validator: (value) {
+                    if (value == null) {
+                      return 'Por favor, seleccione una hora';
+                    }
+                    return null;
                   },
                 ),
               ] else ...[
@@ -348,6 +369,12 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                     filled: true,
                     fillColor: Colors.transparent,
                   ),
+                  validator: (value) {
+                    if (value == null) {
+                      return 'Por favor, seleccione una recomendacion';
+                    }
+                    return null;
+                  },
                 ),
               ],
               const SizedBox(height: 20.0),
@@ -574,6 +601,15 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                   ),
                 ),
                 onPressed: () async {
+                  if (pacienteId == null || pacienteId == 0) {
+                    // Mostrar un mensaje de error si pacienteId es nulo o 0
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                            'Por favor, seleccione o agregue un paciente válido.'),
+                      ),
+                    );
+                  }
                   if (_formKey.currentState!.validate()) {
                     // Recolectar datos del formulario
                     String nombre = nameController.text;
@@ -604,7 +640,6 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                         tipoCita: tipoCita);
 
                     if (espera) {
-                      // Guarda el evento en la base de datos
                       await DatabaseManager.insertarListaEspera(
                           widget.consultorioId!, tarea);
 
@@ -613,7 +648,7 @@ class _CitaProgramadaContentState extends State<CitaProgramadaContent> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => ListaEspera(),
+                          builder: (context) => Calendar(),
                         ),
                       );
                     } else {

@@ -1,7 +1,7 @@
 import 'package:calendario_manik/database/database.dart';
 import 'package:flutter/material.dart';
-import 'package:calendario_manik/models/tarea.dart';
 import 'package:calendario_manik/pages/calendar_page.dart';
+import 'package:intl/intl.dart';
 
 class ListaEspera extends StatefulWidget {
   final int? consultorioId;
@@ -39,6 +39,143 @@ class _ListaEsperaState extends State<ListaEspera> {
     await _loadData();
   }
 
+  Future<void> _mostrarDialogoModificarTarea(Map<String, dynamic> tarea) async {
+    DateTime? selectedDate = DateTime.tryParse(tarea['fecha_inicio']);
+    TimeOfDay selectedTime =
+        TimeOfDay.fromDateTime(selectedDate ?? DateTime.now());
+    int selectedInterval = 60;
+
+    TextEditingController dateController = TextEditingController(
+        text: selectedDate?.toLocal().toString().split(' ')[0] ?? '');
+    TextEditingController timeController =
+        TextEditingController(text: selectedTime.format(context));
+
+    DateFormat dateFormat = DateFormat('yyyy-MM-dd HH:mm');
+    DateTime? newStartDateTime;
+
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Reprogramar'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: dateController,
+                decoration: InputDecoration(
+                  labelText: 'Fecha',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(width: 1, color: Colors.grey),
+                  ),
+                  filled: true,
+                  fillColor: Colors.transparent,
+                ),
+                onChanged: (value) {
+                  selectedDate = DateTime.tryParse(value);
+                  if (selectedDate != null) {
+                    newStartDateTime = DateTime(
+                      selectedDate!.year,
+                      selectedDate!.month,
+                      selectedDate!.day,
+                      selectedTime.hour,
+                      selectedTime.minute,
+                    );
+                  }
+                },
+              ),
+              const SizedBox(height: 20.0),
+              TextField(
+                controller: timeController,
+                decoration: InputDecoration(
+                  labelText: 'Hora',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(width: 1, color: Colors.grey),
+                  ),
+                  filled: true,
+                  fillColor: Colors.transparent,
+                ),
+                readOnly: true,
+                onTap: () async {
+                  final TimeOfDay? picked = await showTimePicker(
+                    context: context,
+                    initialTime: selectedTime,
+                  );
+                  if (picked != null && picked != selectedTime) {
+                    setState(() {
+                      selectedTime = picked;
+                      timeController.text = selectedTime.format(context);
+                      newStartDateTime = DateTime(
+                        selectedDate?.year ?? DateTime.now().year,
+                        selectedDate?.month ?? DateTime.now().month,
+                        selectedDate?.day ?? DateTime.now().day,
+                        selectedTime.hour,
+                        selectedTime.minute,
+                      );
+                    });
+                  }
+                },
+              ),
+              const SizedBox(height: 20.0),
+              DropdownButtonFormField<int>(
+                items: const [
+                  DropdownMenuItem<int>(value: 60, child: Text('60 minutos')),
+                  DropdownMenuItem<int>(value: 30, child: Text('30 minutos')),
+                  DropdownMenuItem<int>(value: 20, child: Text('20 minutos')),
+                  DropdownMenuItem<int>(value: 15, child: Text('15 minutos')),
+                ],
+                value: selectedInterval,
+                onChanged: (value) {
+                  setState(() {
+                    selectedInterval = value!;
+                  });
+                },
+                decoration: InputDecoration(
+                  labelText: 'Intervalo de Atención (minutos)',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(width: 1, color: Colors.grey),
+                  ),
+                  filled: true,
+                  fillColor: Colors.transparent,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () async {
+                final endTime =
+                    newStartDateTime!.add(Duration(minutes: selectedInterval));
+
+                // Imprime la fecha y hora seleccionada
+                print(
+                    'Fecha y hora de inicio: ${dateFormat.format(newStartDateTime!)}');
+                print('Fecha y hora de fin: ${dateFormat.format(endTime)}');
+                //await DatabaseManager.updateTarea(tareaId, selectedDate, selectedTime, endTime);
+
+                Navigator.pop(context);
+              },
+              child: Text('Guardar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _saveChanges() async {
+    return;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -74,14 +211,48 @@ class _ListaEsperaState extends State<ListaEspera> {
                       title: Text(tarea['nombre']),
                       subtitle: Text(
                           '${tarea['fecha_inicio']} \n${tarea['fecha_fin']} \n${tarea['status']}'),
-                      trailing: IconButton(
-                        icon: Icon(Icons.delete),
-                        onPressed: () {
-                          setState(() async {
-                            eventosEnEspera.removeAt(index);
-                            //await DatabaseManager.delete();
-                          });
-                        },
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize
+                            .min, // Ajusta el tamaño para que ocupe solo el espacio necesario
+                        children: <Widget>[
+                          IconButton(
+                            icon: Icon(Icons.delete),
+                            onPressed: () {
+                              showDialog<String>(
+                                context: context,
+                                builder: (BuildContext context) => AlertDialog(
+                                  title: const Text('¿Desea eliminar la cita?'),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(context, 'Cancelar'),
+                                      child: const Text('Cancelar'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () async {
+                                        Navigator.pop(context, 'Eliminar');
+                                        int listaId =
+                                            eventosEnEspera[index]['id'];
+                                        await DatabaseManager.deleteListaEspera(
+                                            listaId);
+                                        setState(() {
+                                          eventosEnEspera.removeAt(index);
+                                        });
+                                      },
+                                      child: const Text('Eliminar'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.calendar_today),
+                            onPressed: () {
+                              _mostrarDialogoModificarTarea(tarea);
+                            },
+                          ),
+                        ],
                       ),
                     );
                   },

@@ -41,7 +41,17 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
   String nombres = "paciente";
 
   void _saveCitaInmediata(BuildContext context) async {
-    if (_formKey.currentState!.validate()) {
+    if (pacienteId == null || pacienteId == 0) {
+      // Mostrar un mensaje de error si pacienteId es nulo o 0
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Por favor, seleccione o agregue un paciente válido.'),
+        ),
+      );
+    }
+    if (_formKey.currentState!.validate() &&
+        pacienteId != null &&
+        pacienteId != 0) {
       // Aquí se realiza la lógica para guardar la cita inmediata
       String nombre = nameController.text;
       String nota = notaController.text;
@@ -226,6 +236,12 @@ class _CitaRapidaContentState extends State<CitaRapidaContent> {
                                 filled: true,
                                 fillColor: Colors.transparent,
                               ),
+                              validator: (value) {
+                                if (value == null) {
+                                  return 'Por favor, seleccione un médico';
+                                }
+                                return null;
+                              },
                             ),
                           ),
                         ],

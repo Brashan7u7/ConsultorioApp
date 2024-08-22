@@ -12,6 +12,7 @@ import 'package:calendario_manik/widgets/AddPatientForm.dart';
 import 'package:calendario_manik/models/doctor.dart';
 import 'package:calendario_manik/pages/lista_espera.dart';
 import 'package:calendario_manik/models/paciente.dart';
+import 'package:flutter/services.dart';
 
 class CitaSelectContent extends StatefulWidget {
   final TextEditingController fechaController;
@@ -176,6 +177,12 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                                       filled: true,
                                       fillColor: Colors.transparent,
                                     ),
+                                    validator: (value) {
+                                      if (value == null) {
+                                        return 'Por favor, seleccione un médico';
+                                      }
+                                      return null;
+                                    },
                                   ),
                                 ),
                               ],
@@ -213,6 +220,16 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                           }
                         }
                       },
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(
+                            RegExp(r'^\d{4}-\d{2}-\d{2}$')),
+                      ],
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Por favor, ingrese una fecha';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 20.0),
                     TextFormField(
@@ -240,6 +257,16 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                             widget.horaController.text = formattedTime;
                           }
                         }
+                      },
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(
+                            RegExp(r'^\d{2}:\d{2}$')),
+                      ],
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Por favor, ingrese una hora';
+                        }
+                        return null;
                       },
                     ),
                     const IntervalDropdownSelector(),
@@ -337,7 +364,21 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                         ),
                       ),
                       onPressed: () async {
-                        if (widget.fechaController.text.isNotEmpty &&
+                        bool isValid = _formKey.currentState!.validate();
+
+                        if (pacienteId == null || pacienteId == 0) {
+                          // Mostrar un mensaje de error si pacienteId es nulo o 0
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                  'Por favor, seleccione o agregue un paciente válido.'),
+                            ),
+                          );
+                        }
+                        if (isValid &&
+                            pacienteId != null &&
+                            pacienteId != 0 &&
+                            widget.fechaController.text.isNotEmpty &&
                             widget.horaController.text.isNotEmpty &&
                             _formKey.currentState!.validate()) {
                           // Recolectar datos del formulario
@@ -367,12 +408,16 @@ class _CitaSelectContentState extends State<CitaSelectContent> {
                           );
 
                           if (espera) {
-                            print(espera);
+                            await DatabaseManager.insertarListaEspera(
+                                widget.consultorioId!, tarea);
+
+                            await Future.delayed(
+                                const Duration(milliseconds: 1500));
                             // Redirige a la página de lista de espera si la opción está activada
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => ListaEspera(),
+                                builder: (context) => Calendar(),
                               ),
                             );
                           } else {

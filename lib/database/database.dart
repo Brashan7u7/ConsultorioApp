@@ -13,7 +13,7 @@ class DatabaseManager {
     tz.setLocalLocation(tz.getLocation('America/Mexico_City'));
     return await Connection.open(
       Endpoint(
-        host: '192.168.1.71',
+        host: '192.168.1.65',
         //host: '192.168.1.181',
         port: 5432,
         database: 'medicalmanik',
@@ -181,8 +181,6 @@ class DatabaseManager {
       final formattedFechaHoraInicio =
           DateFormat('yyyy-MM-dd HH:mm:ss').format(fechaHoraInicio);
 
-      print(formattedFechaHoraInicio);
-
       final result = await conn.execute("""
       WITH fechas AS (
           SELECT 
@@ -291,14 +289,14 @@ class DatabaseManager {
     return recomeDiaria;
   }
 
-  static Future<List<Map<String, dynamic>>> getRecomeDiaria() async {
+  static Future<List<Map<String, dynamic>>> getRecomeDiaria(
+      int consultorioId) async {
     List<Map<String, dynamic>> recomeDiaria = [];
     try {
       final conn = await _connect();
-      final result = await conn.execute("""
- 
+      final result = await conn.execute(Sql.named("""
 WITH fechas AS (
-    SELECT 
+    SELECT
         CURRENT_DATE + s.i AS recomendacion_semanal,
         lower(translate(to_char((CURRENT_DATE + s.i)::timestamp with time zone, 'TMDay'::text), 'ÁÉÍÓÚáéíóú'::text, 'AEIOUaeiou'::text)) AS dia_de_la_semana,
         to_char(CURRENT_TIMESTAMP AT TIME ZONE 'America/Mexico_City', 'HH24:MI'::text) AS hora_actual,
@@ -309,47 +307,47 @@ WITH fechas AS (
     SELECT horario_consultorio.id,
         'lunes'::text AS dia_de_la_semana,
         unnest(string_to_array(horario_consultorio.lunes::text, ','::text)) AS hora
-    FROM horario_consultorio
+    FROM horario_consultorio where id = @consultorioId
     UNION ALL
     SELECT horario_consultorio.id,
         'martes'::text AS dia_de_la_semana,
         unnest(string_to_array(horario_consultorio.martes::text, ','::text)) AS hora
-    FROM horario_consultorio
+    FROM horario_consultorio where id = @consultorioId
     UNION ALL
     SELECT horario_consultorio.id,
         'miercoles'::text AS dia_de_la_semana,
         unnest(string_to_array(horario_consultorio.miercoles::text, ','::text)) AS hora
-    FROM horario_consultorio
+    FROM horario_consultorio where id = @consultorioId
     UNION ALL
     SELECT horario_consultorio.id,
         'jueves'::text AS dia_de_la_semana,
         unnest(string_to_array(horario_consultorio.jueves::text, ','::text)) AS hora
-    FROM horario_consultorio
+    FROM horario_consultorio where id = @consultorioId
     UNION ALL
     SELECT horario_consultorio.id,
         'viernes'::text AS dia_de_la_semana,
         unnest(string_to_array(horario_consultorio.viernes::text, ','::text)) AS hora
-    FROM horario_consultorio
+    FROM horario_consultorio where id = @consultorioId
     UNION ALL
     SELECT horario_consultorio.id,
         'sabado'::text AS dia_de_la_semana,
         unnest(string_to_array(horario_consultorio.sabado::text, ','::text)) AS hora
-    FROM horario_consultorio
+    FROM horario_consultorio where id = @consultorioId
     UNION ALL
     SELECT horario_consultorio.id,
         'domingo'::text AS dia_de_la_semana,
         unnest(string_to_array(horario_consultorio.domingo::text, ','::text)) AS hora
-    FROM horario_consultorio
+    FROM horario_consultorio where id = @consultorioId
 ), eventos AS (
     SELECT DISTINCT date(evento.fecha_inicio) AS fecha_evento,
         to_char(evento.fecha_inicio, 'HH24:MI'::text) AS hora_inicio,
         to_char(evento.fecha_fin, 'HH24:MI'::text) AS hora_fin
-    FROM evento
+    FROM evento where calendario_id = @consultorioId
 ), tareas AS (
     SELECT DISTINCT date(tarea.fecha_inicio) AS fecha_tarea,
         to_char(tarea.fecha_inicio, 'HH24:MI'::text) AS hora_inicio_tarea,
         to_char(tarea.fecha_fin, 'HH24:MI'::text) AS hora_fin_tarea
-    FROM tarea
+    FROM tarea where calendario_id = @consultorioId
 ), horas_libres AS (
     SELECT f.recomendacion_semanal,
         f.dia_de_la_semana,
@@ -363,7 +361,7 @@ WITH fechas AS (
         FROM eventos e
         WHERE f.recomendacion_semanal = e.fecha_evento
         AND (
-            (substr(h.hora, 1, 5) >= e.hora_inicio AND substr(h.hora, 1, 5) < e.hora_fin) OR 
+            (substr(h.hora, 1, 5) >= e.hora_inicio AND substr(h.hora, 1, 5) < e.hora_fin) OR
             (substr(h.hora, 1, 5) < e.hora_inicio AND substr(h.hora, 1, 5) >= e.hora_fin)
         )
     )
@@ -372,7 +370,7 @@ WITH fechas AS (
         FROM tareas t
         WHERE f.recomendacion_semanal = t.fecha_tarea
         AND (
-            (substr(h.hora, 1, 5) >= t.hora_inicio_tarea AND substr(h.hora, 1, 5) < t.hora_fin_tarea) OR 
+            (substr(h.hora, 1, 5) >= t.hora_inicio_tarea AND substr(h.hora, 1, 5) < t.hora_fin_tarea) OR
             (substr(h.hora, 1, 5) < t.hora_inicio_tarea AND substr(h.hora, 1, 5) >= t.hora_fin_tarea)
         )
     )
@@ -387,10 +385,8 @@ SELECT DISTINCT to_char(recomendacion_semanal::timestamp with time zone, 'YYYY-M
     hora_disponible,
     fecha_hora_zona
 FROM horas_libres
-LIMIT 100;
-
-
-    """);
+LIMIT 100 ;
+    """), parameters: {"consultorioId": consultorioId});
 
       for (var row in result) {
         recomeDiaria.add({
@@ -406,11 +402,12 @@ LIMIT 100;
     return recomeDiaria;
   }
 
-  static Future<List<Map<String, dynamic>>> getRecomeSema() async {
+  static Future<List<Map<String, dynamic>>> getRecomeSema(
+      int consultorioId) async {
     List<Map<String, dynamic>> recomeSema = [];
     try {
       final conn = await _connect();
-      final result = await conn.execute("""
+      final result = await conn.execute(Sql.named("""
      
 WITH fechas AS (
     SELECT 
@@ -424,47 +421,47 @@ WITH fechas AS (
     SELECT horario_consultorio.id,
         'lunes'::text AS dia_de_la_semana,
         unnest(string_to_array(horario_consultorio.lunes::text, ','::text)) AS hora
-    FROM horario_consultorio
+    FROM horario_consultorio WHERE id = @consultorioId
     UNION ALL
     SELECT horario_consultorio.id,
         'martes'::text AS dia_de_la_semana,
         unnest(string_to_array(horario_consultorio.martes::text, ','::text)) AS hora
-    FROM horario_consultorio
+    FROM horario_consultorio WHERE id = @consultorioId
     UNION ALL
     SELECT horario_consultorio.id,
         'miercoles'::text AS dia_de_la_semana,
         unnest(string_to_array(horario_consultorio.miercoles::text, ','::text)) AS hora
-    FROM horario_consultorio
+    FROM horario_consultorio WHERE id = @consultorioId
     UNION ALL
     SELECT horario_consultorio.id,
         'jueves'::text AS dia_de_la_semana,
         unnest(string_to_array(horario_consultorio.jueves::text, ','::text)) AS hora
-    FROM horario_consultorio
+    FROM horario_consultorio WHERE id = @consultorioId
     UNION ALL
     SELECT horario_consultorio.id,
         'viernes'::text AS dia_de_la_semana,
         unnest(string_to_array(horario_consultorio.viernes::text, ','::text)) AS hora
-    FROM horario_consultorio
+    FROM horario_consultorio WHERE id = @consultorioId
     UNION ALL
     SELECT horario_consultorio.id,
         'sabado'::text AS dia_de_la_semana,
         unnest(string_to_array(horario_consultorio.sabado::text, ','::text)) AS hora
-    FROM horario_consultorio
+    FROM horario_consultorio WHERE id = @consultorioId
     UNION ALL
     SELECT horario_consultorio.id,
         'domingo'::text AS dia_de_la_semana,
         unnest(string_to_array(horario_consultorio.domingo::text, ','::text)) AS hora
-    FROM horario_consultorio
+    FROM horario_consultorio WHERE id = @consultorioId
 ), eventos AS (
     SELECT DISTINCT date(evento.fecha_inicio) AS fecha_evento,
         to_char(evento.fecha_inicio, 'HH24:MI'::text) AS hora_inicio,
         to_char(evento.fecha_fin, 'HH24:MI'::text) AS hora_fin
-    FROM evento
+    FROM evento WHERE calendario_id = @consultorioId
 ), tareas AS (
     SELECT DISTINCT date(tarea.fecha_inicio) AS fecha_tarea,
         to_char(tarea.fecha_inicio, 'HH24:MI'::text) AS hora_inicio_tarea,
         to_char(tarea.fecha_fin, 'HH24:MI'::text) AS hora_fin_tarea
-    FROM tarea
+    FROM tarea WHERE calendario_id = @consultorioId
 ), horas_libres AS (
     SELECT f.recomendacion_semanal,
         f.dia_de_la_semana,
@@ -503,9 +500,7 @@ SELECT DISTINCT to_char(recomendacion_semanal::timestamp with time zone, 'YYYY-M
     fecha_hora_zona
 FROM horas_libres
 LIMIT 100;
-
-
-    """);
+    """), parameters: {"consultorioId": consultorioId});
       for (var row in result) {
         recomeSema.add({
           'fecha': row[0],
@@ -520,11 +515,12 @@ LIMIT 100;
     return recomeSema;
   }
 
-  static Future<List<Map<String, dynamic>>> getRecomeMen() async {
+  static Future<List<Map<String, dynamic>>> getRecomeMen(
+      int consultorioId) async {
     List<Map<String, dynamic>> recomeMen = [];
     try {
       final conn = await _connect();
-      final result = await conn.execute("""
+      final result = await conn.execute(Sql.named("""
    
 WITH fechas AS (
     SELECT 
@@ -538,47 +534,47 @@ WITH fechas AS (
     SELECT horario_consultorio.id,
         'lunes'::text AS dia_de_la_semana,
         unnest(string_to_array(horario_consultorio.lunes::text, ','::text)) AS hora
-    FROM horario_consultorio
+    FROM horario_consultorio WHERE id = @consultorioId
     UNION ALL
     SELECT horario_consultorio.id,
         'martes'::text AS dia_de_la_semana,
         unnest(string_to_array(horario_consultorio.martes::text, ','::text)) AS hora
-    FROM horario_consultorio
+    FROM horario_consultorio WHERE id = @consultorioId
     UNION ALL
     SELECT horario_consultorio.id,
         'miercoles'::text AS dia_de_la_semana,
         unnest(string_to_array(horario_consultorio.miercoles::text, ','::text)) AS hora
-    FROM horario_consultorio
+    FROM horario_consultorio WHERE id = @consultorioId
     UNION ALL
     SELECT horario_consultorio.id,
         'jueves'::text AS dia_de_la_semana,
         unnest(string_to_array(horario_consultorio.jueves::text, ','::text)) AS hora
-    FROM horario_consultorio
+    FROM horario_consultorio WHERE id = @consultorioId
     UNION ALL
     SELECT horario_consultorio.id,
         'viernes'::text AS dia_de_la_semana,
         unnest(string_to_array(horario_consultorio.viernes::text, ','::text)) AS hora
-    FROM horario_consultorio
+    FROM horario_consultorio WHERE id = @consultorioId
     UNION ALL
     SELECT horario_consultorio.id,
         'sabado'::text AS dia_de_la_semana,
         unnest(string_to_array(horario_consultorio.sabado::text, ','::text)) AS hora
-    FROM horario_consultorio
+    FROM horario_consultorio WHERE id = @consultorioId
     UNION ALL
     SELECT horario_consultorio.id,
         'domingo'::text AS dia_de_la_semana,
         unnest(string_to_array(horario_consultorio.domingo::text, ','::text)) AS hora
-    FROM horario_consultorio
+    FROM horario_consultorio WHERE id = @consultorioId
 ), eventos AS (
     SELECT DISTINCT date(evento.fecha_inicio) AS fecha_evento,
         to_char(evento.fecha_inicio, 'HH24:MI'::text) AS hora_inicio,
         to_char(evento.fecha_fin, 'HH24:MI'::text) AS hora_fin
-    FROM evento
+    FROM evento WHERE calendario_id = @consultorioId
 ), tareas AS (
     SELECT DISTINCT date(tarea.fecha_inicio) AS fecha_tarea,
         to_char(tarea.fecha_inicio, 'HH24:MI'::text) AS hora_inicio_tarea,
         to_char(tarea.fecha_fin, 'HH24:MI'::text) AS hora_fin_tarea
-    FROM tarea
+    FROM tarea WHERE calendario_id = @consultorioId
 ), horas_libres AS (
     SELECT f.recomendacion_semanal,
         f.dia_de_la_semana,
@@ -618,7 +614,7 @@ SELECT DISTINCT to_char(recomendacion_semanal::timestamp with time zone, 'YYYY-M
 FROM horas_libres
 LIMIT 100;
 
-    """);
+    """), parameters: {"consultorioId": consultorioId});
       for (var row in result) {
         recomeMen.add({
           'fecha': row[0],
@@ -882,7 +878,7 @@ WHERE
   }
 
   static Future<List<Map<String, dynamic>>> getPacientes(
-      int consultorioId, int offset, int limit) async {
+      int consultorioId, int? offset, int? limit) async {
     List<Map<String, dynamic>> pacientes = [];
     try {
       final conn = await _connect();
@@ -1488,8 +1484,8 @@ WHERE gm.grupo_id = $grupo_id;
   static Future<bool> reagendarEvento(
     int eventoId,
     int consultorioId,
-    DateTime newStartTime,
-    DateTime newEndTime,
+    String newStartTime,
+    String newEndTime,
     int doctorId,
   ) async {
     try {
@@ -1497,7 +1493,7 @@ WHERE gm.grupo_id = $grupo_id;
 
       // Verificar si el nuevo horario ajustado está disponible
       bool puedeReagendar =
-          await canReagendarEvento(consultorioId, newStartTime, newEndTime);
+          await canReagendar(consultorioId, newStartTime, newEndTime);
 
       if (!puedeReagendar) {
         print('Conflicto detectado, no se puede reagendar.');
@@ -1513,8 +1509,8 @@ WHERE gm.grupo_id = $grupo_id;
             WHERE id = @eventoId
             """),
         parameters: {
-          'adjustedStartTime': newStartTime.toUtc(),
-          'adjustedEndTime': newEndTime.toUtc(),
+          'adjustedStartTime': newStartTime,
+          'adjustedEndTime': newEndTime,
           'eventoId': eventoId,
         },
       );
@@ -1530,16 +1526,15 @@ WHERE gm.grupo_id = $grupo_id;
   static Future<bool> reagendarTarea(
     int tareaId,
     int consultorioId,
-    DateTime newStartTime,
-    DateTime newEndTime,
+    String newStartTime,
+    String newEndTime,
     int doctorId,
   ) async {
     try {
       final conn = await _connect();
-
       // Verificar si el nuevo horario ajustado está disponible
       bool puedeReagendar =
-          await canReagendarEvento(consultorioId, newStartTime, newEndTime);
+          await canReagendar(consultorioId, newStartTime, newEndTime);
 
       if (!puedeReagendar) {
         return false; // No se puede reagendar debido a conflictos
@@ -1554,8 +1549,8 @@ WHERE gm.grupo_id = $grupo_id;
             WHERE id = @tareaId
             """),
         parameters: {
-          'newStartTime': newStartTime.toUtc(),
-          'newEndTime': newEndTime.toUtc(),
+          'newStartTime': newStartTime,
+          'newEndTime': newEndTime,
           'tareaId': tareaId,
           'consultorioId': consultorioId,
           'doctorId': doctorId,
@@ -1655,6 +1650,7 @@ WHERE
   static Future<bool> isHorarioDisponible(
       int consultorioId, DateTime fechaInicio, DateTime fechaFin) async {
     try {
+      print("EJECUTANDO IS HORARIO DISPONIBLE");
       final conn = await _connect();
 
       final result = await conn.execute(
@@ -1662,7 +1658,7 @@ WHERE
         SELECT 1 
         FROM tarea 
         WHERE calendario_id = @id 
-          AND ((fecha_inicio <= @fechaFin AND fecha_fin >= @fechaInicio))
+          AND ((fecha_inicio <= @fechaInicio AND fecha_fin >= @fechaFin))
       """),
         parameters: {
           "id": consultorioId,
@@ -1689,6 +1685,7 @@ WHERE
       String motivoConsulta,
       int asignadoId,
       int pacienteId) async {
+    print("EJECUTANDO MOVER CITA DE LISTA ESPERA");
     if (await isHorarioDisponible(consultorioId, fechaInicio, fechaFin)) {
       try {
         final conn = await _connect();
@@ -1734,6 +1731,8 @@ WHERE
     try {
       final conn = await _connect();
 
+      print("EJECUTANDO VERIFICAR Y MOVER CITAS EN ESPERA");
+
       final result = await conn.execute("""
       SELECT id, calendario_id, fecha_inicio, fecha_fin, nombre, motivo_consulta, asignado_id, paciente_id 
       FROM lista_espera
@@ -1769,25 +1768,68 @@ WHERE
     }
   }
 
-  static Future<bool> canReagendarEvento(
+  static Future<bool> canReagendar(
     int consultorioId,
-    DateTime newStartTime,
-    DateTime newEndTime,
+    String newStartTime,
+    String newEndTime,
   ) async {
     try {
       final conn = await _connect();
       // Realiza la consulta y obtén el resultado
       final result = await conn.execute(Sql.named("""
-      SELECT COUNT(*) 
-      FROM public.evento
+        WITH horarios AS (
+  SELECT 
+    id,
+    unnest(
+      CASE EXTRACT(DOW FROM @nuevaFechaInicio::timestamp AT TIME ZONE 'UTC')
+        WHEN 0 THEN string_to_array(domingo, ',')
+        WHEN 1 THEN string_to_array(lunes, ',')
+        WHEN 2 THEN string_to_array(martes, ',')
+        WHEN 3 THEN string_to_array(miercoles, ',')
+        WHEN 4 THEN string_to_array(jueves, ',')
+        WHEN 5 THEN string_to_array(viernes, ',')
+        WHEN 6 THEN string_to_array(sabado, ',')
+      END
+    ) AS horario
+  FROM horario_consultorio
+  WHERE id = @calendarioId
+),
+conflicto_horario AS (
+  SELECT 1 
+  FROM horarios
+  WHERE
+    (@nuevaFechaInicio::timestamp AT TIME ZONE 'UTC')::time < split_part(horario, '-', 2)::time
+    AND (@nuevaFechaFin::timestamp AT TIME ZONE 'UTC')::time > split_part(horario, '-', 1)::time
+)
+SELECT 
+  CASE 
+    WHEN EXISTS (
+      SELECT 1 
+      FROM evento 
       WHERE calendario_id = @calendarioId
-        AND (
-          (fecha_inicio <= @newEndTime AND fecha_fin >= @newStartTime)
-        )
+        AND ((@nuevaFechaInicio >= fecha_inicio AND @nuevaFechaInicio < fecha_fin) 
+        OR (@nuevaFechaFin > fecha_inicio AND @nuevaFechaFin <= fecha_fin) 
+        OR (@nuevaFechaInicio < fecha_inicio AND @nuevaFechaFin > fecha_fin))
+    ) 
+    OR EXISTS (
+      SELECT 1 
+      FROM tarea 
+      WHERE calendario_id = @calendarioId
+        AND ((@nuevaFechaInicio >= fecha_inicio AND @nuevaFechaInicio < fecha_fin) 
+        OR (@nuevaFechaFin > fecha_inicio AND @nuevaFechaFin <= fecha_fin) 
+        OR (@nuevaFechaInicio < fecha_inicio AND @nuevaFechaFin > fecha_fin))
+    )
+    OR NOT EXISTS (
+      SELECT 1 FROM conflicto_horario
+    )
+    THEN 1
+    ELSE 0
+  END AS conflicto;
+
     """), parameters: {
         'calendarioId': consultorioId,
-        'newStartTime': newStartTime.toUtc(),
-        'newEndTime': newEndTime.toUtc(),
+        'nuevaFechaInicio': newStartTime,
+        'nuevaFechaFin': newEndTime,
       });
 
       await conn.close();
@@ -1802,6 +1844,21 @@ WHERE
     } catch (e) {
       print('Error en canReagendarEvento: $e');
       return false; // Devuelve false en caso de error
+    }
+  }
+
+  static Future<void> deleteListaEspera(int listaId) async {
+    try {
+      final conn = await _connect();
+
+      await conn.execute(Sql.named("DELETE FROM lista_espera WHERE id = @id"),
+          parameters: {
+            "id": listaId,
+          });
+
+      await conn.close();
+    } catch (e) {
+      print('Error: $e');
     }
   }
 }

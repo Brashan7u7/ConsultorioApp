@@ -7,6 +7,7 @@ import 'package:calendario_manik/widgets/custom_scaffold.dart';
 import 'package:calendario_manik/pages/consulting_page.dart';
 import 'package:calendario_manik/database/database.dart';
 import 'dart:collection';
+import 'package:calendario_manik/pages/start_page.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -42,10 +43,35 @@ class _LoginState extends State<Login> {
     }
 
     await Future.delayed(const Duration(milliseconds: 1500));
-    if (consultoriosData.isEmpty) {
+    if (consultoriosData.isEmpty && usuario_rol == 'MED') {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const Consulting()),
+      );
+    } else if (consultoriosData.isEmpty && usuario_rol == 'ASI') {
+      String message =
+          'No hay consultorios registrados. Contacte con su médico.';
+
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Atención'),
+            content: Text(message),
+            actions: <Widget>[
+              TextButton(
+                child: Text('Aceptar'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const StartPage()),
+                  );
+                },
+              ),
+            ],
+          );
+        },
       );
     } else {
       Navigator.push(

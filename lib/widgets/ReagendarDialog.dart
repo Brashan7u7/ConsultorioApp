@@ -22,6 +22,7 @@ class ReagendarDialog extends StatefulWidget {
 }
 
 class _ReagendarDialogState extends State<ReagendarDialog> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _timeController = TextEditingController();
   List<Consultorio> consultorios = [];
@@ -120,6 +121,7 @@ class _ReagendarDialogState extends State<ReagendarDialog> {
           DateTime(
               now.year, now.month, now.day, pickedTime.hour, pickedTime.minute),
         );
+        //print(_timeController);
         _updateSelectedDateTime();
       });
     }
@@ -203,6 +205,7 @@ class _ReagendarDialogState extends State<ReagendarDialog> {
             child: Text(consultorio.nombre ?? 'Sin nombre'),
           );
         }).toList();
+        //_selectedConsultorio = consultorios.first.id.toString();
       }
     });
   }
@@ -238,10 +241,10 @@ class _ReagendarDialogState extends State<ReagendarDialog> {
         : DateFormat('yyyy-MM-dd HH:mm').parse('$newDate $newTime');
     final newEndTime = newStartTime.add(Duration(minutes: selectedInterval));
 
-    final canReagendar = await DatabaseManager.canReagendarEvento(
+    final canReagendar = await DatabaseManager.canReagendar(
       int.parse(_selectedConsultorio ?? widget.consultorioId.toString()),
-      newStartTime,
-      newEndTime,
+      newStartTime.toIso8601String(),
+      newEndTime.toIso8601String(),
     );
 
     if (canReagendar) {
@@ -260,8 +263,8 @@ class _ReagendarDialogState extends State<ReagendarDialog> {
         await DatabaseManager.reagendarEvento(
           eventId,
           consultorioId,
-          newStartTime.toUtc(),
-          newEndTime.toUtc(),
+          newStartTime.toIso8601String(),
+          newEndTime.toIso8601String(),
           doctorId,
         );
 
@@ -277,8 +280,8 @@ class _ReagendarDialogState extends State<ReagendarDialog> {
         await DatabaseManager.reagendarTarea(
           eventId,
           consultorioId,
-          newStartTime.toUtc(),
-          newEndTime.toUtc(),
+          newStartTime.toIso8601String(),
+          newEndTime.toIso8601String(),
           doctorId,
         );
 
@@ -313,7 +316,7 @@ class _ReagendarDialogState extends State<ReagendarDialog> {
           return AlertDialog(
             title: const Text('Conflicto de horario'),
             content: const Text(
-                'La nueva fecha y hora chocan con un evento existente. Por favor, elige otra.'),
+                'La nueva fecha y hora chocan con un evento existente o no se puede reagendar en ese horario. Por favor, elige otro horario.'),
             actions: <Widget>[
               TextButton(
                 onPressed: () {
@@ -351,6 +354,10 @@ class _ReagendarDialogState extends State<ReagendarDialog> {
             const SizedBox(height: 16),
             _buildInfoRow('Hora:',
                 '${widget.appointment.startTime.hour}:${widget.appointment.startTime.minute.toString().padLeft(2, '0')}'),
+            const SizedBox(height: 16),
+            _buildInfoRow('Nota:', ''),
+            const Text(
+                'Si no selecciona un consultorio o un medico, se reagendará en el mismo consultorio y con el mismo medico'),
             const SizedBox(height: 16),
             _buildConsultoriosDropdown(),
             if (tipoCita != 'evento') ...[
@@ -426,6 +433,7 @@ class _ReagendarDialogState extends State<ReagendarDialog> {
 
       setState(() {
         doctores = doctoresList;
+        //selectedDoctor = doctores.first;
       });
     } catch (e) {
       print('Error fetching doctores: $e');

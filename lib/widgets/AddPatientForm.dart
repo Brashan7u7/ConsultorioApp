@@ -82,7 +82,8 @@ class _AddPatientFormState extends State<AddPatientForm> {
                     child: TextFormField(
                       controller: nameController,
                       decoration: InputDecoration(
-                        labelText: 'Ingrese el nombre del ${widget.nombres}',
+                        labelText:
+                            'Ingrese el nombre del ${widget.nombres} y seleccionelo',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                           borderSide:

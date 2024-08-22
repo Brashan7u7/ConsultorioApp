@@ -13,6 +13,7 @@ import 'package:calendario_manik/database/database.dart';
 import 'package:calendario_manik/pages/start_page.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:async';
 
 class Calendar extends StatefulWidget {
   const Calendar({super.key});
@@ -22,6 +23,7 @@ class Calendar extends StatefulWidget {
 }
 
 class _CalendarState extends State<Calendar> {
+  Timer? _timer;
   @override
   void initState() {
     super.initState();

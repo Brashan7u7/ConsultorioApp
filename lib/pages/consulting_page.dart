@@ -4,6 +4,7 @@ import 'package:calendario_manik/pages/calendar_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:calendario_manik/variab.dart';
+import 'package:calendario_manik/pages/login_page.dart';
 
 class Consulting extends StatefulWidget {
   const Consulting({
@@ -148,7 +149,7 @@ class _ConsultingState extends State<Consulting> {
           .map((data) => Consultorio(
                 id: data['id'],
                 nombre: data['nombre'].toString(),
-                telefono: data['telefono'].toString(),
+                telefono: int.parse(data['telefono'].toString()),
                 direccion: data['direccion'].toString(),
                 codigoPostal: int.parse(data['colonia_id'].toString()),
                 intervaloAtencion: int.parse(data['intervalo'].toString()),
@@ -231,10 +232,18 @@ class _ConsultingState extends State<Consulting> {
         leading: IconButton(
           icon: const Icon(Icons.close), // Icono de X
           onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const Calendar()),
-            );
+            if (!camposvacios) {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const Login()),
+                (Route<dynamic> route) => false,
+              );
+            } else {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const Calendar()),
+              );
+            }
           },
         ),
         actions: [
@@ -304,7 +313,7 @@ class _ConsultingState extends State<Consulting> {
                         if (selectedConsultorio != null) {
                           _nombreController.text = selectedConsultorio!.nombre!;
                           _telefonoController.text =
-                              selectedConsultorio!.telefono!;
+                              selectedConsultorio!.telefono.toString();
                           _calleController.text =
                               selectedConsultorio!.direccion!;
                           _codigoPostalController.text =
@@ -354,6 +363,7 @@ class _ConsultingState extends State<Consulting> {
                 const SizedBox(height: 20.0),
                 TextFormField(
                   controller: _telefonoController,
+                  keyboardType: TextInputType.number,
                   decoration: InputDecoration(
                     labelText: 'Teléfono Fijo',
                     border: OutlineInputBorder(
@@ -608,7 +618,8 @@ class _ConsultingState extends State<Consulting> {
             // Si hay un consultorio seleccionado, se actualiza en lugar de agregar uno nuevo
             setState(() {
               selectedConsultorio!.nombre = _nombreController.text;
-              selectedConsultorio!.telefono = _telefonoController.text;
+              selectedConsultorio!.telefono =
+                  int.tryParse(_telefonoController.text) ?? 0;
               selectedConsultorio!.direccion = _calleController.text;
               selectedConsultorio!.codigoPostal =
                   int.tryParse(_codigoPostalController.text) ?? 0;
@@ -662,7 +673,7 @@ class _ConsultingState extends State<Consulting> {
       } else {
         final nuevoConsultorio = Consultorio(
           nombre: _nombreController.text,
-          telefono: _telefonoController.text,
+          telefono: int.tryParse(_telefonoController.text) ?? 0,
           direccion: _calleController.text,
           codigoPostal: int.tryParse(_codigoPostalController.text) ?? 0,
           intervaloAtencion: selectedInterval,
@@ -746,4 +757,3 @@ class _ConsultingState extends State<Consulting> {
     }
   }
 }
-

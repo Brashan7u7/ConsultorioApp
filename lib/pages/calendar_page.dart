@@ -68,7 +68,7 @@ class _CalendarState extends State<Calendar> {
           .map((data) => Consultorio(
                 id: data['id'],
                 nombre: data['nombre'].toString(),
-                telefono: data['telefono'].toString(),
+                telefono: int.parse(data['telefono'].toString()),
                 direccion: data['direccion'].toString(),
                 codigoPostal: int.parse(data['colonia_id'].toString()),
                 intervaloAtencion: int.parse(data['intervalo'].toString()),

@@ -14,7 +14,6 @@ class DatabaseManager {
     return await Connection.open(
       Endpoint(
         host: '192.168.1.181',
-        //host: '192.168.1.181',
         port: 5432,
         database: 'medicalmanik',
         username: 'postgres',

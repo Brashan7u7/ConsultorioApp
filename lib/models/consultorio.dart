@@ -1,7 +1,7 @@
 class Consultorio {
   int? id;
   String? nombre;
-  String? telefono;
+  int? telefono;
   String? direccion;
   int? codigoPostal;
   int? intervaloAtencion;

@@ -59,7 +59,7 @@ class _ReagendarDialogState extends State<ReagendarDialog> {
     _selectedDateTime = widget.appointment.startTime;
     //_selectedAppointments();
     _loadConsultorios();
-    if (usuario_cuenta_id == 3 && usuario_rol != 'MED') _fetchDoctores();
+    if (usuario_cuenta_id == 3) _fetchDoctores();
     if (usuario_rol == 'MED') doctorId = usuario_id;
     tipoCita = widget.appointment.location ?? 'evento';
     _selectedAppointments().then((_) {
@@ -188,7 +188,7 @@ class _ReagendarDialogState extends State<ReagendarDialog> {
           .map((data) => Consultorio(
                 id: data['id'],
                 nombre: data['nombre'].toString(),
-                telefono: data['telefono'].toString(),
+                telefono: int.parse(data['telefono'].toString()),
                 direccion: data['direccion'].toString(),
                 codigoPostal: int.parse(data['colonia_id'].toString()),
                 intervaloAtencion: int.parse(data['intervalo'].toString()),

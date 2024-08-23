@@ -6,7 +6,10 @@ import 'package:intl/intl.dart';
 class ListaEspera extends StatefulWidget {
   final int? consultorioId;
 
-  const ListaEspera({super.key, this.consultorioId});
+  const ListaEspera({
+    super.key,
+    this.consultorioId,
+  });
 
   @override
   _ListaEsperaState createState() => _ListaEsperaState();
@@ -155,14 +158,39 @@ class _ListaEsperaState extends State<ListaEspera> {
               onPressed: () async {
                 final endTime =
                     newStartDateTime!.add(Duration(minutes: selectedInterval));
+                int citaId = tarea['id'];
+                final canReagendar = await DatabaseManager.canReagendarLista(
+                    citaId, newStartDateTime!, endTime);
+                if (canReagendar) {
+                  await DatabaseManager.updateListaEspera(
+                      citaId, newStartDateTime!, endTime);
 
-                // Imprime la fecha y hora seleccionada
-                print(
-                    'Fecha y hora de inicio: ${dateFormat.format(newStartDateTime!)}');
-                print('Fecha y hora de fin: ${dateFormat.format(endTime)}');
-                //await DatabaseManager.updateTarea(tareaId, selectedDate, selectedTime, endTime);
+                  await Future.delayed(const Duration(milliseconds: 1500));
 
-                Navigator.pop(context);
+                  Navigator.of(context).pop();
+                  setState(() {
+                    _loadData();
+                  });
+                } else {
+                  await showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text('Conflicto de horario'),
+                        content: const Text(
+                            'La nueva fecha y hora chocan con un evento existente o no se puede reagendar en ese horario. Por favor, elige otro horario.'),
+                        actions: <Widget>[
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: const Text('OK'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                }
               },
               child: Text('Guardar'),
             ),

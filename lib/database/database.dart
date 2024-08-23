@@ -13,7 +13,7 @@ class DatabaseManager {
     tz.setLocalLocation(tz.getLocation('America/Mexico_City'));
     return await Connection.open(
       Endpoint(
-        host: '192.168.1.65',
+        host: '175.1.44.149',
         //host: '192.168.1.181',
         port: 5432,
         database: 'medicalmanik',
@@ -1859,6 +1859,105 @@ SELECT
       await conn.close();
     } catch (e) {
       print('Error: $e');
+    }
+  }
+
+  static Future<bool> updateListaEspera(
+    int listaEsperaId,
+    DateTime newStartTime,
+    DateTime newEndTime,
+  ) async {
+    try {
+      final conn = await _connect();
+
+      // Verificar si el nuevo horario ajustado está disponible
+      bool puedeReagendar =
+          await canReagendarLista(listaEsperaId, newStartTime, newEndTime);
+
+      if (!puedeReagendar) {
+        print('Conflicto detectado, no se puede reagendar.');
+        return false; // No se puede reagendar debido a conflictos
+      }
+
+      // Actualizar el evento en la base de datos con las fechas ajustadas
+      await conn.execute(
+        Sql.named("""
+            UPDATE lista_espera
+            SET fecha_inicio = @adjustedStartTime,
+                fecha_fin = @adjustedEndTime
+            WHERE id = @listaEsperaId
+            """),
+        parameters: {
+          'adjustedStartTime': newStartTime,
+          'adjustedEndTime': newEndTime,
+          'listaEsperaId': listaEsperaId,
+        },
+      );
+
+      await conn.close();
+      return true; // Reagendamiento exitoso
+    } catch (e) {
+      print('Error en reagendarEvento: $e');
+      return false; // Error durante el proceso
+    }
+  }
+
+  static Future<bool> canReagendarLista(
+    int consultorioId,
+    DateTime newStartTime,
+    DateTime newEndTime,
+  ) async {
+    try {
+      final conn = await _connect();
+      // Realiza la consulta y obtén el resultado
+      final result = await conn.execute(Sql.named("""
+        WITH horarios AS (
+    SELECT 
+        id,
+        unnest(
+            CASE EXTRACT(DOW FROM @nuevaFechaInicio::timestamp)
+                WHEN 0 THEN string_to_array(domingo, ',')
+                WHEN 1 THEN string_to_array(lunes, ',')
+                WHEN 2 THEN string_to_array(martes, ',')
+                WHEN 3 THEN string_to_array(miercoles, ',')
+                WHEN 4 THEN string_to_array(jueves, ',')
+                WHEN 5 THEN string_to_array(viernes, ',')
+                WHEN 6 THEN string_to_array(sabado, ',')
+            END
+        ) AS horario
+    FROM horario_consultorio
+    WHERE id = @calendarioId
+)
+SELECT 
+  CASE 
+    WHEN EXISTS (
+      SELECT 1 
+      FROM horarios
+      WHERE
+          @nuevaFechaInicio::timestamp::time < split_part(horario, '-', 2)::time
+          AND @nuevaFechaFin::timestamp::time > split_part(horario, '-', 1)::time
+    )
+    THEN 0 
+    ELSE 1 
+  END AS conflicto;
+    """), parameters: {
+        'calendarioId': consultorioId,
+        'nuevaFechaInicio': newStartTime,
+        'nuevaFechaFin': newEndTime,
+      });
+
+      await conn.close();
+
+      // El resultado es un solo valor en la primera fila, obtenemos ese valor
+      final count = result.isNotEmpty ? result.first[0] as int : 1;
+
+      // Si count es 0, no hay conflictos, por lo tanto, se puede reagendar
+      final canReagendar = count == 0;
+
+      return canReagendar;
+    } catch (e) {
+      print('Error en canReagendarEvento: $e');
+      return false; // Devuelve false en caso de error
     }
   }
 }
